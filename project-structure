@@ -1,0 +1,12 @@
+delight-extension/
+├── src/
+│   ├── components/
+│   │   ├── Chat/
+│   │   └── Summary/
+│   ├── pages/
+│   │   ├── popup/
+│   │   └── sidepanel/
+│   ├── background/
+│   └── content/
+├── public/
+└── config/ 

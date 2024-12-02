@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Delight",
+  "version": "1.0.0",
+  "description": "AI-powered chat and page summaries using Chrome's built-in AI",
+  "permissions": [
+    "sidePanel",
+    "contextMenus",
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "src/pages/popup/index.html",
+    "default_icon": {
+      "16": "icons/delightful-1.jpg",
+      "48": "icons/delightful-1.jpg",
+      "128": "icons/delightful-1.jpg"
+    }
+  },
+  "side_panel": {
+    "default_path": "src/pages/sidepanel/index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/delightful-1.jpg",
+    "48": "icons/delightful-1.jpg",
+    "128": "icons/delightful-1.jpg"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Q",
+        "mac": "Command+Shift+Q"
+      },
+      "description": "Open Delight"
+    }
+  }
+}
