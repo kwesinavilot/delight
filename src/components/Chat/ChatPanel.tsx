@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { generateChatResponse, initializeChatSession } from '@/utils/chat';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -10,9 +11,24 @@ const ChatPanel: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    initializeChatSession().then(chatSession => {
+      if (chatSession) {
+        setSession(chatSession.session);
+      }
+    });
+
+    return () => {
+      if (session) {
+        session.destroy();
+      }
+    };
+  }, []);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !session) return;
 
     const newMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, newMessage]);
@@ -20,9 +36,16 @@ const ChatPanel: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Implement AI response logic
-      const response = "This is a placeholder response. AI integration coming soon!";
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      let responseContent = '';
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+      await generateChatResponse(session, input, (chunk) => {
+        responseContent += chunk;
+        setMessages(prev => [
+          ...prev.slice(0, -1),
+          { role: 'assistant', content: responseContent }
+        ]);
+      });
     } catch (error) {
       console.error('Error getting AI response:', error);
     } finally {

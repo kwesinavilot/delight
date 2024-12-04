@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sparkles, FileText, PenTool, Wand2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Sparkles, FileText, PenTool, Wand2, LucideIcon } from "lucide-react";
+
+type Feature = 'summary' | 'write' | 'rewrite';
+
+const iconMap: { [key: string]: LucideIcon } = {
+    FileText,
+    PenTool,
+    Wand2,
+};
 
 const Popup: React.FC = () => {
     const [hasSelection, setHasSelection] = useState(false);
+
+    const menus = [
+        { title: "Summarize Page", icon: "FileText", feature: "summary" as Feature, disabled: false },
+        { title: "Write", icon: "PenTool", feature: "write" as Feature, disabled: false },
+        { title: "Rewrite", icon: "Wand2", feature: "rewrite" as Feature, disabled: !hasSelection },
+    ];
 
     useEffect(() => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -20,47 +35,66 @@ const Popup: React.FC = () => {
         });
     }, []);
 
-    const openSidePanel = (feature: 'summary' | 'write' | 'rewrite') => {
-        chrome.runtime.sendMessage({ action: 'openSidePanel', feature });
+    const openSidePanel = async (feature: Feature) => {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.id) return;
+
+        console.log('Attempting to open side panel with feature:', feature);
+
+        // First set the options
+        await chrome.sidePanel.setOptions({
+            tabId: tab.id,
+            path: '/sidepanel.html',
+            enabled: true
+        });
+
+        // Then open the panel
+        await chrome.sidePanel.open({ tabId: tab.id });
+
+        chrome.runtime.sendMessage({
+            action: 'openSidePanel',
+            feature,
+            tabId: tab.id
+        }, () => {
+            if (chrome.runtime.lastError) {
+                console.error('Error sending message:', chrome.runtime.lastError);
+            } else {
+                console.log('Message sent successfully');
+            }
+        });
     };
 
     return (
-        <div className="w-64 p-4 bg-background text-foreground">
+        <div className="w-64 bg-background text-foreground">
             {/* Header */}
-            <div className="flex items-center space-x-2 mb-6">
-                <Sparkles className="h-6 w-6 text-primary" />
+            <div className="p-2 flex items-center space-x-2 mb-6">
+                <Avatar>
+                    <AvatarImage src="/icons/delightful-1.jpg" />
+                    <AvatarFallback>
+                        <Sparkles className="h-6 w-6 text-primary" />
+                    </AvatarFallback>
+                </Avatar>
+
                 <h1 className="text-lg font-semibold">Delight</h1>
             </div>
 
             {/* Menu Items */}
             <div className="space-y-2">
-                <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => openSidePanel('summary')}
-                >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Summarize Page
-                </Button>
-
-                <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => openSidePanel('write')}
-                >
-                    <PenTool className="mr-2 h-4 w-4" />
-                    Write
-                </Button>
-
-                <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => openSidePanel('rewrite')}
-                    disabled={!hasSelection}
-                >
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Rewrite
-                </Button>
+                {menus.map((menu) => {
+                    const IconComponent = iconMap[menu.icon];
+                    return (
+                        <Button
+                            key={menu.title}
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => openSidePanel(menu.feature)}
+                            disabled={menu.disabled}
+                        >
+                            <IconComponent className="mr-2 h-4 w-4" />
+                            {menu.title}
+                        </Button>
+                    );
+                })}
             </div>
         </div>
     );
