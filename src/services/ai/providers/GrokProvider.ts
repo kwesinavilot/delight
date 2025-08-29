@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateText } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
@@ -21,7 +21,7 @@ export class GrokProvider extends BaseAIProvider {
     }
 
     // Grok uses OpenAI-compatible API with custom base URL
-    this.client = openai({
+    this.client = createOpenAI({
       apiKey: this.config.apiKey,
       baseURL: 'https://api.x.ai/v1',
     });
@@ -38,7 +38,7 @@ export class GrokProvider extends BaseAIProvider {
 
     try {
       const model = this.client(this.config.model || 'grok-beta');
-      
+
       const messages = [
         ...(options?.systemPrompt ? [{ role: 'system' as const, content: options.systemPrompt }] : []),
         { role: 'user' as const, content: message }
@@ -49,7 +49,7 @@ export class GrokProvider extends BaseAIProvider {
         const result = await streamText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -59,7 +59,7 @@ export class GrokProvider extends BaseAIProvider {
         const result = await generateText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -84,11 +84,11 @@ export class GrokProvider extends BaseAIProvider {
       const prompt = this.getSummaryPrompt(content, length);
 
       // Determine token limits based on summary length
-      const tokenLimits = {
-        short: 150,
-        medium: 300,
-        detailed: 600
-      };
+      // const tokenLimits = {
+      //   short: 150,
+      //   medium: 300,
+      //   detailed: 600
+      // };
 
       const result = await generateText({
         model,
@@ -96,7 +96,7 @@ export class GrokProvider extends BaseAIProvider {
           { role: 'system', content: 'You are Grok, a witty and helpful AI assistant that creates clear, engaging summaries. Add a touch of humor when appropriate while maintaining accuracy.' },
           { role: 'user', content: prompt }
         ],
-        maxTokens: tokenLimits[length],
+        // maxTokens: tokenLimits[length],
         temperature: 0.4, // Slightly higher temperature for Grok's personality
       });
 
@@ -133,16 +133,16 @@ export class GrokProvider extends BaseAIProvider {
   // Method to test the connection
   async testConnection(): Promise<boolean> {
     try {
-      const testStream = await this.generateResponse('Hello', { 
+      const testStream = await this.generateResponse('Hello', {
         systemPrompt: 'Respond with just "OK"',
-        stream: false 
+        stream: false
       });
-      
+
       // Consume the stream to test connectivity
       for await (const _ of testStream) {
         // Just consume the response
       }
-      
+
       return true;
     } catch {
       return false;
@@ -165,7 +165,7 @@ export class GrokProvider extends BaseAIProvider {
   // Get model capabilities
   getModelCapabilities(model?: string): { maxTokens: number; supportsStreaming: boolean } {
     const modelName = model || this.config.model || 'grok-beta';
-    
+
     const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
       'grok-beta': { maxTokens: 131072, supportsStreaming: true },
       'grok-vision-beta': { maxTokens: 131072, supportsStreaming: true }
@@ -177,7 +177,7 @@ export class GrokProvider extends BaseAIProvider {
   // Grok-specific method to get model personality
   getModelPersonality(model?: string): 'witty' | 'balanced' | 'visual' {
     const modelName = model || this.config.model || 'grok-beta';
-    
+
     if (modelName.includes('vision')) return 'visual';
     return 'witty';
   }
@@ -185,7 +185,7 @@ export class GrokProvider extends BaseAIProvider {
   // Get recommended use cases for the model
   getModelRecommendations(model?: string): string[] {
     const personality = this.getModelPersonality(model);
-    
+
     switch (personality) {
       case 'witty':
         return ['Conversational AI', 'Creative writing', 'Engaging content', 'Real-time information'];
@@ -203,7 +203,7 @@ export class GrokProvider extends BaseAIProvider {
   }
 
   // Check if model has real-time capabilities
-  supportsRealTime(model?: string): boolean {
+  supportsRealTime(_model?: string): boolean {
     // Grok has access to real-time information
     return true;
   }

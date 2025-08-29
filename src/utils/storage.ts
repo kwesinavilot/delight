@@ -14,7 +14,7 @@ class ChromeStorageWrapper implements StorageArea {
 
   async get(keys?: string | string[] | { [key: string]: any }): Promise<{ [key: string]: any }> {
     return new Promise((resolve, reject) => {
-      this.storage.get(keys, (result) => {
+      this.storage.get(keys ?? null, (result) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
         } else {

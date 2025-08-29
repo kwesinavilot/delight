@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateText } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
@@ -21,7 +21,7 @@ export class SambaNovaProvider extends BaseAIProvider {
     }
 
     // SambaNova uses OpenAI-compatible API with custom base URL
-    this.client = openai({
+    this.client = createOpenAI({
       apiKey: this.config.apiKey,
       baseURL: 'https://api.sambanova.ai/v1',
     });
@@ -49,7 +49,7 @@ export class SambaNovaProvider extends BaseAIProvider {
         const result = await streamText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -59,7 +59,7 @@ export class SambaNovaProvider extends BaseAIProvider {
         const result = await generateText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -84,11 +84,11 @@ export class SambaNovaProvider extends BaseAIProvider {
       const prompt = this.getSummaryPrompt(content, length);
 
       // Determine token limits based on summary length
-      const tokenLimits = {
-        short: 150,
-        medium: 300,
-        detailed: 600
-      };
+      // const tokenLimits = {
+      //   short: 150,
+      //   medium: 300,
+      //   detailed: 600
+      // };
 
       const result = await generateText({
         model,
@@ -96,7 +96,7 @@ export class SambaNovaProvider extends BaseAIProvider {
           { role: 'system', content: 'You are a helpful AI assistant powered by SambaNova\'s high-performance computing platform. Create clear, accurate summaries that capture the essential information.' },
           { role: 'user', content: prompt }
         ],
-        maxTokens: tokenLimits[length],
+        // maxTokens: tokenLimits[length],
         temperature: 0.3, // Lower temperature for consistent summaries
       });
 

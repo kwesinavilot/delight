@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat history and persistence
 - Custom prompt templates
 
+## [2.0.1] - 2025-08-29
+
+### Fixed
+- **Vercel AI SDK Compatibility**
+  - Updated all AI providers to use new Vercel AI SDK v5+ API
+  - Fixed OpenAI provider initialization using `createOpenAI()` instead of `openai()`
+  - Fixed Anthropic provider initialization using `createAnthropic()` instead of `anthropic()`
+  - Fixed Gemini provider initialization using `createGoogleGenerativeAI()` instead of `google()`
+  - Fixed Grok and SambaNova providers using `createOpenAI()` with custom base URLs
+  - Resolved TypeScript compilation errors related to provider client initialization
+
+### Changed
+- **Provider Architecture**
+  - Migrated to explicit provider creation functions for better type safety
+  - Improved consistency across all AI provider implementations
+  - Enhanced error handling during provider initialization
+
 ## [2.0.0] - 2025-08-29
 
 ### Added

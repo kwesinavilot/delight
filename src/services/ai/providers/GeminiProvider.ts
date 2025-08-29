@@ -1,4 +1,4 @@
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText, generateText } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
@@ -20,7 +20,7 @@ export class GeminiProvider extends BaseAIProvider {
       return; // Client will be initialized when API key is available
     }
 
-    this.client = google({
+    this.client = createGoogleGenerativeAI({
       apiKey: this.config.apiKey,
     });
   }
@@ -47,7 +47,7 @@ export class GeminiProvider extends BaseAIProvider {
         const result = await streamText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -57,7 +57,7 @@ export class GeminiProvider extends BaseAIProvider {
         const result = await generateText({
           model,
           messages,
-          maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -82,11 +82,11 @@ export class GeminiProvider extends BaseAIProvider {
       const prompt = this.getSummaryPrompt(content, length);
 
       // Determine token limits based on summary length
-      const tokenLimits = {
-        short: 150,
-        medium: 300,
-        detailed: 600
-      };
+      // const tokenLimits = {
+      //   short: 150,
+      //   medium: 300,
+      //   detailed: 600
+      // };
 
       const result = await generateText({
         model,
@@ -94,7 +94,7 @@ export class GeminiProvider extends BaseAIProvider {
           { role: 'system', content: 'You are a helpful assistant that creates clear, concise summaries. Focus on extracting the most important information and presenting it in a well-organized manner.' },
           { role: 'user', content: prompt }
         ],
-        maxTokens: tokenLimits[length],
+        // maxTokens: tokenLimits[length],
         temperature: 0.3, // Lower temperature for more consistent summaries
       });
 
