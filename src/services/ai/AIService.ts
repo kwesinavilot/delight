@@ -2,6 +2,9 @@ import { AIProvider, GenerationOptions, SummaryLength, AIError, AIErrorType } fr
 import { ConfigManager } from '../config/ConfigManager';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
+import { GeminiProvider } from './providers/GeminiProvider';
+import { GrokProvider } from './providers/GrokProvider';
+import { SambaNovaProvider } from './providers/SambaNovaProvider';
 
 export class AIService {
   private static instance: AIService;
@@ -37,6 +40,21 @@ export class AIService {
       const anthropicConfig = await this.configManager.getProviderConfig('anthropic');
       const anthropicProvider = new AnthropicProvider(anthropicConfig);
       this.providers.set('anthropic', anthropicProvider);
+
+      // Register Gemini provider
+      const geminiConfig = await this.configManager.getProviderConfig('gemini');
+      const geminiProvider = new GeminiProvider(geminiConfig);
+      this.providers.set('gemini', geminiProvider);
+
+      // Register Grok provider
+      const grokConfig = await this.configManager.getProviderConfig('grok');
+      const grokProvider = new GrokProvider(grokConfig);
+      this.providers.set('grok', grokProvider);
+
+      // Register SambaNova provider
+      const sambanovaConfig = await this.configManager.getProviderConfig('sambanova');
+      const sambanovaProvider = new SambaNovaProvider(sambanovaConfig);
+      this.providers.set('sambanova', sambanovaProvider);
     } catch (error) {
       console.error('Failed to register providers:', error);
       throw new AIError(
@@ -52,7 +70,7 @@ export class AIService {
     try {
       const currentProviderName = await this.configManager.getCurrentProvider();
       const provider = this.providers.get(currentProviderName);
-      
+
       if (!provider) {
         throw new AIError(
           AIErrorType.CONFIGURATION_ERROR,
@@ -70,7 +88,7 @@ export class AIService {
 
   private async fallbackToAvailableProvider(): Promise<void> {
     const availableProviders = Array.from(this.providers.entries());
-    
+
     for (const [name, provider] of availableProviders) {
       if (provider.isConfigured()) {
         console.log(`Falling back to provider: ${name}`);
@@ -88,7 +106,7 @@ export class AIService {
 
   async switchProvider(providerName: string): Promise<void> {
     const provider = this.providers.get(providerName);
-    
+
     if (!provider) {
       throw new AIError(
         AIErrorType.CONFIGURATION_ERROR,
@@ -108,7 +126,7 @@ export class AIService {
   }
 
   async generateChatResponse(
-    message: string, 
+    message: string,
     onChunk?: (chunk: string) => void
   ): Promise<string> {
     if (!this.currentProvider) {
@@ -144,11 +162,11 @@ export class AIService {
       return fullResponse;
     } catch (error) {
       console.error('Chat response generation failed:', error);
-      
+
       if (error instanceof AIError) {
         throw error;
       }
-      
+
       throw new AIError(
         AIErrorType.API_ERROR,
         'Failed to generate chat response',
@@ -177,11 +195,11 @@ export class AIService {
       return await this.currentProvider.generateSummary(content, length);
     } catch (error) {
       console.error('Summary generation failed:', error);
-      
+
       if (error instanceof AIError) {
         throw error;
       }
-      
+
       throw new AIError(
         AIErrorType.API_ERROR,
         'Failed to generate page summary',
@@ -219,7 +237,7 @@ export class AIService {
       if (!this.currentProvider) {
         return false;
       }
-      
+
       return this.currentProvider.isConfigured();
     } catch {
       return false;
@@ -228,7 +246,7 @@ export class AIService {
 
   // Method for testing provider connectivity
   async testProvider(providerName?: string): Promise<boolean> {
-    const provider = providerName 
+    const provider = providerName
       ? this.providers.get(providerName)
       : this.currentProvider;
 
@@ -238,16 +256,16 @@ export class AIService {
 
     try {
       // Test with a simple message
-      const testStream = await provider.generateResponse('Hello', { 
+      const testStream = await provider.generateResponse('Hello', {
         systemPrompt: 'Respond with just "OK"',
-        stream: false 
+        stream: false
       });
-      
+
       // Consume the stream to test connectivity
       for await (const _ of testStream) {
         // Just consume the response
       }
-      
+
       return true;
     } catch {
       return false;

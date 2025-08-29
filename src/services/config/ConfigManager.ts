@@ -43,6 +43,24 @@ export class ConfigManager {
             model: 'claude-3-haiku-20240307',
             maxTokens: 1000,
             temperature: 0.7
+          },
+          gemini: {
+            apiKey: '',
+            model: 'gemini-1.5-flash',
+            maxTokens: 1000,
+            temperature: 0.7
+          },
+          grok: {
+            apiKey: '',
+            model: 'grok-beta',
+            maxTokens: 1000,
+            temperature: 0.7
+          },
+          sambanova: {
+            apiKey: '',
+            model: 'Meta-Llama-3.1-8B-Instruct',
+            maxTokens: 1000,
+            temperature: 0.7
           }
         }
       }

@@ -20,10 +20,12 @@
   - Write unit tests for configuration management functionality
 
 
+
   - _Requirements: 2.2, 5.1, 5.2_
 
 - [ ] 3. Implement core AI service interfaces
   - Create AIProvider interface with methods for chat and summary generation
+
   - Implement AIService class as the main service layer for AI interactions
 
 
@@ -31,19 +33,29 @@
   - Write unit tests for core interfaces and error handling
   - _Requirements: 4.1, 4.3, 4.4_
 
+
 - [ ] 4. Implement OpenAI provider using Vercel AI SDK
 
 
 
   - Create OpenAIProvider class implementing AIProvider interface
+
+
   - Integrate Vercel AI SDK's OpenAI client for streaming chat responses
   - Implement summary generation with appropriate prompts for different lengths
   - Write unit tests for OpenAI provider functionality
+
+
+
+
   - _Requirements: 1.1, 1.3, 3.2_
 
 - [ ] 5. Implement Anthropic provider as secondary option
   - Create AnthropicProvider class implementing AIProvider interface
   - Integrate Vercel AI SDK's Anthropic client for chat and summary functionality
+
+
+
   - Ensure consistent interface with OpenAI provider implementation
   - Write unit tests for Anthropic provider functionality
   - _Requirements: 2.1, 4.2_
