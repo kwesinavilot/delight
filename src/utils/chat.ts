@@ -4,10 +4,10 @@ interface ChatSession {
 }
 
 export const initializeChatSession = async (): Promise<ChatSession | null> => {
-  const { available } = await ai.languageModel.capabilities();
+  const { available } = await chrome.aiOriginTrial.languageModel.capabilities();
   
   if (available !== "no") {
-    const session = await ai.languageModel.create({
+    const session = await chrome.aiOriginTrial.languageModel.create({
       systemPrompt: "You are Delight, a helpful and friendly AI assistant."
     });
     return {
