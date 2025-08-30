@@ -31,43 +31,31 @@ export class AIService {
   }
 
   private async registerProviders(): Promise<void> {
-    try {
-      // Register OpenAI provider
-      const openaiConfig = await this.configManager.getProviderConfig('openai');
-      const openaiProvider = new OpenAIProvider(openaiConfig);
-      this.providers.set('openai', openaiProvider);
+    const providerClasses = {
+      openai: OpenAIProvider,
+      anthropic: AnthropicProvider,
+      gemini: GeminiProvider,
+      grok: GrokProvider,
+      groq: GroqProvider,
+      sambanova: SambaNovaProvider
+    };
 
-      // Register Anthropic provider
-      const anthropicConfig = await this.configManager.getProviderConfig('anthropic');
-      const anthropicProvider = new AnthropicProvider(anthropicConfig);
-      this.providers.set('anthropic', anthropicProvider);
+    for (const [providerName, ProviderClass] of Object.entries(providerClasses)) {
+      try {
+        const config = await this.configManager.getProviderConfig(providerName);
+        const provider = new ProviderClass(config);
+        this.providers.set(providerName, provider);
+        console.log(`Registered provider: ${providerName}`);
+      } catch (error) {
+        console.warn(`Failed to register provider ${providerName}:`, error);
+        // Continue with other providers instead of failing completely
+      }
+    }
 
-      // Register Gemini provider
-      const geminiConfig = await this.configManager.getProviderConfig('gemini');
-      const geminiProvider = new GeminiProvider(geminiConfig);
-      this.providers.set('gemini', geminiProvider);
-
-      // Register Grok provider
-      const grokConfig = await this.configManager.getProviderConfig('grok');
-      const grokProvider = new GrokProvider(grokConfig);
-      this.providers.set('grok', grokProvider);
-
-      // Register Groq provider
-      const groqConfig = await this.configManager.getProviderConfig('groq');
-      const groqProvider = new GroqProvider(groqConfig);
-      this.providers.set('groq', groqProvider);
-
-      // Register SambaNova provider
-      const sambanovaConfig = await this.configManager.getProviderConfig('sambanova');
-      const sambanovaProvider = new SambaNovaProvider(sambanovaConfig);
-      this.providers.set('sambanova', sambanovaProvider);
-    } catch (error) {
-      console.error('Failed to register providers:', error);
+    if (this.providers.size === 0) {
       throw new AIError(
         AIErrorType.CONFIGURATION_ERROR,
-        'Failed to initialize AI providers',
-        undefined,
-        error as Error
+        'No AI providers could be registered'
       );
     }
   }

@@ -12,6 +12,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat history and persistence
 - Custom prompt templates
 
+## [3.3.1] - 2025-01-29
+
+### 🐛 Critical Bug Fixes
+
+### Fixed
+- **✅ Sidepanel Close Button**
+  - Fixed close button not working in sidepanel mode
+  - Improved close functionality to properly detect fullscreen vs sidepanel mode
+  - Added proper fallback handling for Chrome API failures
+
+- **🔧 Provider Registration Errors**
+  - Fixed "Failed to register providers: Error: Provider groq is not configured" on startup
+  - Changed provider registration to be non-blocking - failed providers no longer crash initialization
+  - Enhanced ConfigManager to create default configurations for missing providers
+  - Improved error handling with graceful degradation
+
+- **🖥️ Fullscreen/Sidepanel Mode Issues**
+  - Fixed ERR_FILE_NOT_FOUND error when minimizing from fullscreen to sidepanel
+  - Improved mode detection logic with better window width thresholds (500px)
+  - Enhanced maximize/minimize functionality with proper tab management
+  - Simplified minimize logic to avoid invalid tab switching
+
+- **🏠 Welcome Page Navigation**
+  - Removed Google redirect after welcome completion
+  - Now uses existing valid tabs or creates blank new tab instead
+  - Improved tab selection logic to avoid chrome:// and extension pages
+
+### Changed
+- **🔄 Enhanced Tab Management**
+  - Improved existing tab detection and validation
+  - Better fallback mechanisms for tab operations
+  - More reliable sidepanel attachment to valid tabs
+
 ## [3.3.0] - 2025-01-29
 
 ### 🚀 Enhanced Sidepanel Experience & UX Improvements

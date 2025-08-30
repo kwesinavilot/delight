@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 3.3.0 - Enhanced Sidepanel Experience & UX Improvements**
+## 🎉 **Version 3.3.1 - Critical Bug Fixes & Stability Improvements**
 
-**NEW**: Interactive sample prompts, robust sidepanel management, and improved onboarding!
+**FIXED**: Sidepanel close button, provider registration errors, and fullscreen/sidepanel mode issues!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)

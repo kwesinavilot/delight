@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
-import { enhancedSidepanelManager } from '@/services/tabs';
+// import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
   const [activeView, setActiveView] = useState<'chat' | 'settings'>('chat');
@@ -15,16 +15,20 @@ const MainSidePanel: React.FC = () => {
   // Detect if we're in fullscreen mode (opened as a tab vs sidepanel)
   useEffect(() => {
     const checkIfFullscreen = () => {
-      // Check if we're in a tab by examining the URL parameters or window properties
       const urlParams = new URLSearchParams(window.location.search);
-      const isTabMode = urlParams.get('mode') === 'tab' ||
-        window.location.href.includes('?tab=true') ||
-        window.outerWidth > 600; // Sidepanels are typically 300-400px, tabs are much wider
+      const hasTabMode = urlParams.get('mode') === 'tab';
+      const isWideWindow = window.outerWidth > 500; // More conservative threshold
+      const isTabContext = window.location.pathname.includes('sidepanel') && hasTabMode;
+      
+      // Primary check: URL parameter
+      // Secondary check: window width (sidepanels are typically 320-400px)
+      const isTabMode = hasTabMode || (isWideWindow && !window.chrome?.sidePanel);
 
       console.log('[MainSidePanel] Fullscreen detection:', {
         urlMode: urlParams.get('mode'),
-        hasTabParam: window.location.href.includes('?tab=true'),
         windowWidth: window.outerWidth,
+        isTabContext,
+        isWideWindow,
         isTabMode
       });
 
@@ -34,10 +38,15 @@ const MainSidePanel: React.FC = () => {
     checkIfFullscreen();
 
     // Listen for resize events to detect mode changes
-    window.addEventListener('resize', checkIfFullscreen);
+    const handleResize = () => {
+      // Debounce resize events
+      setTimeout(checkIfFullscreen, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', checkIfFullscreen);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -56,76 +65,101 @@ const MainSidePanel: React.FC = () => {
 
   const closePanel = async () => {
     try {
-      // Get the current tab
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      const tab = tabs[0];
-
-      if (tab?.id) {
-        // Actually close the sidepanel by disabling it
-        await chrome.sidePanel.setOptions({
-          tabId: tab.id,
-          enabled: false
-        });
-        console.log('Side panel closed successfully');
-      }
-    } catch (error) {
-      console.error('Error closing side panel:', error);
-      // Fallback: try to close the window if we're in a tab
       if (isFullscreen) {
         window.close();
+        return;
       }
+
+      // For sidepanel mode, try window.close() first (most reliable)
+      window.close();
+      
+      // If window.close() doesn't work, try Chrome API as fallback
+      setTimeout(async () => {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tab = tabs[0];
+          if (tab?.id) {
+            await chrome.sidePanel.setOptions({
+              tabId: tab.id,
+              enabled: false
+            });
+          }
+        } catch (error) {
+          console.warn('Chrome API fallback failed:', error);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error closing panel:', error);
     }
   };
 
-  const maximizeToFullscreen = () => {
-    // Open the sidepanel page in a new tab for fullscreen experience with tab mode parameter
-    chrome.tabs.create({
-      url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
-      active: true
-    });
-
-    setIsFullscreen(true);
+  const maximizeToFullscreen = async () => {
+    try {
+      // Open the sidepanel page in a new tab for fullscreen experience
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
+        active: true
+      });
+      
+      console.log('Opened fullscreen tab');
+      
+      // Close the current sidepanel after a short delay to ensure the tab opens
+      setTimeout(async () => {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const currentTab = tabs.find(tab => !tab.url?.includes('mode=tab'));
+          
+          if (currentTab?.id) {
+            await chrome.sidePanel.setOptions({
+              tabId: currentTab.id,
+              enabled: false
+            });
+          }
+        } catch (error) {
+          console.warn('Could not close sidepanel after maximizing:', error);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error maximizing to fullscreen:', error);
+    }
   };
 
   const minimizeToSidePanel = async () => {
-    if (isMinimizing) return; // Prevent multiple simultaneous operations
+    if (isMinimizing) return;
 
     setIsMinimizing(true);
 
     try {
-      console.log('[MainSidePanel] Starting enhanced minimize to sidepanel');
+      // Try to find existing valid tab first
+      const tabs = await chrome.tabs.query({});
+      let targetTab = tabs.find(async tab => 
+        tab.url && 
+        !tab.url.startsWith('chrome://') && 
+        !tab.url.startsWith('chrome-extension://') &&
+        tab.id !== (await chrome.tabs.getCurrent())?.id
+      );
 
-      // Use the enhanced sidepanel manager for robust tab management
-      const result = await enhancedSidepanelManager.minimizeToSidePanel({
-        preserveCurrentTab: false,
-        preferRecentlyActive: true,
-        enableLogging: true
-      });
+      // If no valid tab exists, create a new one
+      if (!targetTab) {
+        targetTab = await chrome.tabs.create({ active: true });
+      } else {
+        await chrome.tabs.update(targetTab.id!, { active: true });
+      }
 
-      if (result.success) {
-        console.log('[MainSidePanel] Successfully minimized to sidepanel:', {
-          targetTab: result.targetTab?.id,
-          fallbackUsed: result.fallbackUsed,
-          transitionTime: result.transitionTime
+      if (targetTab.id) {
+        await chrome.sidePanel.open({ tabId: targetTab.id });
+        await chrome.sidePanel.setOptions({
+          tabId: targetTab.id,
+          path: 'sidepanel.html',
+          enabled: true
         });
 
         setIsFullscreen(false);
-      } else {
-        console.error('[MainSidePanel] Enhanced minimize failed:', result.error);
-
-        // Fallback to closing the current tab
-        console.log('[MainSidePanel] Using fallback: closing current tab');
         window.close();
       }
     } catch (error) {
-      console.error('[MainSidePanel] Critical error during minimize operation:', error);
-
-      // Last resort fallback
-      try {
-        window.close();
-      } catch (closeError) {
-        console.error('[MainSidePanel] Failed to close window:', closeError);
-      }
+      console.error('Error minimizing to sidepanel:', error);
+      window.close();
     } finally {
       setIsMinimizing(false);
     }

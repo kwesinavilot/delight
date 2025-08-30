@@ -92,9 +92,19 @@ export class ConfigManager {
   async getProviderConfig(provider: string): Promise<AIConfiguration> {
     if (!this.settings) await this.loadSettings();
     
-    const providerSettings = this.settings!.ai.providers[provider];
+    let providerSettings = this.settings!.ai.providers[provider];
+    
+    // If provider doesn't exist, create default settings
     if (!providerSettings) {
-      throw new Error(`Provider ${provider} is not configured`);
+      const defaultSettings = this.getDefaultProviderSettings(provider);
+      this.settings!.ai.providers[provider] = defaultSettings;
+      providerSettings = defaultSettings;
+      // Save the updated settings
+      try {
+        await this.saveSettings();
+      } catch (error) {
+        console.warn('Failed to save default provider settings:', error);
+      }
     }
 
     return {
@@ -103,6 +113,24 @@ export class ConfigManager {
       model: providerSettings.model,
       maxTokens: providerSettings.maxTokens,
       temperature: providerSettings.temperature
+    };
+  }
+
+  private getDefaultProviderSettings(provider: string) {
+    const modelDefaults: Record<string, string> = {
+      openai: 'gpt-3.5-turbo',
+      anthropic: 'claude-3-haiku-20240307',
+      gemini: 'gemini-2.5-flash',
+      grok: 'grok-beta',
+      groq: 'openai/gpt-oss-20b',
+      sambanova: 'Meta-Llama-3.1-8B-Instruct'
+    };
+
+    return {
+      apiKey: '',
+      model: modelDefaults[provider] || 'default-model',
+      maxTokens: 1000,
+      temperature: 0.7
     };
   }
 

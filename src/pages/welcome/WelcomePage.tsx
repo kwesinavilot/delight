@@ -168,14 +168,26 @@ const WelcomePage: React.FC = () => {
     // Mark welcome as completed and open in sidepanel mode
     chrome.storage.sync.set({ welcomeCompleted: true });
     
-    // Create a new tab and open sidepanel there
-    const tab = await chrome.tabs.create({ url: 'https://www.google.com', active: true });
+    // Try to find existing valid tab first
+    const tabs = await chrome.tabs.query({});
+    let targetTab = tabs.find(tab => 
+      tab.url && 
+      !tab.url.startsWith('chrome://') && 
+      !tab.url.startsWith('chrome-extension://')
+    );
+
+    // If no valid tab exists, create a new blank one
+    if (!targetTab) {
+      targetTab = await chrome.tabs.create({ active: true });
+    } else {
+      await chrome.tabs.update(targetTab.id!, { active: true });
+    }
     
-    if (tab.id) {
-      // Open sidepanel on the new tab
-      await chrome.sidePanel.open({ tabId: tab.id });
+    if (targetTab.id) {
+      // Open sidepanel on the target tab
+      await chrome.sidePanel.open({ tabId: targetTab.id });
       await chrome.sidePanel.setOptions({
-        tabId: tab.id,
+        tabId: targetTab.id,
         path: 'sidepanel.html',
         enabled: true
       });
@@ -198,7 +210,7 @@ const WelcomePage: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <RocketLaunchIcon className="h-8 w-8 text-blue-500" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v3.3.0</span>
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v3.3.1</span>
           </div>
 
           {/* Progress indicator */}
