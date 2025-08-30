@@ -12,6 +12,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat history and persistence
 - Custom prompt templates
 
+## [3.2.0] - 2025-08-29
+
+### 🎯 Enhanced User Experience & Documentation
+
+### Added
+- **📚 Comprehensive User Guide**
+  - Interactive user guide with 6 expandable sections (Getting Started, AI Providers, Features, Settings, Security & Privacy, Troubleshooting, FAQ)
+  - Step-by-step setup instructions for all 6 AI providers with direct API key links
+  - Comprehensive troubleshooting section with common issues and solutions
+  - Detailed security and privacy information
+  - FAQ section covering most common user questions
+  - Collapsible sections with smooth animations for better navigation
+
+- **🔗 Enhanced Settings Footer**
+  - Global footer visible on all settings tabs with version information
+  - Quick access links to User Guide, Privacy Policy, GitHub, and Support
+  - Persistent "Show Welcome" button for easy onboarding access
+  - Improved navigation between documentation and settings
+
+- **📄 Privacy Policy**
+  - Comprehensive privacy policy explaining data handling practices
+  - Clear statements about no data collection by Delight
+  - Detailed information about local-only storage
+  - Transparency about AI provider interactions and their respective policies
+  - Instructions for data deletion and privacy controls
+
+### Changed
+- **⚙️ Improved Settings Organization**
+  - Reordered settings tabs: "Appearance" now appears before "AI Providers"
+  - Default settings tab changed to "Appearance" for better first-time user experience
+  - Moved version information and links to persistent global footer
+  - Enhanced settings navigation with consistent footer across all tabs
+
+- **📖 Updated Documentation Links**
+  - Changed "Documentation" to "User Guide" throughout the interface
+  - Updated welcome page links to point to comprehensive user guide
+  - Added proper click handlers for opening documentation in new tabs
+  - Improved link accessibility and user experience
+
+### Technical
+- Added user guide to build configuration and web accessible resources
+- Enhanced manifest permissions for improved functionality
+- Updated build system to include new documentation pages
+
+## [3.1.0] - 2025-08-29
+
+### 🖥️ Fullscreen Mode & Interface Enhancements
+
+### Added
+- **📱 Fullscreen Mode Support**
+  - Maximize button in sidepanel to open fullscreen experience in new tab
+  - Minimize button in fullscreen mode to return to sidepanel
+  - Smart mode detection using URL parameters and window properties
+  - Seamless state preservation when switching between modes
+  - Enhanced desktop experience with responsive layout
+
+- **🎛️ Smart Interface Controls**
+  - Dynamic button behavior based on current mode (sidepanel vs fullscreen)
+  - Intelligent close button: minimizes from fullscreen, closes from sidepanel
+  - Automatic tab management for smooth mode transitions
+  - Suitable tab detection for sidepanel attachment
+
+- **🎨 Enhanced Welcome Experience**
+  - First-time installation welcome page with 3-step interactive onboarding
+  - Welcome hint component in chat panel for new users
+  - Dismissible welcome hints with persistent storage
+  - Quick setup buttons for immediate configuration access
+  - Major version update detection with automatic welcome page display
+
+### Changed
+- **🔄 Improved Navigation**
+  - Enhanced MainSidePanel with maximize/minimize functionality
+  - Better responsive design for fullscreen mode with centered layout
+  - Improved event system for switching between chat and settings views
+  - Enhanced background script for first install detection
+
+- **⚡ Better User Onboarding**
+  - Welcome page now opens in fullscreen mode by default for better experience
+  - Integrated welcome hints appear when chat is empty and no errors present
+  - Streamlined setup process with direct links to provider configuration
+
+### Technical
+- Added "tabs" permission to manifest for enhanced tab management
+- Enhanced URL parameter handling for mode detection
+- Improved Chrome extension API usage for sidepanel management
+- Better error handling for tab operations and mode switching
+
 ## [3.0.0] - 2025-08-29
 
 ### 🚀 MAJOR RELEASE: Complete 6-Provider AI Ecosystem

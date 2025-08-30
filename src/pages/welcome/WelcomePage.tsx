@@ -165,9 +165,9 @@ const WelcomePage: React.FC = () => {
   };
 
   const handleGetStarted = () => {
-    // Mark welcome as completed and open settings
+    // Mark welcome as completed and open settings in fullscreen mode
     chrome.storage.sync.set({ welcomeCompleted: true });
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/sidepanel/index.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab') });
     window.close();
   };
 
@@ -185,7 +185,7 @@ const WelcomePage: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <RocketLaunchIcon className="h-8 w-8 text-blue-500" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v3.0.0</span>
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v3.2.0</span>
           </div>
 
           {/* Progress indicator */}
@@ -265,7 +265,19 @@ const WelcomePage: React.FC = () => {
         <div className="text-center mt-12 text-sm text-gray-500 dark:text-gray-400">
           <p>Need help? Check out our documentation or contact support.</p>
           <div className="flex justify-center space-x-4 mt-2">
-            <a href="#" className="hover:text-blue-500">Documentation</a>
+            <a 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                chrome.tabs.create({ 
+                  url: chrome.runtime.getURL('src/pages/userguide/index.html'),
+                  active: true 
+                });
+              }}
+              className="hover:text-blue-500"
+            >
+              User Guide
+            </a>
             <a href="#" className="hover:text-blue-500">Support</a>
             <a href="#" className="hover:text-blue-500">Privacy Policy</a>
           </div>

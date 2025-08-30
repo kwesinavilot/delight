@@ -15,7 +15,7 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
-  const [activeTab, setActiveTab] = useState<'providers' | 'appearance'>('providers');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'providers'>('appearance');
   const [providers, setProviders] = useState<Record<string, AIConfiguration>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
@@ -186,15 +186,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
         {/* Tabs */}
         <div className="flex space-x-4 mt-4">
           <button
-            onClick={() => setActiveTab('providers')}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'providers'
-              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-              }`}
-          >
-            AI Providers
-          </button>
-          <button
             onClick={() => setActiveTab('appearance')}
             className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'appearance'
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
@@ -202,6 +193,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               }`}
           >
             Appearance
+          </button>
+          <button
+            onClick={() => setActiveTab('providers')}
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'providers'
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+              }`}
+          >
+            AI Providers
           </button>
         </div>
       </div>
@@ -355,31 +355,86 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                 ))}
               </div>
             </div>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3">
-                  <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5" />
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <p className="font-medium mb-1">About Delight</p>
-                    <p>Version 3.0.0 - AI-powered Chrome extension with 6-provider ecosystem including ultra-fast Groq</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    chrome.tabs.create({
-                      url: chrome.runtime.getURL('src/pages/welcome/index.html'),
-                      active: true
-                    });
-                  }}
-                  className="px-3 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                >
-                  Show Welcome
-                </button>
-              </div>
-            </div>
           </div>
         )}
+      </div>
+
+      {/* Global Footer - Always visible */}
+      <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
+        <div className="space-y-4">
+          {/* Version and Links */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div className="flex items-center space-x-3">
+              <InformationCircleIcon className="h-5 w-5 text-blue-500" />
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Delight v3.2.0</span>
+                <span className="ml-2">AI-powered Chrome extension</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  chrome.tabs.create({
+                    url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                    active: true
+                  });
+                }}
+                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Show Welcome
+              </button>
+            </div>
+          </div>
+          
+          {/* Links */}
+          <div className="flex flex-wrap items-center justify-center space-x-6 text-xs text-gray-500 dark:text-gray-400">
+            <button
+              onClick={() => {
+                chrome.tabs.create({
+                  url: chrome.runtime.getURL('src/pages/userguide/index.html'),
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              User Guide
+            </button>
+            <button
+              onClick={() => {
+                chrome.tabs.create({
+                  url: 'https://github.com/kwesinavilot/delight/blob/main/PRIVACY.md',
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              Privacy Policy
+            </button>
+            <button
+              onClick={() => {
+                chrome.tabs.create({
+                  url: 'https://github.com/kwesinavilot/delight',
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              GitHub
+            </button>
+            <button
+              onClick={() => {
+                chrome.tabs.create({
+                  url: 'https://github.com/kwesinavilot/delight/issues',
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              Support
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

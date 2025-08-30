@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 3.0.0 - Complete 6-Provider AI Ecosystem**
+## 🎉 **Version 3.2.0 - Enhanced User Experience & Documentation**
 
-**NEW**: Ultra-fast Groq provider with industry-leading inference speed (800+ tokens/second)!
+**NEW**: Comprehensive user guide, fullscreen mode, and enhanced interface!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -19,10 +19,13 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
+- **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience
+- **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
+- **Enhanced Onboarding**: Welcome page and hints for first-time users
 - **Flexible Configuration**: Easy provider switching and API key management
 - **Modern UI**: Clean, responsive interface with dark mode support
-- **Privacy-Focused**: Secure local storage of API keys with encryption
-- **Multiple Interfaces**: Popup, side panel, and keyboard shortcuts
+- **Privacy-Focused**: Secure local storage of API keys with encryption - [Privacy Policy](PRIVACY.md)
+- **Multiple Interfaces**: Popup, side panel, fullscreen, and keyboard shortcuts
 
 ## 🚀 Quick Start
 
