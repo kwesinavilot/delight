@@ -63,14 +63,60 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     }
 });
 
-// Context menu setup
-chrome.runtime.onInstalled.addListener(() => {
+// Context menu setup and welcome page handling
+chrome.runtime.onInstalled.addListener(async (details) => {
+    // Create context menu
     chrome.contextMenus.create({
         id: 'summarize',
         title: 'Summarize with Delight',
         contexts: ['page'],
         enabled: true
     });
+
+    // Show welcome page on first install
+    if (details.reason === 'install') {
+        try {
+            // Check if welcome has been completed before
+            const result = await chrome.storage.sync.get(['welcomeCompleted']);
+            
+            if (!result.welcomeCompleted) {
+                // Open welcome page in a new tab
+                await chrome.tabs.create({
+                    url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                    active: true
+                });
+            }
+        } catch (error) {
+            console.error('Error handling first install:', error);
+        }
+    }
+    
+    // Show welcome page on major version updates (optional)
+    if (details.reason === 'update') {
+        const previousVersion = details.previousVersion;
+        const currentVersion = chrome.runtime.getManifest().version;
+        
+        // Show welcome for major version updates (e.g., 2.x.x -> 3.x.x)
+        if (previousVersion && currentVersion) {
+            const prevMajor = parseInt(previousVersion.split('.')[0]);
+            const currMajor = parseInt(currentVersion.split('.')[0]);
+            
+            if (currMajor > prevMajor) {
+                try {
+                    // Reset welcome completion for major updates
+                    await chrome.storage.sync.set({ welcomeCompleted: false });
+                    
+                    // Open welcome page
+                    await chrome.tabs.create({
+                        url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                        active: true
+                    });
+                } catch (error) {
+                    console.error('Error handling major version update:', error);
+                }
+            }
+        }
+    }
 });
 
 chrome.contextMenus.onClicked.addListener((_info, tab) => {

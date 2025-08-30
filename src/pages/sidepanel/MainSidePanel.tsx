@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 
 const MainSidePanel: React.FC = () => {
   const [activeView, setActiveView] = useState<'chat' | 'settings'>('chat');
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+
+  // Listen for custom events to switch views
+  React.useEffect(() => {
+    const handleSwitchToSettings = () => {
+      handleViewChange('settings');
+    };
+
+    window.addEventListener('switchToSettings', handleSwitchToSettings);
+    
+    return () => {
+      window.removeEventListener('switchToSettings', handleSwitchToSettings);
+    };
+  }, []);
 
   const closePanel = () => {
     chrome.runtime.sendMessage({ action: 'closePanel' });

@@ -1,8 +1,24 @@
 {
-  "name": "delight-extension",
+  "name": "delight",
+  "displayName": "Delight",
+  "author": {
+    "name": "Naviware Inc.",
+    "url": "https://github.com/naviwarernd",
+    "email": "andrewsankomahene@gmail.com"
+  },
+  "private": true,
   "version": "3.0.0",
   "description": "Multi-provider AI Chrome extension supporting OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova for chat and page summaries",
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/kwesinavilot/delight#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kwesinavilot/delight"
+  },
+  "bugs": {
+    "url": "https://github.com/kwesinavilot/delight/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

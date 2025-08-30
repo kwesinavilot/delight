@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Cog6ToothIcon, 
-  EyeIcon, 
-  EyeSlashIcon, 
+import {
+  Cog6ToothIcon,
+  EyeIcon,
+  EyeSlashIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon
@@ -84,10 +84,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       const configManager = ConfigManager.getInstance();
       const allConfigs = await configManager.getAllConfigurations();
       const currentProvider = await configManager.getCurrentProvider();
-      
+
       setProviders(allConfigs);
       setSelectedProvider(currentProvider || '');
-      
+
       // Load theme from storage
       const result = await chrome.storage.sync.get(['theme']);
       setTheme(result.theme || 'system');
@@ -105,9 +105,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
         [field]: value
       }
     };
-    
+
     setProviders(updatedProviders);
-    
+
     try {
       const configManager = ConfigManager.getInstance();
       await configManager.setConfiguration(providerId, updatedProviders[providerId]);
@@ -118,7 +118,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
 
   const handleProviderSelect = async (providerId: string) => {
     setSelectedProvider(providerId);
-    
+
     try {
       const configManager = ConfigManager.getInstance();
       await configManager.setCurrentProvider(providerId);
@@ -130,19 +130,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   const testConnection = async (providerId: string) => {
     setTestingConnection(providerId);
     setConnectionStatus({ ...connectionStatus, [providerId]: null });
-    
+
     try {
       const configManager = ConfigManager.getInstance();
       const success = await configManager.testConnection(providerId);
-      
-      setConnectionStatus({ 
-        ...connectionStatus, 
-        [providerId]: success ? 'success' : 'error' 
+
+      setConnectionStatus({
+        ...connectionStatus,
+        [providerId]: success ? 'success' : 'error'
       });
     } catch (error) {
-      setConnectionStatus({ 
-        ...connectionStatus, 
-        [providerId]: 'error' 
+      setConnectionStatus({
+        ...connectionStatus,
+        [providerId]: 'error'
       });
     } finally {
       setTestingConnection(null);
@@ -151,10 +151,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
-    
+
     try {
       await chrome.storage.sync.set({ theme: newTheme });
-      
+
       // Apply theme immediately
       if (newTheme === 'system') {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -182,26 +182,24 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Configuration</h1>
         </div>
-        
+
         {/* Tabs */}
         <div className="flex space-x-4 mt-4">
           <button
             onClick={() => setActiveTab('providers')}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${
-              activeTab === 'providers'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-            }`}
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'providers'
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+              }`}
           >
             AI Providers
           </button>
           <button
             onClick={() => setActiveTab('appearance')}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${
-              activeTab === 'appearance'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-            }`}
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'appearance'
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+              }`}
           >
             Appearance
           </button>
@@ -216,15 +214,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               const config = providers[providerId] || { provider: providerId, apiKey: '', model: providerInfo.defaultModel };
               const isSelected = selectedProvider === providerId;
               const status = connectionStatus[providerId];
-              
+
               return (
                 <div
                   key={providerId}
-                  className={`border rounded-lg p-4 ${
-                    isSelected 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
-                      : 'border-gray-200 dark:border-gray-700'
-                  }`}
+                  className={`border rounded-lg p-4 ${isSelected
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400'
+                    : 'border-gray-200 dark:border-gray-700'
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
@@ -244,7 +241,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                         </p>
                       </div>
                     </div>
-                    
+
                     {status && (
                       <div className="flex items-center space-x-1">
                         {status === 'success' ? (
@@ -360,12 +357,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <div className="flex items-start space-x-3">
-                <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5" />
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <p className="font-medium mb-1">About Delight</p>
-                  <p>Version 3.0.0 - AI-powered Chrome extension with 6-provider ecosystem including ultra-fast Groq</p>
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3">
+                  <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5" />
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="font-medium mb-1">About Delight</p>
+                    <p>Version 3.0.0 - AI-powered Chrome extension with 6-provider ecosystem including ultra-fast Groq</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    chrome.tabs.create({
+                      url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                      active: true
+                    });
+                  }}
+                  className="px-3 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                >
+                  Show Welcome
+                </button>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PaperAirplaneIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { generateChatResponse, initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
+import WelcomeHint from './WelcomeHint';
 
 interface Message {
   role: 'user' | 'assistant' | 'error';
@@ -115,6 +116,11 @@ const ChatPanel: React.FC = () => {
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Show welcome hint when no messages and no errors */}
+        {messages.length === 0 && !initializationError && (
+          <WelcomeHint onDismiss={() => {}} />
+        )}
+
         {initializationError && messages.length === 0 && (
           <div className="flex justify-center">
             <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 p-4 rounded-lg max-w-md">

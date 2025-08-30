@@ -48,5 +48,14 @@
       },
       "description": "Open Delight"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/pages/welcome/index.html",
+        "src/pages/sidepanel/index.html"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
