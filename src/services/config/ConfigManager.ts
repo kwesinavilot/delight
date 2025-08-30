@@ -56,6 +56,12 @@ export class ConfigManager {
             maxTokens: 1000,
             temperature: 0.7
           },
+          groq: {
+            apiKey: '',
+            model: 'openai/gpt-oss-20b',
+            maxTokens: 1000,
+            temperature: 0.7
+          },
           sambanova: {
             apiKey: '',
             model: 'Meta-Llama-3.1-8B-Instruct',

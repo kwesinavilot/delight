@@ -3,6 +3,8 @@ import { PaperAirplaneIcon, ExclamationTriangleIcon } from '@heroicons/react/24/
 import { generateChatResponse, initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
 import WelcomeHint from './WelcomeHint';
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   role: 'user' | 'assistant' | 'error';
@@ -118,7 +120,33 @@ const ChatPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Show welcome hint when no messages and no errors */}
         {messages.length === 0 && !initializationError && (
-          <WelcomeHint onDismiss={() => {}} />
+          <>
+            <WelcomeHint onDismiss={() => { }} />
+            
+            {/* Sample prompts */}
+            {isServiceReady && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Try these prompts:</h3>
+                <div className="grid gap-2">
+                  {[
+                    "Summarize this page for me",
+                    "What are the key points on this webpage?",
+                    "Help me understand this article",
+                    "Explain this content in simple terms",
+                    "What's the main takeaway from this page?"
+                  ].map((prompt, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setInput(prompt)}
+                      className="text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors text-sm"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {initializationError && messages.length === 0 && (
@@ -162,7 +190,12 @@ const ChatPanel: React.FC = () => {
                 </div>
               )}
               <div className={message.role === 'error' ? 'text-sm' : ''}>
-                {message.content}
+                {
+                  message.role === 'assistant'
+                    ? <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+                    : message.content
+                }
+                {/* // {message.content} */}
               </div>
             </div>
           </div>

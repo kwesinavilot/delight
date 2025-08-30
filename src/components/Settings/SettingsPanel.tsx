@@ -5,7 +5,6 @@ import {
   EyeSlashIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { ConfigManager } from '@/services/config/ConfigManager';
 import { AIConfiguration } from '@/types/ai';
@@ -362,33 +361,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       {/* Global Footer - Always visible */}
       <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
         <div className="space-y-4">
-          {/* Version and Links */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div className="flex items-center space-x-3">
-              <InformationCircleIcon className="h-5 w-5 text-blue-500" />
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v3.2.0</span>
-                <span className="ml-2">AI-powered Chrome extension</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  chrome.tabs.create({
-                    url: chrome.runtime.getURL('src/pages/welcome/index.html'),
-                    active: true
-                  });
-                }}
-                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Show Welcome
-              </button>
-            </div>
-          </div>
-          
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center space-x-6 text-xs text-gray-500 dark:text-gray-400">
+            <button
+              onClick={() => {
+                chrome.tabs.create({
+                  url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              What's New?
+            </button>
             <button
               onClick={() => {
                 chrome.tabs.create({
@@ -433,6 +418,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             >
               Support
             </button>
+          </div>
+
+          {/* Version and Links */}
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
+            <div className="flex items-center space-x-3">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Delight v3.2.0</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

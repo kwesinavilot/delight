@@ -12,6 +12,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat history and persistence
 - Custom prompt templates
 
+## [3.3.0] - 2025-01-29
+
+### 🚀 Enhanced Sidepanel Experience & UX Improvements
+
+### Added
+- **💬 Interactive Sample Prompts**
+  - Added 5 sample prompts to the chat interface when no messages are present
+  - One-click prompt insertion for common tasks like page summarization
+  - Prompts only appear when AI service is ready and configured
+  - Improved new user onboarding experience
+
+- **🔧 Robust Sidepanel Management System**
+  - Implemented comprehensive tab validation service with URL pattern checking
+  - Added smart tab selector with intelligent fallback strategies
+  - Enhanced error recovery manager with multiple retry mechanisms
+  - Performance optimizer with caching, batching, and debouncing
+  - Comprehensive testing documentation and diagnostic tools
+
+### Fixed
+- **✅ Sidepanel Close Functionality**
+  - Fixed critical issue where close button didn't actually close the sidepanel
+  - Replaced background script messaging with direct Chrome API calls
+  - Added proper error handling and fallback mechanisms
+  - Eliminated "Could not establish connection" errors
+
+- **🎯 Fullscreen Detection Logic**
+  - Improved window width threshold from 800px to 600px for better detection
+  - Fixed incorrect icon display (minimize vs maximize) based on mode
+  - Enhanced detection using URL parameters and window properties
+  - Default state now correctly assumes sidepanel mode (isFullscreen: false)
+
+- **⚙️ Provider Configuration Issues**
+  - Fixed "Provider groq is not configured" error on startup
+  - Added missing Groq provider to default configuration settings
+  - Synchronized all 6 providers between AIService and ConfigManager
+  - Resolved provider registration failures during initialization
+
+### Changed
+- **🎨 Improved UI Layout**
+  - Control buttons (maximize/minimize, settings, close) now only show in chat view
+  - Cleaner settings page with just back button and title
+  - Better visual hierarchy and reduced interface clutter
+  - Enhanced header layout with proper button positioning
+
+- **🏠 Enhanced Onboarding Flow**
+  - Welcome flow now opens in sidepanel mode instead of fullscreen
+  - Creates new tab and opens sidepanel for better user experience
+  - Maintains consistency with primary usage pattern
+  - Improved first-time user journey
+
+### Technical Improvements
+- **🛠️ Code Quality**
+  - Fixed TypeScript comparison errors in conditional rendering
+  - Improved component structure and prop handling
+  - Enhanced error handling throughout the application
+  - Better separation of concerns in UI components
+
 ## [3.2.0] - 2025-08-29
 
 ### 🎯 Enhanced User Experience & Documentation

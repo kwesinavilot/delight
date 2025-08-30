@@ -24,10 +24,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
                     enabled: true
                 });
 
-                chrome.runtime.sendMessage({
-                    action: 'setPanel',
-                    panel: message.feature
-                });
+                console.log('Side panel opened for feature:', message.feature);
             } catch (error) {
                 console.error('Error setting up side panel:', error);
             }
@@ -35,32 +32,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         return true;
     }
 
-    if (message.action === 'closePanel') {
-        (async () => {
-            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            const tab = tabs[0];
 
-            if (!tab?.id) {
-                console.error('No active tab found');
-                return;
-            }
-
-            try {
-                await chrome.sidePanel.setOptions({
-                    tabId: tab.id,
-                    enabled: false
-                });
-
-                chrome.runtime.sendMessage({
-                    action: 'setPanel',
-                    panel: null
-                });
-            } catch (error) {
-                console.error('Error closing side panel:', error);
-            }
-        })();
-        return true;
-    }
 });
 
 // Context menu setup and welcome page handling
@@ -139,10 +111,8 @@ chrome.contextMenus.onClicked.addListener((_info, tab) => {
                 enabled: true
             });
 
-            chrome.runtime.sendMessage({
-                action: 'setPanel',
-                panel: 'summary'
-            });
+            // Note: Removed chrome.runtime.sendMessage to avoid "Receiving end does not exist" error
+            // The sidepanel will detect the context menu action through other means
         } catch (error) {
             console.error('Error setting up side panel:', error);
         }

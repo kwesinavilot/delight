@@ -4,11 +4,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
+import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
   const [activeView, setActiveView] = useState<'chat' | 'settings'>('chat');
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isMinimizing, setIsMinimizing] = useState<boolean>(false);
 
   // Detect if we're in fullscreen mode (opened as a tab vs sidepanel)
   useEffect(() => {
@@ -16,8 +18,16 @@ const MainSidePanel: React.FC = () => {
       // Check if we're in a tab by examining the URL parameters or window properties
       const urlParams = new URLSearchParams(window.location.search);
       const isTabMode = urlParams.get('mode') === 'tab' ||
-        window.outerWidth > 500 || // Sidepanel is typically narrow
-        window.location.href.includes('?tab=true');
+        window.location.href.includes('?tab=true') ||
+        window.outerWidth > 600; // Sidepanels are typically 300-400px, tabs are much wider
+
+      console.log('[MainSidePanel] Fullscreen detection:', {
+        urlMode: urlParams.get('mode'),
+        hasTabParam: window.location.href.includes('?tab=true'),
+        windowWidth: window.outerWidth,
+        isTabMode
+      });
+
       setIsFullscreen(isTabMode);
     };
 
@@ -44,13 +54,26 @@ const MainSidePanel: React.FC = () => {
     };
   }, []);
 
-  const closePanel = () => {
-    if (isFullscreen) {
-      // If we're in fullscreen mode, minimize back to sidepanel
-      minimizeToSidePanel();
-    } else {
-      // If we're in sidepanel, close it
-      chrome.runtime.sendMessage({ action: 'closePanel' });
+  const closePanel = async () => {
+    try {
+      // Get the current tab
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tab = tabs[0];
+
+      if (tab?.id) {
+        // Actually close the sidepanel by disabling it
+        await chrome.sidePanel.setOptions({
+          tabId: tab.id,
+          enabled: false
+        });
+        console.log('Side panel closed successfully');
+      }
+    } catch (error) {
+      console.error('Error closing side panel:', error);
+      // Fallback: try to close the window if we're in a tab
+      if (isFullscreen) {
+        window.close();
+      }
     }
   };
 
@@ -60,46 +83,51 @@ const MainSidePanel: React.FC = () => {
       url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
       active: true
     });
+
+    setIsFullscreen(true);
   };
 
   const minimizeToSidePanel = async () => {
+    if (isMinimizing) return; // Prevent multiple simultaneous operations
+
+    setIsMinimizing(true);
+
     try {
-      // Get all tabs to find a suitable one for the sidepanel
-      const tabs = await chrome.tabs.query({ currentWindow: true });
+      console.log('[MainSidePanel] Starting enhanced minimize to sidepanel');
 
-      // Find a non-extension tab to attach the sidepanel to
-      const suitableTab = tabs.find(tab =>
-        tab.url &&
-        !tab.url.startsWith('chrome://') &&
-        !tab.url.startsWith('chrome-extension://') &&
-        tab.id !== undefined
-      );
+      // Use the enhanced sidepanel manager for robust tab management
+      const result = await enhancedSidepanelManager.minimizeToSidePanel({
+        preserveCurrentTab: false,
+        preferRecentlyActive: true,
+        enableLogging: true
+      });
 
-      if (suitableTab?.id) {
-        // Open sidepanel on the suitable tab
-        await chrome.sidePanel.open({ tabId: suitableTab.id });
-        await chrome.sidePanel.setOptions({
-          tabId: suitableTab.id,
-          path: 'sidepanel.html',
-          enabled: true
+      if (result.success) {
+        console.log('[MainSidePanel] Successfully minimized to sidepanel:', {
+          targetTab: result.targetTab?.id,
+          fallbackUsed: result.fallbackUsed,
+          transitionTime: result.transitionTime
         });
 
-        // Focus on that tab
-        await chrome.tabs.update(suitableTab.id, { active: true });
-
-        // Close the current fullscreen tab
-        const currentTab = await chrome.tabs.getCurrent();
-        if (currentTab?.id) {
-          chrome.tabs.remove(currentTab.id);
-        }
+        setIsFullscreen(false);
       } else {
-        // If no suitable tab found, just close the current tab
+        console.error('[MainSidePanel] Enhanced minimize failed:', result.error);
+
+        // Fallback to closing the current tab
+        console.log('[MainSidePanel] Using fallback: closing current tab');
         window.close();
       }
     } catch (error) {
-      console.error('Error minimizing to sidepanel:', error);
-      // Fallback: just close the current tab
-      window.close();
+      console.error('[MainSidePanel] Critical error during minimize operation:', error);
+
+      // Last resort fallback
+      try {
+        window.close();
+      } catch (closeError) {
+        console.error('[MainSidePanel] Failed to close window:', closeError);
+      }
+    } finally {
+      setIsMinimizing(false);
     }
   };
 
@@ -142,35 +170,36 @@ const MainSidePanel: React.FC = () => {
                     <Sparkles className="h-6 w-6 text-primary" />
                   </AvatarFallback>
                 </Avatar>
-                <h1 className="text-lg font-semibold">Chat</h1>
+                <h1 className="text-lg font-semibold">Delight</h1>
               </>
             )}
           </div>
 
-          {/* Control buttons */}
-          <div className="flex items-center space-x-2">
-            {/* Maximize/Minimize button */}
-            {!isFullscreen ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={maximizeToFullscreen}
-                title="Open in fullscreen"
-              >
-                <Maximize2 className="h-5 w-5" />
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={minimizeToSidePanel}
-                title="Minimize to sidepanel"
-              >
-                <Minimize2 className="h-5 w-5" />
-              </Button>
-            )}
+          {/* Control buttons - only show in chat view */}
+          {activeView === 'chat' && (
+            <div className="flex items-center space-x-2">
+              {/* Maximize/Minimize button */}
+              {!isFullscreen ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={maximizeToFullscreen}
+                  title="Open in fullscreen"
+                >
+                  <Maximize2 className="h-5 w-5" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={minimizeToSidePanel}
+                  disabled={isMinimizing}
+                  title={isMinimizing ? "Minimizing..." : "Minimize to sidepanel"}
+                >
+                  <Minimize2 className={`h-5 w-5 ${isMinimizing ? 'animate-pulse' : ''}`} />
+                </Button>
+              )}
 
-            {activeView !== 'settings' && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -179,17 +208,17 @@ const MainSidePanel: React.FC = () => {
               >
                 <Settings className="h-5 w-5" />
               </Button>
-            )}
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={closePanel}
-              title={isFullscreen ? "Minimize to sidepanel" : "Close panel"}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closePanel}
+                title="Close panel"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

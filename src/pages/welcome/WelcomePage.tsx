@@ -164,10 +164,23 @@ const WelcomePage: React.FC = () => {
     }
   };
 
-  const handleGetStarted = () => {
-    // Mark welcome as completed and open settings in fullscreen mode
+  const handleGetStarted = async () => {
+    // Mark welcome as completed and open in sidepanel mode
     chrome.storage.sync.set({ welcomeCompleted: true });
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab') });
+    
+    // Create a new tab and open sidepanel there
+    const tab = await chrome.tabs.create({ url: 'https://www.google.com', active: true });
+    
+    if (tab.id) {
+      // Open sidepanel on the new tab
+      await chrome.sidePanel.open({ tabId: tab.id });
+      await chrome.sidePanel.setOptions({
+        tabId: tab.id,
+        path: 'sidepanel.html',
+        enabled: true
+      });
+    }
+    
     window.close();
   };
 
