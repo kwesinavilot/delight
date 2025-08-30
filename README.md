@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 3.2.0 - Enhanced User Experience & Documentation**
+## 🎉 **Version 3.3.0 - Enhanced Sidepanel Experience & UX Improvements**
 
-**NEW**: Comprehensive user guide, fullscreen mode, and enhanced interface!
+**NEW**: Interactive sample prompts, robust sidepanel management, and improved onboarding!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -17,13 +17,15 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 ## 🌟 Features
 
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
+- **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
+- **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
 - **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience
 - **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
-- **Enhanced Onboarding**: Welcome page and hints for first-time users
+- **Enhanced Onboarding**: Welcome flow opens directly in sidepanel mode for better UX
 - **Flexible Configuration**: Easy provider switching and API key management
-- **Modern UI**: Clean, responsive interface with dark mode support
+- **Modern UI**: Clean, responsive interface with dark mode support and improved layouts
 - **Privacy-Focused**: Secure local storage of API keys with encryption - [Privacy Policy](PRIVACY.md)
 - **Multiple Interfaces**: Popup, side panel, fullscreen, and keyboard shortcuts
 
