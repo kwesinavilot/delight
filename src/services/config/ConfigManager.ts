@@ -46,7 +46,7 @@ export class ConfigManager {
           },
           gemini: {
             apiKey: '',
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             maxTokens: 1000,
             temperature: 0.7
           },
@@ -210,6 +210,46 @@ export class ConfigManager {
     } catch (error) {
       console.error('Failed to import settings:', error);
       throw new Error('Failed to import configuration');
+    }
+  }
+
+  // Methods required by SettingsPanel
+  async getAllConfigurations(): Promise<Record<string, AIConfiguration>> {
+    if (!this.settings) await this.loadSettings();
+    
+    const configurations: Record<string, AIConfiguration> = {};
+    
+    Object.entries(this.settings!.ai.providers).forEach(([provider, config]) => {
+      configurations[provider] = {
+        provider,
+        apiKey: config.apiKey,
+        model: config.model,
+        maxTokens: config.maxTokens,
+        temperature: config.temperature
+      };
+    });
+    
+    return configurations;
+  }
+
+  async setConfiguration(provider: string, config: AIConfiguration): Promise<void> {
+    await this.updateProviderConfig(provider, config);
+  }
+
+  async testConnection(provider: string): Promise<boolean> {
+    try {
+      // Import AIService to test connection
+      const { AIService } = await import('../ai/AIService');
+      const aiService = AIService.getInstance();
+      
+      // Get the provider config
+      const config = await this.getProviderConfig(provider);
+      
+      // Test the connection using the AI service
+      return await aiService.testProviderConnection(provider, config);
+    } catch (error) {
+      console.error(`Failed to test connection for ${provider}:`, error);
+      return false;
     }
   }
 }

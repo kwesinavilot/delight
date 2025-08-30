@@ -1,4 +1,5 @@
 import { AIProvider, GenerationOptions, SummaryLength, AIConfiguration, AIError, AIErrorType } from '../../types/ai';
+import { functionManager } from './FunctionManager';
 
 export abstract class BaseAIProvider implements AIProvider {
   protected config: AIConfiguration;
@@ -16,6 +17,21 @@ export abstract class BaseAIProvider implements AIProvider {
   abstract generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>>;
   
   abstract generateSummary(content: string, length: SummaryLength): Promise<string>;
+
+  // Centralized method to prepare chat options
+  protected prepareChatOptions(userOptions?: GenerationOptions): GenerationOptions {
+    return functionManager.prepareChatOptions(userOptions, this.name);
+  }
+
+  // Centralized method to prepare summary options
+  protected prepareSummaryOptions(content: string, length: SummaryLength) {
+    return functionManager.prepareSummaryOptions(content, length);
+  }
+
+  // Centralized method to get standard capabilities
+  protected getStandardCapabilities() {
+    return functionManager.getStandardModelCapabilities();
+  }
 
   protected handleError(error: any, context: string): never {
     if (error.status === 401) {
@@ -53,13 +69,9 @@ export abstract class BaseAIProvider implements AIProvider {
     );
   }
 
+  // Deprecated: Use centralized functionality instead
   protected getSummaryPrompt(content: string, length: SummaryLength): string {
-    const prompts = {
-      short: `Please provide a brief summary (2-3 sentences) of the following content:\n\n${content}`,
-      medium: `Please provide a medium-length summary (1-2 paragraphs) of the following content, highlighting the key points:\n\n${content}`,
-      detailed: `Please provide a comprehensive summary of the following content, including all important details and context:\n\n${content}`
-    };
-    
-    return prompts[length];
+    const { prompt } = this.prepareSummaryOptions(content, length);
+    return prompt;
   }
 }

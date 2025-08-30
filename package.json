@@ -1,7 +1,7 @@
 {
   "name": "delight-extension",
-  "version": "2.0.0",
-  "description": "Multi-provider AI Chrome extension supporting OpenAI, Anthropic, Gemini, Grok, and SambaNova for chat and page summaries",
+  "version": "3.0.0",
+  "description": "Multi-provider AI Chrome extension supporting OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova for chat and page summaries",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.9",
-    "@ai-sdk/google": "^1.0.2",
+    "@ai-sdk/google": "^2.0.11",
     "@ai-sdk/openai": "^2.0.23",
     "@headlessui/react": "^1.7.0",
     "@heroicons/react": "^2.0.0",

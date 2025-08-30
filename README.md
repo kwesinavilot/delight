@@ -2,9 +2,21 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
+## 🎉 **Version 3.0.0 - Complete 6-Provider AI Ecosystem**
+
+**NEW**: Ultra-fast Groq provider with industry-leading inference speed (800+ tokens/second)!
+
+Now supporting **6 major AI providers** with **25+ models** for every use case:
+- ⚡ **Groq** - Ultra-fast inference (NEW!)
+- 🤖 **OpenAI** - GPT-4o, GPT-4 Turbo
+- 🧠 **Anthropic** - Claude 3.5 Sonnet, Opus
+- 🔍 **Google Gemini** - 1.5 Pro/Flash, Vision
+- 😄 **Grok (X.AI)** - Witty personality, real-time info
+- 🦙 **SambaNova** - Llama 3.1/3.2 (1B-405B)
+
 ## 🌟 Features
 
-- **Multi-Provider AI Support**: Choose between 5 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), and SambaNova
+- **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
 - **Flexible Configuration**: Easy provider switching and API key management
@@ -50,6 +62,7 @@
    - **Anthropic**: Add your API key from [Anthropic Console](https://console.anthropic.com/)
    - **Google Gemini**: Add your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
    - **Grok (X.AI)**: Add your API key from [X.AI Console](https://console.x.ai/)
+   - **Groq**: Add your API key from [Groq Console](https://console.groq.com/keys)
    - **SambaNova**: Add your API key from [SambaNova Cloud](https://cloud.sambanova.ai/)
 3. **Select your preferred provider and model**, adjust settings as needed
 
@@ -91,7 +104,7 @@ The extension uses a modular architecture with clear separation of concerns:
 
 #### AI Service Layer
 - **AIService**: Main orchestration layer managing provider interactions
-- **Providers**: Individual implementations for OpenAI, Anthropic, Gemini, Grok, and SambaNova
+- **Providers**: Individual implementations for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova
 - **Configuration**: Secure management of API keys and settings
 
 #### UI Components
@@ -127,10 +140,17 @@ The extension uses a modular architecture with clear separation of concerns:
 - **Context**: Up to 2M tokens (Gemini 1.5 Pro)
 
 #### Grok (X.AI)
-- **Models**: Grok Beta, Grok Vision Beta
+- **Models**: Grok Beta
 - **Features**: Witty personality, real-time information access, humor
 - **Use Cases**: Conversational AI, creative writing, engaging content, current events
 - **Context**: Up to 131K tokens
+
+#### Groq
+- **Models**: Llama 3.1/3.3/4, Mixtral, Gemma, Qwen, DeepSeek
+- **Features**: Ultra-fast inference, high-performance computing, low latency
+- **Use Cases**: Real-time applications, high-volume processing, speed-critical tasks
+- **Context**: Up to 131K tokens
+- **Performance**: Industry-leading inference speed
 
 #### SambaNova (Llama Models)
 - **Models**: Llama 3.1 (8B, 70B, 405B), Llama 3.2 (1B, 3B, 11B, 90B Vision)
@@ -142,7 +162,7 @@ The extension uses a modular architecture with clear separation of concerns:
 
 ```typescript
 interface AIConfiguration {
-  provider: 'openai' | 'anthropic' | 'gemini' | 'grok' | 'sambanova';
+  provider: 'openai' | 'anthropic' | 'gemini' | 'grok' | 'groq' | 'sambanova';
   apiKey: string;
   model: string;
   maxTokens: number;
@@ -179,8 +199,8 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (2.0.0)
-- ✅ Multi-provider AI support (OpenAI, Anthropic, Gemini, Grok, SambaNova)
+### Current Version (3.0.0)
+- ✅ Multi-provider AI support (OpenAI, Anthropic, Gemini, Grok, Groq, SambaNova)
 - ✅ Secure configuration management with encryption
 - ✅ Complete AI service architecture with provider abstraction
 - ✅ Enhanced chat interface with error handling and provider status

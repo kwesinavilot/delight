@@ -4,7 +4,7 @@ import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
 import { functionManager } from '../FunctionManager';
 
-export class OpenAIProvider extends BaseAIProvider {
+export class GroqProvider extends BaseAIProvider {
     private client: any;
 
     constructor(config: AIConfiguration) {
@@ -13,7 +13,7 @@ export class OpenAIProvider extends BaseAIProvider {
     }
 
     get name(): string {
-        return 'openai';
+        return 'groq';
     }
 
     private initializeClient(): void {
@@ -21,14 +21,16 @@ export class OpenAIProvider extends BaseAIProvider {
             return; // Client will be initialized when API key is available
         }
 
+        // Groq uses OpenAI-compatible API with custom base URL
         this.client = createOpenAI({
             apiKey: this.config.apiKey,
+            baseURL: 'https://api.groq.com/openai/v1',
         });
     }
 
     async generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>> {
         if (!this.isConfigured()) {
-            this.handleError(new Error('OpenAI provider not configured'), 'generateResponse');
+            this.handleError(new Error('Groq provider not configured'), 'generateResponse');
         }
 
         if (!this.client) {
@@ -38,7 +40,7 @@ export class OpenAIProvider extends BaseAIProvider {
         try {
             // Use centralized chat options preparation
             const preparedOptions = this.prepareChatOptions(options);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || 'openai/gpt-oss-20b');
 
             const messages = [
                 { role: 'user' as const, content: message }
@@ -72,7 +74,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
     async generateSummary(content: string, length: SummaryLength): Promise<string> {
         if (!this.isConfigured()) {
-            this.handleError(new Error('OpenAI provider not configured'), 'generateSummary');
+            this.handleError(new Error('Groq provider not configured'), 'generateSummary');
         }
 
         if (!this.client) {
@@ -83,14 +85,14 @@ export class OpenAIProvider extends BaseAIProvider {
             // Check if content needs chunking based on model capabilities
             const capabilities = this.getModelCapabilities();
             const maxContentLength = Math.floor(capabilities.maxTokens * 0.6); // Reserve tokens for response
-            
+
             if (content.length > maxContentLength) {
                 return await this.generateChunkedSummary(content, length);
             }
 
             // Use centralized summary options preparation
             const { prompt, systemPrompt, options } = this.prepareSummaryOptions(content, length);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || 'openai/gpt-oss-20b');
 
             const result = await generateText({
                 model,
@@ -115,7 +117,7 @@ export class OpenAIProvider extends BaseAIProvider {
         // Generate summaries for each chunk
         for (let i = 0; i < chunks.length; i++) {
             const { prompt, options } = functionManager.prepareChunkSummaryOptions(chunks[i], i, chunks.length);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || 'openai/gpt-oss-20b');
 
             const result = await generateText({
                 model,
@@ -131,7 +133,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
         // Combine chunk summaries into final summary
         const { prompt: combinedPrompt, options: combinedOptions } = functionManager.prepareCombinedSummaryOptions(chunkSummaries, length);
-        const model = this.client(this.config.model || 'gpt-3.5-turbo');
+        const model = this.client(this.config.model || 'openai/gpt-oss-20b');
 
         const finalResult = await generateText({
             model,
@@ -194,33 +196,76 @@ export class OpenAIProvider extends BaseAIProvider {
     // Get available models for this provider
     getAvailableModels(): string[] {
         return [
-            'gpt-4o',
-            'gpt-4o-mini',
-            'gpt-4-turbo',
-            'gpt-4',
-            'gpt-3.5-turbo',
-            'gpt-3.5-turbo-16k'
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
+            'meta-llama/llama-4-maverick-17b-128e-instruct',
+            'meta-llama/llama-4-scout-17b-16e-instruct',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'qwen/qwen3-32b',
+            'deepseek-r1-distill-llama-70b',
+            'gemma2-9b-it'
         ];
     }
 
     // Get default model
     getDefaultModel(): string {
-        return 'gpt-3.5-turbo';
+        return 'openai/gpt-oss-20b';
     }
 
     // Get model capabilities
     getModelCapabilities(model?: string): { maxTokens: number; supportsStreaming: boolean } {
-        const modelName = model || this.config.model || 'gpt-3.5-turbo';
+        const modelName = model || this.config.model || 'openai/gpt-oss-20b';
 
         const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
-            'gpt-4o': { maxTokens: 128000, supportsStreaming: true },
-            'gpt-4o-mini': { maxTokens: 128000, supportsStreaming: true },
-            'gpt-4-turbo': { maxTokens: 128000, supportsStreaming: true },
-            'gpt-4': { maxTokens: 8192, supportsStreaming: true },
-            'gpt-3.5-turbo': { maxTokens: 4096, supportsStreaming: true },
-            'gpt-3.5-turbo-16k': { maxTokens: 16384, supportsStreaming: true }
+            'openai/gpt-oss-120b': { maxTokens: 131072, supportsStreaming: true },
+            'openai/gpt-oss-20b': { maxTokens: 131072, supportsStreaming: true },
+            'meta-llama/llama-4-maverick-17b-128e-instruct': { maxTokens: 131072, supportsStreaming: true },
+            'meta-llama/llama-4-scout-17b-16e-instruct': { maxTokens: 131072, supportsStreaming: true },
+            'llama-3.3-70b-versatile': { maxTokens: 131072, supportsStreaming: true },
+            'llama-3.1-8b-instant': { maxTokens: 131072, supportsStreaming: true },
+            'qwen/qwen3-32b': { maxTokens: 131072, supportsStreaming: true },
+            'deepseek-r1-distill-llama-70b': { maxTokens: 131072, supportsStreaming: true },
+            'gemma2-9b-it': { maxTokens: 8192, supportsStreaming: true }
         };
 
-        return capabilities[modelName] || { maxTokens: 4096, supportsStreaming: true };
+        return capabilities[modelName] || { maxTokens: 8192, supportsStreaming: true };
+    }
+
+    // Get model performance characteristics
+    getModelPerformance(model?: string): 'ultra-fast' | 'fast' | 'balanced' | 'powerful' {
+        const modelName = model || this.config.model || 'openai/gpt-oss-20b';
+
+        if (modelName.includes('instant') || modelName.includes('1b') || modelName.includes('3b')) return 'ultra-fast';
+        if (modelName.includes('8b') || modelName.includes('11b') || modelName.includes('gemma')) return 'fast';
+        if (modelName.includes('70b') || modelName.includes('90b') || modelName.includes('mixtral')) return 'balanced';
+        if (modelName.includes('405b')) return 'powerful';
+
+        return 'balanced';
+    }
+
+    // Get recommended use cases for the model
+    getModelRecommendations(model?: string): string[] {
+        const performance = this.getModelPerformance(model);
+
+        switch (performance) {
+            case 'ultra-fast':
+                return ['Real-time chat', 'Quick responses', 'High-volume usage', 'Simple tasks'];
+            case 'fast':
+                return ['General conversation', 'Basic analysis', 'Content generation'];
+            case 'balanced':
+                return ['Complex reasoning', 'Detailed analysis', 'Creative writing', 'Code generation'];
+            case 'powerful':
+                return ['Advanced reasoning', 'Research tasks', 'Complex problem solving', 'Long-form content'];
+            default:
+                return ['General purpose'];
+        }
+    }
+
+    // Check if model supports function calling
+    supportsFunctionCalling(model?: string): boolean {
+        const modelName = model || this.config.model || 'openai/gpt-oss-20b';
+        // Most Llama 3.1+ models support function calling
+        return modelName.includes('llama-3.1') || modelName.includes('llama-3.2');
     }
 }

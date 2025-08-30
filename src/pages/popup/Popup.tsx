@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sparkles, FileText, PenTool, Wand2, LucideIcon } from "lucide-react";
+import { Sparkles, FileText, PenTool, Wand2, Settings, LucideIcon } from "lucide-react";
+import SettingsPanel from '@/components/Settings/SettingsPanel';
 
 type Feature = 'summary' | 'write' | 'rewrite';
 
@@ -9,10 +10,12 @@ const iconMap: { [key: string]: LucideIcon } = {
     FileText,
     PenTool,
     Wand2,
+    Settings,
 };
 
 const Popup: React.FC = () => {
     const [hasSelection, setHasSelection] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     const menus = [
         { title: "Summarize Page", icon: "FileText", feature: "summary" as Feature, disabled: false },
@@ -64,18 +67,36 @@ const Popup: React.FC = () => {
         });
     };
 
+    if (showSettings) {
+        return (
+            <div className="w-96 h-96 bg-background text-foreground">
+                <SettingsPanel onClose={() => setShowSettings(false)} />
+            </div>
+        );
+    }
+
     return (
         <div className="w-64 bg-background text-foreground">
             {/* Header */}
-            <div className="p-2 flex items-center space-x-2 mb-6">
-                <Avatar>
-                    <AvatarImage src="/icons/delightful-1.jpg" />
-                    <AvatarFallback>
-                        <Sparkles className="h-6 w-6 text-primary" />
-                    </AvatarFallback>
-                </Avatar>
-
-                <h1 className="text-lg font-semibold">Delight</h1>
+            <div className="p-2 flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-2">
+                    <Avatar>
+                        <AvatarImage src="/icons/delightful-1.jpg" />
+                        <AvatarFallback>
+                            <Sparkles className="h-6 w-6 text-primary" />
+                        </AvatarFallback>
+                    </Avatar>
+                    <h1 className="text-lg font-semibold">Delight</h1>
+                </div>
+                
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSettings(true)}
+                    className="p-1"
+                >
+                    <Settings className="h-4 w-4" />
+                </Button>
             </div>
 
             {/* Menu Items */}

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "2.0.0",
-  "description": "Multi-provider AI chat and page summaries with support for OpenAI, Anthropic, Gemini, Grok, and SambaNova",
+  "version": "3.0.0",
+  "description": "Multi-provider AI chat and page summaries with support for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova",
   "permissions": [
     "sidePanel",
     "contextMenus",

@@ -35,20 +35,21 @@ export class GeminiProvider extends BaseAIProvider {
     }
 
     try {
-      const model = this.client(this.config.model || 'gemini-1.5-flash');
-      
+      // Use centralized chat options preparation
+      const preparedOptions = this.prepareChatOptions(options);
+      const model = this.client(this.config.model || 'gemini-2.5-flash');
+
       const messages = [
-        ...(options?.systemPrompt ? [{ role: 'system' as const, content: options.systemPrompt }] : []),
         { role: 'user' as const, content: message }
       ];
 
-      if (options?.stream !== false) {
+      if (preparedOptions.stream !== false) {
         // Streaming response
-        const result = await streamText({
+        const result = streamText({
           model,
+          system: preparedOptions.systemPrompt,
           messages,
-          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
-          temperature: options?.temperature || this.config.temperature || 0.7,
+          temperature: preparedOptions.temperature,
         });
 
         return this.createAsyncIterable(result.textStream);
@@ -56,9 +57,9 @@ export class GeminiProvider extends BaseAIProvider {
         // Non-streaming response
         const result = await generateText({
           model,
+          system: preparedOptions.systemPrompt,
           messages,
-          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
-          temperature: options?.temperature || this.config.temperature || 0.7,
+          temperature: preparedOptions.temperature,
         });
 
         return this.createAsyncIterable([result.text]);
@@ -78,24 +79,17 @@ export class GeminiProvider extends BaseAIProvider {
     }
 
     try {
-      const model = this.client(this.config.model || 'gemini-1.5-flash');
-      const prompt = this.getSummaryPrompt(content, length);
-
-      // Determine token limits based on summary length
-      // const tokenLimits = {
-      //   short: 150,
-      //   medium: 300,
-      //   detailed: 600
-      // };
+      // Use centralized summary options preparation
+      const { prompt, systemPrompt, options } = this.prepareSummaryOptions(content, length);
+      const model = this.client(this.config.model || 'gemini-2.5-flash');
 
       const result = await generateText({
         model,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that creates clear, concise summaries. Focus on extracting the most important information and presenting it in a well-organized manner.' },
           { role: 'user', content: prompt }
         ],
-        // maxTokens: tokenLimits[length],
-        temperature: 0.3, // Lower temperature for more consistent summaries
+        temperature: options.temperature,
       });
 
       return result.text;
@@ -131,16 +125,16 @@ export class GeminiProvider extends BaseAIProvider {
   // Method to test the connection
   async testConnection(): Promise<boolean> {
     try {
-      const testStream = await this.generateResponse('Hello', { 
+      const testStream = await this.generateResponse('Hello', {
         systemPrompt: 'Respond with just "OK"',
-        stream: false 
+        stream: false
       });
-      
+
       // Consume the stream to test connectivity
       for await (const _ of testStream) {
         // Just consume the response
       }
-      
+
       return true;
     } catch {
       return false;
@@ -150,8 +144,8 @@ export class GeminiProvider extends BaseAIProvider {
   // Get available models for this provider
   getAvailableModels(): string[] {
     return [
-      'gemini-1.5-pro',
-      'gemini-1.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
       'gemini-1.0-pro',
       'gemini-pro-vision'
     ];
@@ -159,16 +153,16 @@ export class GeminiProvider extends BaseAIProvider {
 
   // Get default model
   getDefaultModel(): string {
-    return 'gemini-1.5-flash';
+    return 'gemini-2.5-flash';
   }
 
   // Get model capabilities
   getModelCapabilities(model?: string): { maxTokens: number; supportsStreaming: boolean } {
-    const modelName = model || this.config.model || 'gemini-1.5-flash';
-    
+    const modelName = model || this.config.model || 'gemini-2.5-flash';
+
     const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
-      'gemini-1.5-pro': { maxTokens: 2097152, supportsStreaming: true },
-      'gemini-1.5-flash': { maxTokens: 1048576, supportsStreaming: true },
+      'gemini-2.5-pro': { maxTokens: 2097152, supportsStreaming: true },
+      'gemini-2.5-flash': { maxTokens: 1048576, supportsStreaming: true },
       'gemini-1.0-pro': { maxTokens: 32768, supportsStreaming: true },
       'gemini-pro-vision': { maxTokens: 16384, supportsStreaming: true }
     };
@@ -178,20 +172,20 @@ export class GeminiProvider extends BaseAIProvider {
 
   // Gemini-specific method to get model performance tier
   getModelPerformance(model?: string): 'ultra-fast' | 'fast' | 'balanced' | 'powerful' {
-    const modelName = model || this.config.model || 'gemini-1.5-flash';
-    
+    const modelName = model || this.config.model || 'gemini-2.5-flash';
+
     if (modelName.includes('flash')) return 'ultra-fast';
-    if (modelName.includes('1.0-pro')) return 'fast';
-    if (modelName.includes('1.5-pro')) return 'powerful';
-    if (modelName.includes('vision')) return 'balanced';
-    
+    if (modelName.includes('flash-lite')) return 'fast';
+    if (modelName.includes('pro')) return 'powerful';
+    if (modelName.includes('')) return 'balanced';
+
     return 'balanced';
   }
 
   // Get recommended use cases for the model
   getModelRecommendations(model?: string): string[] {
     const performance = this.getModelPerformance(model);
-    
+
     switch (performance) {
       case 'ultra-fast':
         return ['Real-time chat', 'Quick responses', 'High-volume usage', 'Simple tasks'];
@@ -208,7 +202,7 @@ export class GeminiProvider extends BaseAIProvider {
 
   // Check if model supports vision/multimodal capabilities
   supportsVision(model?: string): boolean {
-    const modelName = model || this.config.model || 'gemini-1.5-flash';
+    const modelName = model || this.config.model || 'gemini-2.5-flash';
     return modelName.includes('vision') || modelName.includes('1.5');
   }
 }

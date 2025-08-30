@@ -4,6 +4,7 @@ import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
 import { GrokProvider } from './providers/GrokProvider';
+import { GroqProvider } from './providers/GroqProvider';
 import { SambaNovaProvider } from './providers/SambaNovaProvider';
 
 export class AIService {
@@ -50,6 +51,11 @@ export class AIService {
       const grokConfig = await this.configManager.getProviderConfig('grok');
       const grokProvider = new GrokProvider(grokConfig);
       this.providers.set('grok', grokProvider);
+
+      // Register Groq provider
+      const groqConfig = await this.configManager.getProviderConfig('groq');
+      const groqProvider = new GroqProvider(groqConfig);
+      this.providers.set('groq', groqProvider);
 
       // Register SambaNova provider
       const sambanovaConfig = await this.configManager.getProviderConfig('sambanova');
@@ -268,6 +274,57 @@ export class AIService {
 
       return true;
     } catch {
+      return false;
+    }
+  }
+
+  // Method for testing provider connectivity with specific configuration
+  async testProviderConnection(providerName: string, config: any): Promise<boolean> {
+    try {
+      // Create a temporary provider instance with the given config
+      let tempProvider: AIProvider;
+
+      switch (providerName) {
+        case 'openai':
+          tempProvider = new OpenAIProvider(config);
+          break;
+        case 'anthropic':
+          tempProvider = new AnthropicProvider(config);
+          break;
+        case 'gemini':
+          tempProvider = new GeminiProvider(config);
+          break;
+        case 'grok':
+          tempProvider = new GrokProvider(config);
+          break;
+        case 'groq':
+          tempProvider = new GroqProvider(config);
+          break;
+        case 'sambanova':
+          tempProvider = new SambaNovaProvider(config);
+          break;
+        default:
+          return false;
+      }
+
+      if (!tempProvider.isConfigured()) {
+        return false;
+      }
+
+      // Test with a simple message
+      const testStream = await tempProvider.generateResponse('Hello', {
+        systemPrompt: 'Respond with just "OK"',
+        stream: false
+      });
+
+      // Consume the stream to test connectivity
+      for await (const _ of testStream) {
+        // Just consume the response
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to test ${providerName} connection:`, error);
       return false;
     }
   }

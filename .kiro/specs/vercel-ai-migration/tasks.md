@@ -21,7 +21,18 @@
 
 
 
+
+
+
+
+
   - _Requirements: 2.2, 5.1, 5.2_
+
+
+
+
+
+
 
 - [ ] 3. Implement core AI service interfaces
   - Create AIProvider interface with methods for chat and summary generation
@@ -29,9 +40,11 @@
   - Implement AIService class as the main service layer for AI interactions
 
 
+
   - Add error handling classes and types for different AI error scenarios
   - Write unit tests for core interfaces and error handling
   - _Requirements: 4.1, 4.3, 4.4_
+
 
 
 - [ ] 4. Implement OpenAI provider using Vercel AI SDK
@@ -41,9 +54,11 @@
   - Create OpenAIProvider class implementing AIProvider interface
 
 
+
   - Integrate Vercel AI SDK's OpenAI client for streaming chat responses
   - Implement summary generation with appropriate prompts for different lengths
   - Write unit tests for OpenAI provider functionality
+
 
 
 
@@ -53,6 +68,8 @@
 - [ ] 5. Implement Anthropic provider as secondary option
   - Create AnthropicProvider class implementing AIProvider interface
   - Integrate Vercel AI SDK's Anthropic client for chat and summary functionality
+
+
 
 
 
@@ -66,6 +83,9 @@
   - Update generateChatResponse function to use Vercel AI SDK streaming
   - Ensure backward compatibility with existing function signatures
   - _Requirements: 1.1, 1.2, 6.1_
+
+
+
 
 - [ ] 7. Update ChatPanel component to use new AI service
   - Modify ChatPanel.tsx to initialize and use the new AIService

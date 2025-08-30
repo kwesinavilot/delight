@@ -46,7 +46,7 @@ export class GrokProvider extends BaseAIProvider {
 
       if (options?.stream !== false) {
         // Streaming response
-        const result = await streamText({
+        const result = streamText({
           model,
           messages,
           // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
@@ -152,8 +152,7 @@ export class GrokProvider extends BaseAIProvider {
   // Get available models for this provider
   getAvailableModels(): string[] {
     return [
-      'grok-beta',
-      'grok-vision-beta'
+      'grok-beta'
     ];
   }
 
@@ -167,8 +166,7 @@ export class GrokProvider extends BaseAIProvider {
     const modelName = model || this.config.model || 'grok-beta';
 
     const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
-      'grok-beta': { maxTokens: 131072, supportsStreaming: true },
-      'grok-vision-beta': { maxTokens: 131072, supportsStreaming: true }
+      'grok-beta': { maxTokens: 131072, supportsStreaming: true }
     };
 
     return capabilities[modelName] || { maxTokens: 131072, supportsStreaming: true };

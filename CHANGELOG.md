@@ -8,12 +8,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Settings UI for provider configuration
 - Advanced summary customization options
 - Chat history and persistence
 - Custom prompt templates
 
+## [3.0.0] - 2025-08-29
+
+### 🚀 MAJOR RELEASE: Complete 6-Provider AI Ecosystem
+
+### Added
+- **⚡ Groq Provider Integration**
+  - Ultra-fast inference provider with industry-leading speed (up to 800+ tokens/second)
+  - Support for latest Llama 3.1/3.3/4, Mixtral, Gemma, Qwen, and DeepSeek models
+  - High-performance computing platform optimized for speed-critical applications
+  - Real-time chat with minimal latency for instant responses
+  - Complete provider implementation with streaming support and error handling
+  - Performance tier classification (ultra-fast to powerful)
+
+### Fixed
+- **🔧 Grok Provider Stability**
+  - **BREAKING**: Fixed critical 400 Bad Request errors from X.AI API
+  - Corrected model names to use proper `grok-beta` identifier instead of incorrect Groq models
+  - Updated available models list to match X.AI's actual API offerings
+  - Fixed streaming response handling and async iteration
+  - Resolved model capability mappings and token limits
+  - Eliminated provider initialization failures
+
+- **🔄 Provider Architecture Improvements**
+  - **BREAKING**: Aligned all provider models with SettingsPanel configuration
+  - Fixed model naming inconsistencies between providers and UI
+  - Updated default model selections for optimal performance across all providers
+  - Corrected model capabilities and performance classifications
+  - Synchronized provider implementations with actual API specifications
+
+### Changed
+- **📈 Enhanced Performance Tiers**
+  - **Ultra-Fast**: Groq (800+ tokens/sec), Gemini Flash
+  - **Fast**: Smaller Llama models, Gemma variants
+  - **Balanced**: GPT-4 Turbo, Claude Sonnet, Llama 70B
+  - **Powerful**: GPT-4o, Claude Opus, Llama 405B
+
+- **🎯 Complete Provider Ecosystem**
+  - Now supporting 6 major AI providers with 25+ models
+  - Enhanced provider selection guidance based on use cases
+  - Improved error handling and fallback mechanisms
+  - Better provider status indicators and connection testing
+
+### Breaking Changes
+- Grok provider model names changed from Groq models to proper `grok-beta`
+- Provider model lists updated to match actual API availability
+- Enhanced error handling may surface previously hidden configuration issues
+
 ## [2.0.1] - 2025-08-29
+
+### Added
+- **🎛️ Built-in Settings Panel**
+  - Self-contained settings interface (no longer opens browser settings)
+  - Complete AI provider configuration with API key management
+  - Model selection for each provider with real-time validation
+  - Connection testing with one-click verification
+  - Theme settings (light, dark, system)
+  - Secure API key storage with show/hide toggle
+  - Integrated into both popup and side panel interfaces
+
+- **🏗️ Centralized Architecture**
+  - **PromptManager**: Centralized prompt management for consistent AI interactions
+  - **FunctionManager**: Unified functionality logic across all providers
+  - Provider-specific personality adjustments (Grok humor, Anthropic ethics, etc.)
+  - Eliminated code duplication across AI providers
+  - Easy provider swapping without affecting functionality
 
 ### Fixed
 - **Vercel AI SDK Compatibility**
@@ -27,8 +90,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Provider Architecture**
   - Migrated to explicit provider creation functions for better type safety
+  - Refactored BaseAIProvider to use centralized functionality
+  - Simplified provider implementations to focus only on API communication
   - Improved consistency across all AI provider implementations
   - Enhanced error handling during provider initialization
+
+- **User Interface**
+  - Added settings button to popup header
+  - Added settings tab to side panel navigation
+  - Improved navigation with chat, settings, and theme controls
+  - Better responsive design for settings panel
 
 ## [2.0.0] - 2025-08-29
 
