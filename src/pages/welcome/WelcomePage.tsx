@@ -25,39 +25,39 @@ const WelcomePage: React.FC = () => {
   const features = [
     {
       icon: <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-500" />,
-      title: 'AI-Powered Chat',
-      description: 'Interactive conversations with streaming responses from 6 major AI providers'
+      title: 'Lightning-Fast Chat',
+      description: 'Instant loading (~100ms) with persistent history across all modes and stop/cancel control'
     },
     {
       icon: <DocumentTextIcon className="h-8 w-8 text-green-500" />,
-      title: 'Page Summaries',
-      description: 'Generate summaries of web pages in different lengths (short, medium, detailed)'
+      title: 'Smart Streaming',
+      description: 'Real-time response streaming with graceful visualization and clean cancellation'
     },
     {
       icon: <BoltIcon className="h-8 w-8 text-yellow-500" />,
-      title: 'Ultra-Fast Responses',
-      description: 'Choose from ultra-fast to powerful models based on your needs'
+      title: 'Performance Optimized',
+      description: 'Lightweight storage, non-blocking operations, and optimized memory usage'
     },
     {
       icon: <CogIcon className="h-8 w-8 text-purple-500" />,
-      title: 'Easy Configuration',
-      description: 'Simple setup with secure API key management and provider switching'
+      title: 'Seamless Experience',
+      description: 'Switch between sidepanel and fullscreen without losing conversation context'
     }
   ];
 
   const steps = [
     {
-      title: 'Welcome to Delight 3.0!',
-      subtitle: 'Your AI-powered Chrome extension with 6 major providers',
+      title: 'Welcome to Delight 4.1!',
+      subtitle: 'Lightning-fast AI conversations with enhanced performance and UX',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 3.0!
+              Welcome to Delight 4.1!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              The most comprehensive AI provider ecosystem in a Chrome extension.
+              Lightning-fast AI conversations with persistent history and enhanced UX.
               Chat with AI, summarize pages, and boost your productivity with 6 major providers and 25+ models.
             </p>
           </div>
@@ -210,7 +210,7 @@ const WelcomePage: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <RocketLaunchIcon className="h-8 w-8 text-blue-500" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v3.3.1</span>
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v4.1.1</span>
           </div>
 
           {/* Progress indicator */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 // import { enhancedSidepanelManager } from '@/services/tabs';
@@ -11,6 +11,7 @@ const MainSidePanel: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isMinimizing, setIsMinimizing] = useState<boolean>(false);
+  const [hasConversation, setHasConversation] = useState<boolean>(false);
 
   // Detect if we're in fullscreen mode (opened as a tab vs sidepanel)
   useEffect(() => {
@@ -47,6 +48,35 @@ const MainSidePanel: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Check for existing conversation
+  useEffect(() => {
+    const checkConversationHistory = async () => {
+      try {
+        const result = await chrome.storage.local.get(['quickChatHistory']);
+        const history = result.quickChatHistory || [];
+        setHasConversation(history.length > 0);
+      } catch (error) {
+        console.error('Failed to check conversation history:', error);
+      }
+    };
+
+    checkConversationHistory();
+
+    // Listen for storage changes to update conversation state
+    const handleStorageChange = (changes: any) => {
+      if (changes.quickChatHistory) {
+        const newHistory = changes.quickChatHistory.newValue || [];
+        setHasConversation(newHistory.length > 0);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
     };
   }, []);
 
@@ -177,6 +207,21 @@ const MainSidePanel: React.FC = () => {
     }, 150);
   };
 
+  const startNewConversation = async () => {
+    try {
+      // Clear the conversation history
+      await chrome.storage.local.remove(['quickChatHistory']);
+      setHasConversation(false);
+      
+      // Dispatch custom event to notify ChatPanel to reset
+      window.dispatchEvent(new CustomEvent('newConversation'));
+      
+      console.log('Started new conversation');
+    } catch (error) {
+      console.error('Failed to start new conversation:', error);
+    }
+  };
+
   return (
     <div className={`flex flex-col h-screen w-full bg-background ${isFullscreen ? 'max-w-4xl mx-auto' : ''}`}>
       {/* Fixed Header */}
@@ -212,6 +257,18 @@ const MainSidePanel: React.FC = () => {
           {/* Control buttons - only show in chat view */}
           {activeView === 'chat' && (
             <div className="flex items-center space-x-2">
+              {/* New Conversation button - only show if there's existing conversation */}
+              {hasConversation && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={startNewConversation}
+                  title="Start new conversation"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              )}
+
               {/* Maximize/Minimize button */}
               {!isFullscreen ? (
                 <Button

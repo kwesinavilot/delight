@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon } from '@heroicons/react/24/solid';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
-import { ChatMessage } from '@/types/chat';
 
 import { AIService } from '@/services/ai/AIService';
-import { ConversationManager } from '@/services/chat/ConversationManager';
 import WelcomeHint from './WelcomeHint';
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -25,7 +23,8 @@ const ChatPanel: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [streamingContent, setStreamingContent] = useState('');
   const [copiedStates, setCopiedStates] = useState<Record<number, boolean>>({});
-  const [conversationManager, setConversationManager] = useState<ConversationManager | null>(null);
+
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
 
   const [isServiceReady, setIsServiceReady] = useState(false);
@@ -145,8 +144,19 @@ const ChatPanel: React.FC = () => {
 
     chrome.storage.onChanged.addListener(handleStorageChange);
 
+    // Listen for new conversation events
+    const handleNewConversation = () => {
+      setMessages([]);
+      setStreamingContent('');
+      setInput('');
+      console.log('Reset chat for new conversation');
+    };
+
+    window.addEventListener('newConversation', handleNewConversation);
+
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
+      window.removeEventListener('newConversation', handleNewConversation);
     };
   }, []);
 
@@ -168,13 +178,8 @@ const ChatPanel: React.FC = () => {
         return;
       }
 
-      // Initialize conversation manager
-      const convManager = ConversationManager.getInstance();
-      await convManager.initialize();
-      setConversationManager(convManager);
-
-      // Load existing conversation history
-      await loadConversationHistory(convManager);
+      // Load existing conversation history quickly
+      await loadConversationHistory();
 
       // Initialize chat session if AI is ready
       const chatSession = await initializeChatSession();
@@ -190,26 +195,19 @@ const ChatPanel: React.FC = () => {
     }
   };
 
-  const loadConversationHistory = async (convManager: ConversationManager) => {
+  const loadConversationHistory = async () => {
     try {
-      // Try to get current session or create new one
-      let currentSession;
-      try {
-        currentSession = convManager.getCurrentSession();
-      } catch {
-        // No current session, create one
-        currentSession = await convManager.createNewSession();
-      }
-
-      // Convert ChatMessage[] to Message[]
-      const chatMessages = convManager.getConversationHistory();
-      const uiMessages: Message[] = chatMessages.map(msg => ({
-        role: msg.role === 'system' ? 'assistant' : msg.role,
-        content: msg.content
-      }));
+      // Quick load from Chrome storage
+      const result = await chrome.storage.local.get(['quickChatHistory']);
+      const history = result.quickChatHistory || [];
       
-      setMessages(uiMessages);
-      console.log(`Loaded ${uiMessages.length} messages from conversation history`);
+      // Limit to last 20 messages for performance
+      const recentHistory = history.slice(-20);
+      setMessages(recentHistory);
+      
+      if (recentHistory.length > 0) {
+        console.log(`Loaded ${recentHistory.length} recent messages`);
+      }
     } catch (error) {
       console.error('Failed to load conversation history:', error);
       // Continue without history
@@ -219,7 +217,7 @@ const ChatPanel: React.FC = () => {
 
 
   const sendMessage = async () => {
-    if (!input.trim() || !session || !isServiceReady || !conversationManager) return;
+    if (!input.trim() || !session || !isServiceReady) return;
 
     const userMessage = input.trim();
     const newMessage: Message = { role: 'user', content: userMessage };
@@ -227,44 +225,54 @@ const ChatPanel: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
-    try {
-      // Add user message to conversation history
-      await conversationManager.addMessage({
-        role: 'user',
-        content: userMessage
-      });
+    // Create abort controller for cancellation
+    const controller = new AbortController();
+    setAbortController(controller);
 
+    try {
       let responseContent = '';
       setStreamingContent('');
 
-      // Get context for current provider
-      const aiService = AIService.getInstance();
-      const currentProvider = aiService.getCurrentProviderName() || 'openai';
-      const contextMessages = await conversationManager.getContextForProvider(currentProvider);
+      // Convert current messages to simple format for AI
+      const contextMessages = messages.concat([newMessage]).map((msg, index) => ({
+        id: `msg_${Date.now()}_${index}`,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+        timestamp: Date.now()
+      }));
 
       // Use chat response with history
+      const aiService = AIService.getInstance();
       await aiService.generateChatResponseWithHistory(contextMessages, (chunk) => {
+        if (controller.signal.aborted) {
+          throw new Error('Request cancelled by user');
+        }
         responseContent += chunk;
         setStreamingContent(responseContent);
       });
 
-      // Add assistant message to conversation history
-      await conversationManager.addMessage({
-        role: 'assistant',
-        content: responseContent,
-        provider: currentProvider
-      });
-
       // Add the complete message to UI
-      setMessages(prev => [...prev, { role: 'assistant', content: responseContent }]);
+      const assistantMessage = { role: 'assistant' as const, content: responseContent };
+      setMessages(prev => [...prev, assistantMessage]);
       setStreamingContent('');
+
+      // Save to quick history (async, non-blocking)
+      saveToQuickHistory([...messages, newMessage, assistantMessage]);
 
     } catch (error) {
       console.error('Error getting AI response:', error);
 
       let errorMessage = 'An unexpected error occurred.';
 
-      if (error instanceof AIError) {
+      if (error instanceof Error && error.message === 'Request cancelled by user') {
+        // Don't show error for intentional cancellation, just clean up
+        setStreamingContent('');
+        return;
+      } else if (error instanceof AIError && error.message?.includes('Request cancelled by user')) {
+        // Handle AIError wrapping the cancellation
+        setStreamingContent('');
+        return;
+      } else if (error instanceof AIError) {
         switch (error.type) {
           case AIErrorType.INVALID_API_KEY:
             errorMessage = 'Invalid API key. Please check your configuration.';
@@ -288,13 +296,25 @@ const ChatPanel: React.FC = () => {
       setStreamingContent('');
     } finally {
       setIsLoading(false);
+      setAbortController(null);
+    }
+  };
+
+  const stopResponse = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      if (isLoading) {
+        stopResponse();
+      } else {
+        sendMessage();
+      }
     }
   };
 
@@ -309,18 +329,7 @@ const ChatPanel: React.FC = () => {
     initializeServices();
   };
 
-  // Clear conversation (optional utility)
-  const clearConversation = async () => {
-    if (!conversationManager) return;
-    
-    try {
-      await conversationManager.clearCurrentSession();
-      setMessages([]);
-      console.log('Conversation cleared');
-    } catch (error) {
-      console.error('Failed to clear conversation:', error);
-    }
-  };
+
 
   const copyToClipboard = async (text: string, messageIndex: number) => {
     try {
@@ -335,49 +344,43 @@ const ChatPanel: React.FC = () => {
   };
 
   const retryMessage = async (messageIndex: number) => {
-    if (!session || !isServiceReady || !conversationManager) return;
+    if (!session || !isServiceReady) return;
 
     // Find the user message that we want to retry
     const userMessage = messages[messageIndex - 1];
     if (!userMessage || userMessage.role !== 'user') return;
 
-    // Remove the assistant response from UI and conversation history
+    // Remove the assistant response from UI
     const messagesUpToUser = messages.slice(0, messageIndex);
     setMessages(messagesUpToUser);
     setIsLoading(true);
 
     try {
-      // Remove the last assistant message from conversation history
-      const conversationHistory = conversationManager.getConversationHistory();
-      const lastMessage = conversationHistory[conversationHistory.length - 1];
-      if (lastMessage && lastMessage.role === 'assistant') {
-        await conversationManager.deleteMessage(lastMessage.id);
-      }
-
       let responseContent = '';
       setStreamingContent('');
 
-      // Get context for current provider
-      const aiService = AIService.getInstance();
-      const currentProvider = aiService.getCurrentProviderName() || 'openai';
-      const contextMessages = await conversationManager.getContextForProvider(currentProvider);
+      // Convert messages to simple format for AI
+      const contextMessages = messagesUpToUser.map((msg, index) => ({
+        id: `msg_${Date.now()}_${index}`,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+        timestamp: Date.now()
+      }));
 
       // Use chat response with history
+      const aiService = AIService.getInstance();
       await aiService.generateChatResponseWithHistory(contextMessages, (chunk) => {
         responseContent += chunk;
         setStreamingContent(responseContent);
       });
 
-      // Add new assistant message to conversation history
-      await conversationManager.addMessage({
-        role: 'assistant',
-        content: responseContent,
-        provider: currentProvider
-      });
-
       // Add the complete message to UI
-      setMessages(prev => [...prev, { role: 'assistant', content: responseContent }]);
+      const assistantMessage = { role: 'assistant' as const, content: responseContent };
+      setMessages(prev => [...prev, assistantMessage]);
       setStreamingContent('');
+
+      // Save to quick history (async, non-blocking)
+      saveToQuickHistory([...messagesUpToUser, assistantMessage]);
 
     } catch (error) {
       console.error('Error retrying AI response:', error);
@@ -388,9 +391,16 @@ const ChatPanel: React.FC = () => {
     }
   };
 
-  // const clearConversation = async () => {
-  //   setMessages([]);
-  // };
+  // Quick save to Chrome storage (non-blocking)
+  const saveToQuickHistory = async (messages: Message[]) => {
+    try {
+      // Only save last 50 messages to keep storage light
+      const recentMessages = messages.slice(-50);
+      await chrome.storage.local.set({ quickChatHistory: recentMessages });
+    } catch (error) {
+      console.error('Failed to save chat history:', error);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -622,11 +632,17 @@ const ChatPanel: React.FC = () => {
             }
           />
           <Button
-            onClick={sendMessage}
-            disabled={!input.trim() || !isServiceReady || isLoading || isLoadingHistory}
+            onClick={isLoading ? stopResponse : sendMessage}
+            disabled={(!input.trim() && !isLoading) || !isServiceReady || isLoadingHistory}
             size="icon"
+            variant={isLoading ? "destructive" : "default"}
+            title={isLoading ? "Stop response" : "Send message"}
           >
-            <PaperAirplaneIcon className="h-5 w-5" />
+            {isLoading ? (
+              <StopIcon className="h-5 w-5" />
+            ) : (
+              <PaperAirplaneIcon className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
