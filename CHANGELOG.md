@@ -12,6 +12,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [4.4.0] - 2025-09-01
+
+### 🎨 Enhanced User Experience & Real-time Updates
+
+### Added
+- **🎯 Centered Sample Prompts**
+  - Sample prompts now properly centered in fullscreen mode for better visual balance
+  - Improved layout with max-width container for optimal reading experience
+  - Enhanced visual hierarchy in fullscreen conversations
+
+- **⚡ Real-time Conversation Management**
+  - Instant sidebar updates when deleting conversations
+  - Live title updates when renaming conversations
+  - Event-driven architecture for seamless UI synchronization
+  - No manual refresh needed for conversation changes
+
+### Fixed
+- **🛑 Stop Response Error Handling**
+  - Eliminated error messages when intentionally stopping AI responses
+  - Enhanced cancellation detection for both "cancelled" and "aborted" requests
+  - Clean UI state management during response interruption
+  - Improved user experience with silent cancellation handling
+
+### Enhanced
+- **📱 Fullscreen Layout Optimization**
+  - Better content positioning and spacing in fullscreen mode
+  - Improved visual consistency across different screen sizes
+  - Enhanced conversation sidebar integration with real-time updates
+
 ## [4.2.0] - 2025-09-01
 
 ### 🆕 Smart Conversation Management
@@ -24,12 +53,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic conversation detection to show/hide button contextually
   - Event-driven architecture for clean state reset across components
 
+- **📋 Fullscreen Conversation Sidebar**
+  - Conversation history sidebar in fullscreen mode showing all past conversations
+  - Truncated conversation titles (30 characters) with message count display
+  - Three-dot menu for each conversation with rename and delete options
+  - Inline editing for conversation titles with click-to-edit functionality
+  - Session-based storage system for conversation management
+  - Automatic sidepanel closure when opening fullscreen mode
+
 ### Enhanced
 - **🎯 Contextual UI**
   - Header buttons now appear only when relevant to current state
   - Improved user experience with smart UI element visibility
   - Clean conversation state management with proper event handling
   - Better visual hierarchy with contextual controls
+  - Fullscreen mode now provides complete conversation management interface
 
 ## [4.1.1] - 2025-08-31
 

@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.2.0 - Smart Conversation Management**
+## 🎉 **Version 4.4.0 - Enhanced User Experience & Real-time Updates**
 
-**NEW**: Intelligent "New Conversation" button, lightning-fast conversation loading, stop/cancel button, and dramatically improved performance!
+**NEW**: Real-time conversation management, centered fullscreen layout, improved stop handling, and seamless UI updates!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -46,14 +46,18 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ### ➕ Smart Conversation Management (NEW in v4.2.0)
 - **New Conversation Button**: Contextual button that only appears when there's existing conversation history
+- **Fullscreen Conversation Sidebar**: Complete conversation history with sidebar navigation in fullscreen mode
+- **Conversation Management**: Rename, delete, and switch between conversations with three-dot menu
+- **Session-Based Storage**: Persistent conversation sessions with automatic saving and loading
 - **One-Click Reset**: Instantly start fresh conversations with clean state management
 - **Intelligent UI**: Smart visibility controls for better user experience
 - **Event-Driven Architecture**: Clean state management across all components
 
 ### 🎨 User Experience
 - **Smart Conversation Management**: Contextual "New Conversation" button that appears only when needed
+- **Fullscreen Conversation Sidebar**: Complete conversation history navigation with rename/delete capabilities
 - **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
-- **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience
+- **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience with automatic sidepanel closure
 - **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
 - **Enhanced Onboarding**: Welcome flow opens directly in sidepanel mode for better UX
 - **Flexible Configuration**: Easy provider switching and API key management
@@ -239,15 +243,20 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (4.2.0)
+### Current Version (4.4.0)
+- ✅ Real-time conversation management with instant sidebar updates
+- ✅ Centered sample prompts in fullscreen mode for better UX
+- ✅ Enhanced stop response handling without error messages
 - ✅ Smart "New Conversation" button with contextual visibility
+- ✅ Fullscreen conversation sidebar with complete history navigation
+- ✅ Conversation management (rename, delete, switch between sessions)
 - ✅ Multi-provider AI support (OpenAI, Anthropic, Gemini, Grok, Groq, SambaNova)
 - ✅ Lightning-fast conversation loading (~100ms startup)
 - ✅ Stop/cancel button for AI response control
 - ✅ Persistent chat history across all modes
 - ✅ Enhanced streaming experience with real-time visualization
 - ✅ Advanced performance optimization and memory management
-- ✅ Seamless sidepanel ↔ fullscreen mode switching
+- ✅ Seamless sidepanel ↔ fullscreen mode switching with automatic closure
 - ✅ Secure configuration management with encryption
 - ✅ Complete AI service architecture with provider abstraction
 - ✅ Enhanced chat interface with improved error handling

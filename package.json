@@ -7,7 +7,7 @@
     "email": "andrewsankomahene@gmail.com"
   },
   "private": true,
-  "version": "4.1.1",
+  "version": "4.4.0",
   "description": "Multi-provider AI Chrome extension supporting OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova for chat and page summaries",
   "type": "module",
   "license": "MIT",
@@ -33,6 +33,7 @@
     "@heroicons/react": "^2.0.0",
     "@mozilla/readability": "^0.5.0",
     "@radix-ui/react-avatar": "^1.1.1",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.1.0",
     "ai": "^5.0.28",
     "jsdom": "^25.0.1",

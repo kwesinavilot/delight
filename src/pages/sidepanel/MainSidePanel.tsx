@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
+import ConversationSidebar from '@/components/Chat/ConversationSidebar';
 // import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
@@ -12,6 +13,7 @@ const MainSidePanel: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isMinimizing, setIsMinimizing] = useState<boolean>(false);
   const [hasConversation, setHasConversation] = useState<boolean>(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Detect if we're in fullscreen mode (opened as a tab vs sidepanel)
   useEffect(() => {
@@ -80,6 +82,47 @@ const MainSidePanel: React.FC = () => {
     };
   }, []);
 
+  const handleSessionSelect = async (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    // Load session data and notify ChatPanel
+    window.dispatchEvent(new CustomEvent('loadSession', { detail: { sessionId } }));
+  };
+
+  const handleSessionDelete = async (sessionId: string) => {
+    try {
+      const result = await chrome.storage.local.get(['chatSessions']);
+      const sessions = result.chatSessions || {};
+      delete sessions[sessionId];
+      await chrome.storage.local.set({ chatSessions: sessions });
+      
+      if (currentSessionId === sessionId) {
+        setCurrentSessionId(null);
+        window.dispatchEvent(new CustomEvent('newConversation'));
+      }
+      
+      // Trigger sidebar update
+      window.dispatchEvent(new CustomEvent('sessionsUpdated'));
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    }
+  };
+
+  const handleSessionRename = async (sessionId: string, newTitle: string) => {
+    try {
+      const result = await chrome.storage.local.get(['chatSessions']);
+      const sessions = result.chatSessions || {};
+      if (sessions[sessionId]) {
+        sessions[sessionId].title = newTitle;
+        await chrome.storage.local.set({ chatSessions: sessions });
+      }
+      
+      // Trigger sidebar update
+      window.dispatchEvent(new CustomEvent('sessionsUpdated'));
+    } catch (error) {
+      console.error('Failed to rename session:', error);
+    }
+  };
+
   // Listen for custom events to switch views
   useEffect(() => {
     const handleSwitchToSettings = () => {
@@ -125,30 +168,29 @@ const MainSidePanel: React.FC = () => {
 
   const maximizeToFullscreen = async () => {
     try {
+      // Get current tab before opening fullscreen
+      const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const currentTab = currentTabs[0];
+      
+      // Close sidepanel first if it exists
+      if (currentTab?.id) {
+        try {
+          await chrome.sidePanel.setOptions({
+            tabId: currentTab.id,
+            enabled: false
+          });
+        } catch (error) {
+          console.warn('Could not disable sidepanel:', error);
+        }
+      }
+      
       // Open the sidepanel page in a new tab for fullscreen experience
       await chrome.tabs.create({
         url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
         active: true
       });
       
-      console.log('Opened fullscreen tab');
-      
-      // Close the current sidepanel after a short delay to ensure the tab opens
-      setTimeout(async () => {
-        try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const currentTab = tabs.find(tab => !tab.url?.includes('mode=tab'));
-          
-          if (currentTab?.id) {
-            await chrome.sidePanel.setOptions({
-              tabId: currentTab.id,
-              enabled: false
-            });
-          }
-        } catch (error) {
-          console.warn('Could not close sidepanel after maximizing:', error);
-        }
-      }, 500);
+      console.log('Opened fullscreen tab and closed sidepanel');
     } catch (error) {
       console.error('Error maximizing to fullscreen:', error);
     }
@@ -223,7 +265,7 @@ const MainSidePanel: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col h-screen w-full bg-background ${isFullscreen ? 'max-w-4xl mx-auto' : ''}`}>
+    <div className={`flex flex-col h-screen w-full bg-background`}>
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 border-b bg-background z-10">
         <div className="p-2 flex items-center justify-between">
@@ -326,8 +368,21 @@ const MainSidePanel: React.FC = () => {
           )}
 
           {activeView === 'chat' && (
-            <div className="h-full animate-in slide-in-from-left-2 duration-300">
-              <ChatPanel />
+            <div className="h-full flex animate-in slide-in-from-left-2 duration-300">
+              {/* Conversation Sidebar - only in fullscreen mode */}
+              {isFullscreen && (
+                <ConversationSidebar
+                  currentSessionId={currentSessionId}
+                  onSessionSelect={handleSessionSelect}
+                  onSessionDelete={handleSessionDelete}
+                  onSessionRename={handleSessionRename}
+                />
+              )}
+              
+              {/* Chat Panel */}
+              <div className={`flex-1 ${isFullscreen ? 'max-w-4xl mx-auto' : ''}`}>
+                <ChatPanel isFullscreen={isFullscreen} />
+              </div>
             </div>
           )}
         </div>

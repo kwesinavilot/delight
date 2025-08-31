@@ -15,7 +15,11 @@ interface Message {
   content: string;
 }
 
-const ChatPanel: React.FC = () => {
+interface ChatPanelProps {
+  isFullscreen?: boolean;
+}
+
+const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -152,11 +156,19 @@ const ChatPanel: React.FC = () => {
       console.log('Reset chat for new conversation');
     };
 
+    // Listen for session loading events
+    const handleLoadSession = async (event: any) => {
+      const { sessionId } = event.detail;
+      await loadSession(sessionId);
+    };
+
     window.addEventListener('newConversation', handleNewConversation);
+    window.addEventListener('loadSession', handleLoadSession);
 
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
       window.removeEventListener('newConversation', handleNewConversation);
+      window.removeEventListener('loadSession', handleLoadSession);
     };
   }, []);
 
@@ -214,6 +226,23 @@ const ChatPanel: React.FC = () => {
     }
   };
 
+  const loadSession = async (sessionId: string) => {
+    try {
+      const result = await chrome.storage.local.get(['chatSessions']);
+      const sessions = result.chatSessions || {};
+      const session = sessions[sessionId];
+      
+      if (session) {
+        setMessages(session.messages || []);
+        setStreamingContent('');
+        setInput('');
+        console.log(`Loaded session ${sessionId} with ${session.messages?.length || 0} messages`);
+      }
+    } catch (error) {
+      console.error('Failed to load session:', error);
+    }
+  };
+
 
 
   const sendMessage = async () => {
@@ -257,18 +286,20 @@ const ChatPanel: React.FC = () => {
       setStreamingContent('');
 
       // Save to quick history (async, non-blocking)
-      saveToQuickHistory([...messages, newMessage, assistantMessage]);
+      const updatedMessages = [...messages, newMessage, assistantMessage];
+      saveToQuickHistory(updatedMessages);
+      saveToSession(updatedMessages);
 
     } catch (error) {
       console.error('Error getting AI response:', error);
 
       let errorMessage = 'An unexpected error occurred.';
 
-      if (error instanceof Error && error.message === 'Request cancelled by user') {
+      if (error instanceof Error && (error.message === 'Request cancelled by user' || error.message.includes('aborted'))) {
         // Don't show error for intentional cancellation, just clean up
         setStreamingContent('');
         return;
-      } else if (error instanceof AIError && error.message?.includes('Request cancelled by user')) {
+      } else if (error instanceof AIError && (error.message?.includes('Request cancelled by user') || error.message?.includes('aborted'))) {
         // Handle AIError wrapping the cancellation
         setStreamingContent('');
         return;
@@ -380,7 +411,9 @@ const ChatPanel: React.FC = () => {
       setStreamingContent('');
 
       // Save to quick history (async, non-blocking)
-      saveToQuickHistory([...messagesUpToUser, assistantMessage]);
+      const updatedMessages = [...messagesUpToUser, assistantMessage];
+      saveToQuickHistory(updatedMessages);
+      saveToSession(updatedMessages);
 
     } catch (error) {
       console.error('Error retrying AI response:', error);
@@ -402,12 +435,35 @@ const ChatPanel: React.FC = () => {
     }
   };
 
+  const saveToSession = async (messages: Message[]) => {
+    try {
+      const result = await chrome.storage.local.get(['chatSessions']);
+      const sessions = result.chatSessions || {};
+      
+      // Create or update current session
+      const sessionId = `session_${Date.now()}`;
+      const session = {
+        id: sessionId,
+        messages: messages,
+        createdAt: Date.now(),
+        lastUpdated: Date.now(),
+        provider: 'current',
+        title: messages.find(m => m.role === 'user')?.content?.slice(0, 30) + '...' || 'New Chat'
+      };
+      
+      sessions[sessionId] = session;
+      await chrome.storage.local.set({ chatSessions: sessions });
+    } catch (error) {
+      console.error('Failed to save session:', error);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
 
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-12 py-8 space-y-4">
         {/* Show loading state for conversation history */}
         {isLoadingHistory && (
           <div className="flex justify-center">
@@ -427,7 +483,7 @@ const ChatPanel: React.FC = () => {
 
             {/* Sample prompts */}
             {isServiceReady && (
-              <div className="mt-6">
+              <div className={`mt-6 ${isFullscreen ? 'max-w-2xl mx-auto' : ''}`}>
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Let's start from here:</h3>
                   {/* <button

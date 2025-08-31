@@ -25,13 +25,13 @@ const WelcomePage: React.FC = () => {
   const features = [
     {
       icon: <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-500" />,
-      title: 'Lightning-Fast Chat',
-      description: 'Instant loading (~100ms) with persistent history across all modes and stop/cancel control'
+      title: 'Real-time Conversations',
+      description: 'Instant sidebar updates, centered fullscreen layout, and seamless conversation management'
     },
     {
       icon: <DocumentTextIcon className="h-8 w-8 text-green-500" />,
-      title: 'Smart Streaming',
-      description: 'Real-time response streaming with graceful visualization and clean cancellation'
+      title: 'Enhanced Fullscreen',
+      description: 'Complete conversation history sidebar with rename/delete options and optimized layout'
     },
     {
       icon: <BoltIcon className="h-8 w-8 text-yellow-500" />,
@@ -47,18 +47,18 @@ const WelcomePage: React.FC = () => {
 
   const steps = [
     {
-      title: 'Welcome to Delight 4.1!',
-      subtitle: 'Lightning-fast AI conversations with enhanced performance and UX',
+      title: 'Welcome to Delight 4.4!',
+      subtitle: 'Real-time conversation management with enhanced user experience',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 4.1!
+              Welcome to Delight 4.4!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Lightning-fast AI conversations with persistent history and enhanced UX.
-              Chat with AI, summarize pages, and boost your productivity with 6 major providers and 25+ models.
+              Real-time conversation management with enhanced fullscreen experience.
+              Chat with AI, manage conversations seamlessly, and boost your productivity with 6 major providers and 25+ models.
             </p>
           </div>
 
@@ -210,7 +210,7 @@ const WelcomePage: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <RocketLaunchIcon className="h-8 w-8 text-blue-500" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v4.1.1</span>
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v4.4.0</span>
           </div>
 
           {/* Progress indicator */}
