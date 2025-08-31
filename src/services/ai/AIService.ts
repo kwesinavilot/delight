@@ -1,5 +1,7 @@
 import { AIProvider, GenerationOptions, SummaryLength, AIError, AIErrorType } from '../../types/ai';
+import { ChatMessage } from '../../types/chat';
 import { ConfigManager } from '../config/ConfigManager';
+import { ContextProcessor } from '../chat/ContextProcessor';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
@@ -10,11 +12,13 @@ import { SambaNovaProvider } from './providers/SambaNovaProvider';
 export class AIService {
   private static instance: AIService;
   private configManager: ConfigManager;
+  private contextProcessor: ContextProcessor;
   private providers: Map<string, AIProvider> = new Map();
   private currentProvider: AIProvider | null = null;
 
   private constructor() {
     this.configManager = ConfigManager.getInstance();
+    this.contextProcessor = new ContextProcessor();
   }
 
   static getInstance(): AIService {
@@ -98,7 +102,10 @@ export class AIService {
     );
   }
 
-  async switchProvider(providerName: string): Promise<void> {
+  async switchProvider(providerName: string, options?: {
+    preserveContext?: boolean;
+    clearContext?: boolean;
+  }): Promise<void> {
     const provider = this.providers.get(providerName);
 
     if (!provider) {
@@ -115,12 +122,51 @@ export class AIService {
       );
     }
 
+    const previousProvider = this.currentProvider?.name;
     this.currentProvider = provider;
     await this.configManager.setCurrentProvider(providerName);
+
+    // Handle conversation context if ConversationManager is available
+    if (options && (options.preserveContext !== undefined || options.clearContext)) {
+      try {
+        const { ConversationManager } = await import('../chat/ConversationManager');
+        const conversationManager = ConversationManager.getInstance();
+        
+        if (options.clearContext) {
+          await conversationManager.clearCurrentSession();
+        } else if (options.preserveContext) {
+          await conversationManager.switchProvider(providerName, true);
+        } else {
+          // Default behavior based on user settings
+          await conversationManager.switchProvider(providerName);
+        }
+        
+        console.log(`Switched from ${previousProvider} to ${providerName} with context handling`);
+      } catch (error) {
+        console.warn('Failed to handle conversation context during provider switch:', error);
+        // Continue with provider switch even if context handling fails
+      }
+    }
   }
 
+  // Legacy method for backward compatibility
   async generateChatResponse(
     message: string,
+    onChunk?: (chunk: string) => void
+  ): Promise<string> {
+    // Convert single message to conversation format
+    const chatMessage: ChatMessage = {
+      id: `msg_${Date.now()}`,
+      role: 'user',
+      content: message,
+      timestamp: Date.now()
+    };
+    return this.generateChatResponseWithHistory([chatMessage], onChunk);
+  }
+
+  // New method that supports conversation history
+  async generateChatResponseWithHistory(
+    messages: ChatMessage[],
     onChunk?: (chunk: string) => void
   ): Promise<string> {
     if (!this.currentProvider) {
@@ -138,22 +184,66 @@ export class AIService {
     }
 
     try {
-      const options: GenerationOptions = {
-        systemPrompt: "You are Delight, a helpful and friendly AI assistant.",
-        stream: !!onChunk
-      };
-
-      const responseStream = await this.currentProvider.generateResponse(message, options);
-      let fullResponse = '';
-
-      for await (const chunk of responseStream) {
-        fullResponse += chunk;
-        if (onChunk) {
-          onChunk(chunk);
-        }
+      const providerName = this.currentProvider.name;
+      
+      // Optimize context for the current provider
+      const maxTokens = this.contextProcessor.getProviderTokenLimit(providerName);
+      const optimizedMessages = this.contextProcessor.optimizeContext(messages, maxTokens);
+      
+      // Format messages for the specific provider
+      const providerMessages = this.contextProcessor.formatForProvider(optimizedMessages, providerName);
+      
+      // Validate message format
+      if (!this.contextProcessor.validateMessageFormat(providerMessages, providerName)) {
+        throw new AIError(
+          AIErrorType.CONFIGURATION_ERROR,
+          'Invalid message format for provider'
+        );
       }
 
-      return fullResponse;
+      // Check if provider supports conversation history
+      if (typeof this.currentProvider.generateResponseWithHistory === 'function') {
+        // Use new conversation-aware method
+        const responseStream = await this.currentProvider.generateResponseWithHistory(providerMessages, {
+          stream: !!onChunk
+        });
+        
+        let fullResponse = '';
+        for await (const chunk of responseStream) {
+          fullResponse += chunk;
+          if (onChunk) {
+            onChunk(chunk);
+          }
+        }
+        
+        return fullResponse;
+      } else {
+        // Fallback to legacy single-message method
+        const lastMessage = providerMessages[providerMessages.length - 1];
+        if (!lastMessage || lastMessage.role !== 'user') {
+          throw new AIError(
+            AIErrorType.CONFIGURATION_ERROR,
+            'No user message found in conversation'
+          );
+        }
+
+        const options: GenerationOptions = {
+          systemPrompt: "You are Delight, a helpful and friendly AI assistant.",
+          stream: !!onChunk
+        };
+
+        const responseStream = await this.currentProvider.generateResponse(lastMessage.content, options);
+        let fullResponse = '';
+
+        for await (const chunk of responseStream) {
+          fullResponse += chunk;
+          if (onChunk) {
+            onChunk(chunk);
+          }
+        }
+        
+        return fullResponse;
+      }
     } catch (error) {
       console.error('Chat response generation failed:', error);
 
@@ -314,6 +404,116 @@ export class AIService {
     } catch (error) {
       console.error(`Failed to test ${providerName} connection:`, error);
       return false;
+    }
+  }
+
+  // Get provider-specific capabilities and limitations
+  getProviderCapabilities(providerName?: string): {
+    maxTokens: number;
+    supportsSystemMessages: boolean;
+    supportsConversationHistory: boolean;
+    messageFormatRequirements: string[];
+  } {
+    const provider = providerName || this.currentProvider?.name || 'openai';
+    
+    const capabilities = {
+      openai: {
+        maxTokens: 4000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      anthropic: {
+        maxTokens: 8000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      gemini: {
+        maxTokens: 8000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content', 'role_conversion_assistant_to_model']
+      },
+      grok: {
+        maxTokens: 4000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      groq: {
+        maxTokens: 4000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      sambanova: {
+        maxTokens: 4000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      }
+    };
+
+    return capabilities[provider as keyof typeof capabilities] || capabilities.openai;
+  }
+
+  // Check if context can be converted between providers
+  async validateContextConversion(
+    _fromProvider: string, 
+    toProvider: string, 
+    messages: ChatMessage[]
+  ): Promise<{
+    canConvert: boolean;
+    warnings: string[];
+    tokensAfterConversion?: number;
+  }> {
+    const toCapabilities = this.getProviderCapabilities(toProvider);
+    
+    const warnings: string[] = [];
+    let canConvert = true;
+
+    // Check token limits
+    const estimatedTokens = this.contextProcessor.calculateTokenCount(messages);
+    if (estimatedTokens > toCapabilities.maxTokens) {
+      warnings.push(`Context may be truncated due to ${toProvider} token limits (${estimatedTokens} > ${toCapabilities.maxTokens})`);
+    }
+
+    // Check system message support
+    const hasSystemMessages = messages.some(m => m.role === 'system');
+    if (hasSystemMessages && !toCapabilities.supportsSystemMessages) {
+      warnings.push(`${toProvider} may not fully support system messages`);
+    }
+
+    // Check conversation history support
+    if (messages.length > 1 && !toCapabilities.supportsConversationHistory) {
+      warnings.push(`${toProvider} may not support full conversation history`);
+      canConvert = false;
+    }
+
+    // Format the messages for the target provider to get accurate token count
+    try {
+      const convertedMessages = this.contextProcessor.formatForProvider(messages, toProvider);
+      const tokensAfterConversion = this.contextProcessor.calculateTokenCount(
+        convertedMessages.map(m => ({
+          id: `temp_${Date.now()}`,
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.content,
+          timestamp: Date.now()
+        }))
+      );
+
+      return {
+        canConvert,
+        warnings,
+        tokensAfterConversion
+      };
+    } catch (error) {
+      warnings.push(`Error during context format conversion: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return {
+        canConvert: false,
+        warnings
+      };
     }
   }
 }

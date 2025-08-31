@@ -8,6 +8,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConfigManager } from '@/services/config/ConfigManager';
 import { AIConfiguration } from '@/types/ai';
+import { providerSwitchingUtil } from '@/utils/providerSwitching';
+import ProviderSwitchDialog from '@/components/Chat/ProviderSwitchDialog';
 
 interface SettingsPanelProps {
   onClose?: () => void;
@@ -21,6 +23,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<Record<string, 'success' | 'error' | null>>({});
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [showSwitchDialog, setShowSwitchDialog] = useState(false);
+  const [pendingProviderSwitch, setPendingProviderSwitch] = useState<string | null>(null);
+  const [switchingProvider, setSwitchingProvider] = useState(false);
 
   // Provider configurations
   const availableProviders = {
@@ -116,13 +121,65 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   };
 
   const handleProviderSelect = async (providerId: string) => {
-    setSelectedProvider(providerId);
+    // Check if we need to show the switch dialog
+    const requiresConfirmation = await providerSwitchingUtil.requiresConfirmation(providerId);
 
+    if (requiresConfirmation) {
+      // Show dialog for context preservation options
+      setPendingProviderSwitch(providerId);
+      setShowSwitchDialog(true);
+      return;
+    }
+
+    // Direct switch for simple cases
+    await performProviderSwitch(providerId, {
+      preserveContext: false,
+      convertContext: false,
+      createNewSession: false
+    });
+  };
+
+  const performProviderSwitch = async (
+    providerId: string,
+    options: {
+      preserveContext: boolean;
+      convertContext: boolean;
+      createNewSession: boolean;
+    }
+  ) => {
+    setSwitchingProvider(true);
     try {
-      const configManager = ConfigManager.getInstance();
-      await configManager.setCurrentProvider(providerId);
+      const result = await providerSwitchingUtil.switchProvider(providerId, {
+        preserveContext: options.preserveContext,
+        convertContext: options.convertContext,
+        createNewSession: options.createNewSession,
+        validateConversion: true
+      });
+
+      if (result.success) {
+        setSelectedProvider(providerId);
+
+        if (result.warnings && result.warnings.length > 0) {
+          console.warn('Provider switch completed with warnings:', result.warnings);
+          // Could show a toast notification here
+        }
+
+        console.log(`Successfully switched to provider: ${providerId}`);
+      } else {
+        console.error('Provider switch failed:', result.error);
+        // Revert selection on error
+        const configManager = ConfigManager.getInstance();
+        const currentProvider = await configManager.getCurrentProvider();
+        setSelectedProvider(currentProvider);
+      }
     } catch (error) {
-      console.error('Failed to set current provider:', error);
+      console.error('Failed to switch provider:', error);
+      // Revert selection on error
+      const configManager = ConfigManager.getInstance();
+      const currentProvider = await configManager.getCurrentProvider();
+      setSelectedProvider(currentProvider);
+    } finally {
+      setSwitchingProvider(false);
     }
   };
 
@@ -229,7 +286,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                         name="provider"
                         checked={isSelected}
                         onChange={() => handleProviderSelect(providerId)}
-                        className="h-4 w-4 text-blue-600"
+                        disabled={switchingProvider}
+                        className="h-4 w-4 text-blue-600 disabled:opacity-50"
                       />
                       <div>
                         <h3 className="font-medium text-gray-900 dark:text-white">
@@ -430,6 +488,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           </div>
         </div>
       </div>
+
+      {/* Provider Switch Dialog */}
+      {showSwitchDialog && pendingProviderSwitch && (
+        <ProviderSwitchDialog
+          isOpen={showSwitchDialog}
+          onClose={() => {
+            setShowSwitchDialog(false);
+            setPendingProviderSwitch(null);
+          }}
+          currentProvider={selectedProvider}
+          targetProvider={pendingProviderSwitch}
+          targetProviderName={availableProviders[pendingProviderSwitch as keyof typeof availableProviders]?.name || pendingProviderSwitch}
+          onConfirm={async (options) => {
+            await performProviderSwitch(pendingProviderSwitch!, options);
+            setShowSwitchDialog(false);
+            setPendingProviderSwitch(null);
+          }}
+        />
+      )}
     </div>
   );
 };

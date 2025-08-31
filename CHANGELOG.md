@@ -9,8 +9,127 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Advanced summary customization options
-- Chat history and persistence
 - Custom prompt templates
+- Multi-language support
+
+## [4.0.0] - 2025-01-29
+
+### 🚀 MAJOR RELEASE: Advanced Performance Optimization & Memory Management
+
+### Added
+- **⚡ Lazy Loading System**
+  - Intelligent lazy loading for conversation messages with configurable thresholds
+  - Memory-efficient session loading with LRU cache management
+  - Automatic cache cleanup when memory limits are exceeded
+  - Performance-aware loading with size estimation and optimization
+  - Smart threshold adjustment based on usage patterns (default: 50 messages)
+
+- **🗜️ Message Compression Engine**
+  - Web Worker-based compression system with fallback mechanisms
+  - Automatic compression for messages older than configurable age (default: 7 days)
+  - Real-time compression/decompression with performance monitoring
+  - Compression ratio tracking and optimization metrics
+  - Graceful degradation when compression fails
+
+- **🧹 Automatic Cleanup Policies**
+  - Intelligent cleanup system with age-based session deletion
+  - Configurable cleanup frequency (default: 24 hours)
+  - Session count limits with LRU eviction (default: 20 concurrent sessions)
+  - Message count enforcement per session (default: 100 messages)
+  - Space usage optimization with automatic compression triggers
+
+- **📊 Performance Monitoring & Analytics**
+  - Real-time performance metrics collection (memory usage, load times, cache hit rates)
+  - Continuous performance monitoring with configurable intervals (default: 30 minutes)
+  - Automatic performance optimization triggers at 75% memory usage
+  - Performance scoring system (0-100) with actionable recommendations
+  - Emergency recovery system for critical performance situations
+
+- **🎯 Context Processing Optimization**
+  - Advanced context optimization for large conversation histories
+  - Smart message truncation with system message preservation
+  - Content compression for oversized messages with quality preservation
+  - Provider-specific optimization strategies and token limits
+  - Async context processing with performance metrics tracking
+
+- **⚙️ Comprehensive Performance Settings**
+  - `enableLazyLoading`: Toggle lazy loading functionality
+  - `lazyLoadThreshold`: Messages count before lazy loading (default: 50)
+  - `enableCompression`: Toggle message compression
+  - `compressionThreshold`: Days before compression (default: 7)
+  - `maxMemoryUsage`: Memory limit in MB (default: 50MB)
+  - `enablePerformanceMonitoring`: Toggle monitoring system
+  - `cleanupFrequency`: Hours between cleanup runs (default: 24)
+  - `maxConcurrentSessions`: Max sessions in memory (default: 20)
+
+### Enhanced
+- **🔄 Conversation Manager Improvements**
+  - Async method signatures for better performance handling
+  - Integration with performance optimizer for large session management
+  - Enhanced provider switching with context optimization
+  - Performance-aware context generation for AI providers
+  - Memory usage monitoring and automatic optimization
+
+- **💾 Advanced Storage Management**
+  - Performance-optimized storage operations with caching
+  - Intelligent session loading with lazy loading integration
+  - Enhanced cleanup policies with compression support
+  - Storage statistics and usage monitoring
+  - Automatic performance optimization triggers
+
+- **🧠 Context Processor Enhancements**
+  - Performance-aware context optimization for large histories
+  - Provider-specific optimization settings and strategies
+  - Async context processing with performance monitoring
+  - Smart truncation algorithms with content preservation
+  - Token counting optimization and caching
+
+### Performance Features
+- **📈 Performance Manager**
+  - Centralized performance coordination and optimization
+  - Automatic performance tuning based on usage patterns
+  - Performance report generation with actionable insights
+  - Emergency performance recovery for critical situations
+  - Configuration optimization based on real-time metrics
+
+- **🔍 Performance Monitor**
+  - Continuous background monitoring with configurable intervals
+  - Automatic issue detection and resolution recommendations
+  - Performance trend analysis and optimization suggestions
+  - Memory usage alerts and automatic cleanup triggers
+  - Cache efficiency monitoring and optimization
+
+- **🛠️ Performance Integration Service**
+  - Complete performance optimization workflow management
+  - Automated performance recovery and optimization
+  - Continuous performance maintenance and tuning
+  - Emergency performance recovery protocols
+  - Performance status reporting and recommendations
+
+### Technical Improvements
+- **🏗️ Enhanced Architecture**
+  - New performance optimization service layer
+  - Web Worker integration for CPU-intensive operations
+  - Advanced caching strategies with intelligent eviction
+  - Memory management with automatic cleanup
+  - Performance metrics collection and analysis
+
+- **🔧 Developer Experience**
+  - Comprehensive performance debugging tools
+  - Performance integration examples and documentation
+  - Configurable performance thresholds and policies
+  - Performance testing utilities and benchmarks
+  - Extensive TypeScript interfaces for performance features
+
+### Breaking Changes
+- ConversationManager methods are now async for better performance handling
+- Enhanced settings structure with new performance configuration options
+- Updated storage format to support compression and performance metadata
+
+### Migration Guide
+- Existing conversations will be automatically migrated to support new performance features
+- Performance monitoring is enabled by default but can be disabled in settings
+- Memory limits are set conservatively (50MB) but can be adjusted based on device capabilities
 
 ## [3.3.1] - 2025-01-29
 

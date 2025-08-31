@@ -27,8 +27,17 @@ export class OpenAIProvider extends BaseAIProvider {
     }
 
     async generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>> {
+        // Convert single message to conversation format for consistency
+        const messages = [{ role: 'user' as const, content: message }];
+        return this.generateResponseWithHistory(messages, options);
+    }
+
+    async generateResponseWithHistory(
+        messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+        options?: GenerationOptions
+    ): Promise<AsyncIterable<string>> {
         if (!this.isConfigured()) {
-            this.handleError(new Error('OpenAI provider not configured'), 'generateResponse');
+            this.handleError(new Error('OpenAI provider not configured'), 'generateResponseWithHistory');
         }
 
         if (!this.client) {
@@ -40,16 +49,18 @@ export class OpenAIProvider extends BaseAIProvider {
             const preparedOptions = this.prepareChatOptions(options);
             const model = this.client(this.config.model || 'gpt-3.5-turbo');
 
-            const messages = [
-                { role: 'user' as const, content: message }
-            ];
+            // Convert messages to OpenAI format (handle 'model' role from Gemini)
+            const openAIMessages = messages.map(msg => ({
+                role: msg.role === 'model' ? 'assistant' as const : msg.role as 'user' | 'assistant' | 'system',
+                content: msg.content
+            }));
 
             if (preparedOptions.stream !== false) {
                 // Streaming response
                 const result = streamText({
                     model,
                     system: preparedOptions.systemPrompt,
-                    messages,
+                    messages: openAIMessages,
                     temperature: preparedOptions.temperature,
                 });
 
@@ -59,14 +70,14 @@ export class OpenAIProvider extends BaseAIProvider {
                 const result = await generateText({
                     model,
                     system: preparedOptions.systemPrompt,
-                    messages,
+                    messages: openAIMessages,
                     temperature: preparedOptions.temperature,
                 });
 
                 return this.createAsyncIterable([result.text]);
             }
         } catch (error: any) {
-            this.handleError(error, 'generateResponse');
+            this.handleError(error, 'generateResponseWithHistory');
         }
     }
 

@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText, generateText } from 'ai';
+import { streamText, generateText, type CoreMessage } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
 
@@ -26,8 +26,17 @@ export class GeminiProvider extends BaseAIProvider {
   }
 
   async generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>> {
+    // Convert single message to conversation format for consistency
+    const messages = [{ role: 'user' as const, content: message }];
+    return this.generateResponseWithHistory(messages, options);
+  }
+
+  async generateResponseWithHistory(
+    messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+    options?: GenerationOptions
+  ): Promise<AsyncIterable<string>> {
     if (!this.isConfigured()) {
-      this.handleError(new Error('Gemini provider not configured'), 'generateResponse');
+      this.handleError(new Error('Gemini provider not configured'), 'generateResponseWithHistory');
     }
 
     if (!this.client) {
@@ -39,16 +48,29 @@ export class GeminiProvider extends BaseAIProvider {
       const preparedOptions = this.prepareChatOptions(options);
       const model = this.client(this.config.model || 'gemini-2.5-flash');
 
-      const messages = [
-        { role: 'user' as const, content: message }
-      ];
+      // Convert messages to Gemini format (assistant -> model, handle system messages)
+      const geminiMessages: CoreMessage[] = messages
+        .filter(msg => msg.role !== 'system') // System messages handled separately
+        .map(msg => {
+          if (msg.role === 'assistant') {
+            return { role: 'assistant' as const, content: msg.content };
+          } else {
+            return { role: 'user' as const, content: msg.content };
+          }
+        });
+
+      // Extract system messages and combine them
+      const systemMessages = messages.filter(msg => msg.role === 'system');
+      const systemPrompt = systemMessages.length > 0 
+        ? systemMessages.map(msg => msg.content).join('\n\n')
+        : preparedOptions.systemPrompt;
 
       if (preparedOptions.stream !== false) {
         // Streaming response
         const result = streamText({
           model,
-          system: preparedOptions.systemPrompt,
-          messages,
+          system: systemPrompt,
+          messages: geminiMessages,
           temperature: preparedOptions.temperature,
         });
 
@@ -57,15 +79,15 @@ export class GeminiProvider extends BaseAIProvider {
         // Non-streaming response
         const result = await generateText({
           model,
-          system: preparedOptions.systemPrompt,
-          messages,
+          system: systemPrompt,
+          messages: geminiMessages,
           temperature: preparedOptions.temperature,
         });
 
         return this.createAsyncIterable([result.text]);
       }
     } catch (error: any) {
-      this.handleError(error, 'generateResponse');
+      this.handleError(error, 'generateResponseWithHistory');
     }
   }
 

@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 3.3.1 - Critical Bug Fixes & Stability Improvements**
+## 🎉 **Version 4.0.0 - Advanced Performance Optimization & Memory Management**
 
-**FIXED**: Sidepanel close button, provider registration errors, and fullscreen/sidepanel mode issues!
+**NEW**: Revolutionary performance optimization system with lazy loading, message compression, automatic cleanup, and intelligent memory management!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -16,17 +16,31 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ## 🌟 Features
 
+### 🚀 Core AI Features
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
+
+### ⚡ Performance & Memory Management (NEW in v4.0.0)
+- **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
+- **Message Compression**: Automatic compression for old messages with Web Worker processing
+- **Automatic Cleanup**: Smart cleanup policies with age-based deletion and space optimization
+- **Performance Monitoring**: Real-time metrics tracking with automatic optimization triggers
+- **Memory Management**: Intelligent cache management with LRU eviction and memory limits
+- **Context Optimization**: Advanced processing for large conversation histories
+
+### 🎨 User Experience
 - **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
 - **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience
 - **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
 - **Enhanced Onboarding**: Welcome flow opens directly in sidepanel mode for better UX
 - **Flexible Configuration**: Easy provider switching and API key management
 - **Modern UI**: Clean, responsive interface with dark mode support and improved layouts
+
+### 🔒 Security & Privacy
 - **Privacy-Focused**: Secure local storage of API keys with encryption - [Privacy Policy](PRIVACY.md)
+- **Local Processing**: All performance optimization happens locally
 - **Multiple Interfaces**: Popup, side panel, fullscreen, and keyboard shortcuts
 
 ## 🚀 Quick Start

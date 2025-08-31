@@ -16,6 +16,11 @@ export abstract class BaseAIProvider implements AIProvider {
 
   abstract generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>>;
   
+  abstract generateResponseWithHistory(
+    messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+    options?: GenerationOptions
+  ): Promise<AsyncIterable<string>>;
+  
   abstract generateSummary(content: string, length: SummaryLength): Promise<string>;
 
   // Centralized method to prepare chat options

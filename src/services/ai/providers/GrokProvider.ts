@@ -28,8 +28,17 @@ export class GrokProvider extends BaseAIProvider {
   }
 
   async generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>> {
+    // Convert single message to conversation format for consistency
+    const messages = [{ role: 'user' as const, content: message }];
+    return this.generateResponseWithHistory(messages, options);
+  }
+
+  async generateResponseWithHistory(
+    messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+    options?: GenerationOptions
+  ): Promise<AsyncIterable<string>> {
     if (!this.isConfigured()) {
-      this.handleError(new Error('Grok provider not configured'), 'generateResponse');
+      this.handleError(new Error('Grok provider not configured'), 'generateResponseWithHistory');
     }
 
     if (!this.client) {
@@ -39,17 +48,22 @@ export class GrokProvider extends BaseAIProvider {
     try {
       const model = this.client(this.config.model || 'grok-beta');
 
-      const messages = [
-        ...(options?.systemPrompt ? [{ role: 'system' as const, content: options.systemPrompt }] : []),
-        { role: 'user' as const, content: message }
-      ];
+      // Convert messages to OpenAI format (handle 'model' role from Gemini)
+      const grokMessages = messages.map(msg => ({
+        role: msg.role === 'model' ? 'assistant' as const : msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content
+      }));
+
+      // Add system prompt if provided and no system message exists
+      if (options?.systemPrompt && !grokMessages.some(msg => msg.role === 'system')) {
+        grokMessages.unshift({ role: 'system', content: options.systemPrompt });
+      }
 
       if (options?.stream !== false) {
         // Streaming response
         const result = streamText({
           model,
-          messages,
-          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          messages: grokMessages,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
@@ -58,15 +72,14 @@ export class GrokProvider extends BaseAIProvider {
         // Non-streaming response
         const result = await generateText({
           model,
-          messages,
-          // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+          messages: grokMessages,
           temperature: options?.temperature || this.config.temperature || 0.7,
         });
 
         return this.createAsyncIterable([result.text]);
       }
     } catch (error: any) {
-      this.handleError(error, 'generateResponse');
+      this.handleError(error, 'generateResponseWithHistory');
     }
   }
 

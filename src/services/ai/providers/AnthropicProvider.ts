@@ -26,8 +26,17 @@ export class AnthropicProvider extends BaseAIProvider {
     }
 
     async generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>> {
+        // Convert single message to conversation format for consistency
+        const messages = [{ role: 'user' as const, content: message }];
+        return this.generateResponseWithHistory(messages, options);
+    }
+
+    async generateResponseWithHistory(
+        messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+        options?: GenerationOptions
+    ): Promise<AsyncIterable<string>> {
         if (!this.isConfigured()) {
-            this.handleError(new Error('Anthropic provider not configured'), 'generateResponse');
+            this.handleError(new Error('Anthropic provider not configured'), 'generateResponseWithHistory');
         }
 
         if (!this.client) {
@@ -37,20 +46,26 @@ export class AnthropicProvider extends BaseAIProvider {
         try {
             const model = this.client(this.config.model || 'claude-3-haiku-20240307');
 
-            // Anthropic uses a different message format - system prompt is separate
-            const messages = [
-                { role: 'user' as const, content: message }
-            ];
+            // Convert messages to Anthropic format (handle 'model' role from Gemini)
+            const anthropicMessages = messages
+                .filter(msg => msg.role !== 'system') // System messages handled separately
+                .map(msg => ({
+                    role: msg.role === 'model' ? 'assistant' as const : msg.role as 'user' | 'assistant',
+                    content: msg.content
+                }));
 
-            const systemPrompt = options?.systemPrompt || 'You are Delight, a helpful and friendly AI assistant.';
+            // Extract system messages and combine them
+            const systemMessages = messages.filter(msg => msg.role === 'system');
+            const systemPrompt = systemMessages.length > 0 
+                ? systemMessages.map(msg => msg.content).join('\n\n')
+                : options?.systemPrompt || 'You are Delight, a helpful and friendly AI assistant.';
 
             if (options?.stream !== false) {
                 // Streaming response
-                const result = await streamText({
+                const result = streamText({
                     model,
                     system: systemPrompt,
-                    messages,
-                    // maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+                    messages: anthropicMessages,
                     temperature: options?.temperature || this.config.temperature || 0.7,
                 });
 
@@ -60,15 +75,14 @@ export class AnthropicProvider extends BaseAIProvider {
                 const result = await generateText({
                     model,
                     system: systemPrompt,
-                    messages,
-                    //   maxTokens: options?.maxTokens || this.config.maxTokens || 1000,
+                    messages: anthropicMessages,
                     temperature: options?.temperature || this.config.temperature || 0.7,
                 });
 
                 return this.createAsyncIterable([result.text]);
             }
         } catch (error: any) {
-            this.handleError(error, 'generateResponse');
+            this.handleError(error, 'generateResponseWithHistory');
         }
     }
 

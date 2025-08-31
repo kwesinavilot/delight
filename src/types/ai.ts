@@ -12,6 +12,12 @@ export interface AIProvider {
   isConfigured(): boolean;
   generateResponse(message: string, options?: GenerationOptions): Promise<AsyncIterable<string>>;
   generateSummary(content: string, length: SummaryLength): Promise<string>;
+  
+  // Method for conversation history support
+  generateResponseWithHistory(
+    messages: Array<{ role: 'user' | 'assistant' | 'system' | 'model'; content: string }>, 
+    options?: GenerationOptions
+  ): Promise<AsyncIterable<string>>;
 }
 
 export interface AIConfiguration {
