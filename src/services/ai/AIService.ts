@@ -164,11 +164,26 @@ export class AIService {
     return this.generateChatResponseWithHistory([chatMessage], onChunk);
   }
 
-  // New method that supports conversation history
+  // New method that supports conversation history (ChatMessage format)
   async generateChatResponseWithHistory(
-    messages: ChatMessage[],
+    messages: ChatMessage[] | any[],
     onChunk?: (chunk: string) => void
   ): Promise<string> {
+    // Handle both ChatMessage[] and ProviderMessage[] formats
+    let chatMessages: ChatMessage[];
+    
+    if (messages.length > 0 && 'id' in messages[0]) {
+      // Already ChatMessage format
+      chatMessages = messages as ChatMessage[];
+    } else {
+      // Convert from ProviderMessage format
+      chatMessages = (messages as any[]).map((msg, index) => ({
+        id: `msg_${Date.now()}_${index}`,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+        timestamp: Date.now()
+      }));
+    }
     if (!this.currentProvider) {
       throw new AIError(
         AIErrorType.CONFIGURATION_ERROR,
@@ -188,7 +203,7 @@ export class AIService {
       
       // Optimize context for the current provider
       const maxTokens = this.contextProcessor.getProviderTokenLimit(providerName);
-      const optimizedMessages = this.contextProcessor.optimizeContext(messages, maxTokens);
+      const optimizedMessages = this.contextProcessor.optimizeContext(chatMessages, maxTokens);
       
       // Format messages for the specific provider
       const providerMessages = this.contextProcessor.formatForProvider(optimizedMessages, providerName);
@@ -298,7 +313,15 @@ export class AIService {
   }
 
   isCurrentProviderConfigured(): boolean {
-    return this.currentProvider?.isConfigured() || false;
+    try {
+      // If not initialized, check config directly
+      if (!this.currentProvider) {
+        return false;
+      }
+      return this.currentProvider.isConfigured();
+    } catch {
+      return false;
+    }
   }
 
   getAvailableProviders(): string[] {

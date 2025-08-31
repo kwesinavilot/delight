@@ -12,6 +12,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [4.1.0] - 2025-01-29
+
+### 🎯 Enhanced Chat Experience & Persistent History
+
+### Added
+- **💾 Persistent Chat History**
+  - Chat conversations now persist across sidepanel ↔ fullscreen mode switches
+  - Automatic conversation loading on extension startup
+  - Seamless continuation of conversations regardless of UI mode
+  - Integration with ConversationManager for robust history management
+  - No data loss when closing/reopening extension
+
+- **⚡ Improved Streaming Experience**
+  - Enhanced streaming response visualization with real-time content display
+  - Graceful streaming with proper Markdown rendering during generation
+  - Subtle pulsing cursor indicator for active streaming
+  - Smooth transition from "Thinking..." to actual content streaming
+  - Better visual feedback during AI response generation
+
+### Fixed
+- **🔧 Chat Interface Improvements**
+  - Copy and Retry buttons now only appear after AI response is complete
+  - Eliminated empty response boxes during loading states
+  - Fixed premature button display during streaming responses
+  - Improved streaming state management and visual consistency
+  - Better error handling for conversation history operations
+
+- **🔄 Provider Context Handling**
+  - Enhanced AIService to handle both ChatMessage[] and ProviderMessage[] formats
+  - Improved context optimization for different AI providers
+  - Better message format conversion and validation
+  - Fixed compatibility issues between ConversationManager and AIService
+
+### Changed
+- **📱 Cross-Mode Continuity**
+  - Chat state now maintained in persistent storage instead of component state
+  - Conversations automatically resume when switching between modes
+  - Enhanced user experience with seamless mode transitions
+  - Improved conversation context preservation across sessions
+
+### Technical Improvements
+- **🏗️ Architecture Enhancements**
+  - Integrated ConversationManager with ChatPanel for persistent storage
+  - Enhanced message handling with proper conversation history tracking
+  - Improved streaming content management with separate state handling
+  - Better separation of UI state and persistent conversation data
+  - Enhanced error recovery and conversation restoration mechanisms
+
 ## [4.0.0] - 2025-01-29
 
 ### 🚀 MAJOR RELEASE: Advanced Performance Optimization & Memory Management

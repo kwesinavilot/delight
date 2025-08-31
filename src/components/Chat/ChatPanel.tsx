@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PaperAirplaneIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
-import { ConversationManager } from '@/services/chat/ConversationManager';
+import { ChatMessage } from '@/types/chat';
+
 import { AIService } from '@/services/ai/AIService';
+import { ConversationManager } from '@/services/chat/ConversationManager';
 import WelcomeHint from './WelcomeHint';
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -19,72 +23,200 @@ const ChatPanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [streamingContent, setStreamingContent] = useState('');
+  const [copiedStates, setCopiedStates] = useState<Record<number, boolean>>({});
   const [conversationManager, setConversationManager] = useState<ConversationManager | null>(null);
+
 
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
 
   useEffect(() => {
     initializeServices();
+
+    // Initialize prompts once
+    const allPrompts = [
+      // Executive/Business
+      "Draft a professional email for this situation",
+      "Create a meeting agenda for this topic",
+      "Generate action items and next steps",
+      "Write a brief executive summary",
+      "Create talking points for a presentation",
+      "Draft a project proposal outline",
+      "Generate strategic recommendations",
+      "Create a stakeholder communication plan",
+      "Draft quarterly goals and objectives",
+
+      // AI/ML Engineers & Data Scientists
+      "Explain this ML algorithm or concept",
+      "Generate Python code for data analysis",
+      "Create a model evaluation framework",
+      "Design an experiment for A/B testing",
+      "Optimize this machine learning pipeline",
+      "Generate SQL queries for data extraction",
+      "Create data visualization recommendations",
+      "Draft a technical architecture document",
+      "Analyze dataset patterns and insights",
+      "Generate feature engineering ideas",
+
+      // Software Development
+      "Review this code for best practices",
+      "Debug this error or issue",
+      "Optimize this algorithm or function",
+      "Generate unit tests for this code",
+      "Create API documentation",
+      "Design a database schema",
+      "Refactor this code for better performance",
+      "Generate deployment scripts",
+      "Create a technical specification",
+
+      // Cybersecurity
+      "Analyze this security vulnerability",
+      "Create a security assessment checklist",
+      "Generate incident response procedures",
+      "Design security controls framework",
+      "Create penetration testing scenarios",
+      "Draft security policy guidelines",
+      "Analyze threat intelligence data",
+
+      // Cloud Engineering
+      "Design a cloud architecture solution",
+      "Optimize cloud infrastructure costs",
+      "Create deployment automation scripts",
+      "Generate monitoring and alerting setup",
+      "Design disaster recovery procedures",
+      "Create infrastructure as code templates",
+      "Analyze cloud performance metrics",
+
+      // UX/UI Design
+      "Analyze user experience patterns",
+      "Generate design system guidelines",
+      "Create user journey mapping",
+      "Design accessibility improvements",
+      "Generate usability testing scenarios",
+      "Create wireframe specifications",
+      "Analyze user feedback and insights",
+
+      // Digital Marketing
+      "Generate SEO optimization strategies",
+      "Create content marketing ideas",
+      "Analyze social media performance",
+      "Generate email campaign content",
+      "Create conversion optimization plan",
+      "Design marketing automation workflows",
+      "Analyze competitor marketing strategies",
+
+      // Product Management
+      "Create user story requirements",
+      "Generate product roadmap priorities",
+      "Analyze market research findings",
+      "Create feature specification document",
+      "Generate product metrics dashboard",
+      "Design user acceptance criteria",
+      "Create competitive feature analysis",
+
+      // Renewable Energy
+      "Analyze energy efficiency metrics",
+      "Generate sustainability recommendations",
+      "Create renewable energy project plan",
+      "Design energy optimization strategies",
+      "Analyze environmental impact data",
+
+      // Automation
+      "Generate automation workflow ideas",
+      "Create process optimization plan",
+      "Design robotic process automation",
+      "Generate testing automation scripts",
+      "Create workflow efficiency analysis"
+    ];
+
+    // Randomly select 5 prompts once
+    const shuffled = [...allPrompts].sort(() => 0.5 - Math.random());
+    setSelectedPrompts(shuffled.slice(0, 5));
+
+    // Listen for storage changes to refresh when settings are updated
+    const handleStorageChange = (changes: any) => {
+      if (changes.aiSettings) {
+        console.log('AI settings changed, refreshing...');
+        retryInitialization();
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   const initializeServices = async () => {
+    setInitializationError(null);
+    setIsLoadingHistory(true);
+
     try {
-      setInitializationError(null);
-      setIsLoadingHistory(true);
-
-      // Initialize AI service
-      const chatSession = await initializeChatSession();
-      if (chatSession) {
-        setSession(chatSession);
-      }
-
-      // Initialize conversation manager
-      const manager = ConversationManager.getInstance();
-      await manager.initialize();
-      setConversationManager(manager);
-
-      // Load conversation history
-      await loadConversationHistory(manager);
+      // Initialize AI service first
+      const aiService = AIService.getInstance();
+      await aiService.initialize();
 
       // Check if AI service is ready
       const ready = await isAIServiceReady();
       setIsServiceReady(ready);
 
       if (!ready) {
-        setInitializationError('AI service is not properly configured. Please check your API keys.');
+        setInitializationError('No AI provider is configured. Please configure an API key.');
+        return;
       }
+
+      // Initialize conversation manager
+      const convManager = ConversationManager.getInstance();
+      await convManager.initialize();
+      setConversationManager(convManager);
+
+      // Load existing conversation history
+      await loadConversationHistory(convManager);
+
+      // Initialize chat session if AI is ready
+      const chatSession = await initializeChatSession();
+      if (chatSession) {
+        setSession(chatSession);
+      }
+
     } catch (error) {
       console.error('Failed to initialize services:', error);
-      setInitializationError('Failed to initialize services. Please try again.');
+      setInitializationError('No AI provider is configured. Please configure an API key.');
     } finally {
       setIsLoadingHistory(false);
     }
   };
 
-  const loadConversationHistory = async (manager: ConversationManager) => {
+  const loadConversationHistory = async (convManager: ConversationManager) => {
     try {
-      // Try to get current session, create one if it doesn't exist
+      // Try to get current session or create new one
+      let currentSession;
       try {
-        manager.getCurrentSession();
+        currentSession = convManager.getCurrentSession();
       } catch {
-        // No current session, create a new one
-        await manager.createNewSession();
+        // No current session, create one
+        currentSession = await convManager.createNewSession();
       }
 
-      // Convert ChatMessage[] to Message[] for display
-      const chatMessages = manager.getConversationHistory();
-      const displayMessages: Message[] = chatMessages.map(msg => ({
+      // Convert ChatMessage[] to Message[]
+      const chatMessages = convManager.getConversationHistory();
+      const uiMessages: Message[] = chatMessages.map(msg => ({
         role: msg.role === 'system' ? 'assistant' : msg.role,
         content: msg.content
       }));
-
-      setMessages(displayMessages);
+      
+      setMessages(uiMessages);
+      console.log(`Loaded ${uiMessages.length} messages from conversation history`);
     } catch (error) {
       console.error('Failed to load conversation history:', error);
-      // Don't throw - allow the component to work without history
+      // Continue without history
     }
   };
+
+
 
   const sendMessage = async () => {
     if (!input.trim() || !session || !isServiceReady || !conversationManager) return;
@@ -99,34 +231,34 @@ const ChatPanel: React.FC = () => {
       // Add user message to conversation history
       await conversationManager.addMessage({
         role: 'user',
-        content: userMessage,
-        provider: session.aiService?.getCurrentProviderName() || 'unknown'
+        content: userMessage
       });
 
-      // Get conversation history for context
-      const conversationHistory = conversationManager.getConversationHistory();
-      
       let responseContent = '';
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      setStreamingContent('');
 
-      // Use AIService directly with conversation history
+      // Get context for current provider
       const aiService = AIService.getInstance();
-      await aiService.generateChatResponseWithHistory(conversationHistory, (chunk) => {
+      const currentProvider = aiService.getCurrentProviderName() || 'openai';
+      const contextMessages = await conversationManager.getContextForProvider(currentProvider);
+
+      // Use chat response with history
+      await aiService.generateChatResponseWithHistory(contextMessages, (chunk) => {
         responseContent += chunk;
-        setMessages(prev => [
-          ...prev.slice(0, -1),
-          { role: 'assistant', content: responseContent }
-        ]);
+        setStreamingContent(responseContent);
       });
 
-      // Add assistant response to conversation history
-      if (responseContent) {
-        await conversationManager.addMessage({
-          role: 'assistant',
-          content: responseContent,
-          provider: session.aiService?.getCurrentProviderName() || 'unknown'
-        });
-      }
+      // Add assistant message to conversation history
+      await conversationManager.addMessage({
+        role: 'assistant',
+        content: responseContent,
+        provider: currentProvider
+      });
+
+      // Add the complete message to UI
+      setMessages(prev => [...prev, { role: 'assistant', content: responseContent }]);
+      setStreamingContent('');
+
     } catch (error) {
       console.error('Error getting AI response:', error);
 
@@ -151,11 +283,9 @@ const ChatPanel: React.FC = () => {
         }
       }
 
-      // Remove the empty assistant message and add error message
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { role: 'error', content: errorMessage }
-      ]);
+      // Add error message to UI only (not to conversation history)
+      setMessages(prev => [...prev, { role: 'error', content: errorMessage }]);
+      setStreamingContent('');
     } finally {
       setIsLoading(false);
     }
@@ -168,20 +298,99 @@ const ChatPanel: React.FC = () => {
     }
   };
 
-  const retryInitialization = () => {
+  const retryInitialization = async () => {
+    // Force AI service to reinitialize after configuration changes
+    try {
+      const aiService = AIService.getInstance();
+      await aiService.initialize();
+    } catch (error) {
+      console.error('Failed to initialize AI service:', error);
+    }
     initializeServices();
   };
 
+  // Clear conversation (optional utility)
   const clearConversation = async () => {
     if (!conversationManager) return;
     
     try {
       await conversationManager.clearCurrentSession();
       setMessages([]);
+      console.log('Conversation cleared');
     } catch (error) {
       console.error('Failed to clear conversation:', error);
     }
   };
+
+  const copyToClipboard = async (text: string, messageIndex: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedStates(prev => ({ ...prev, [messageIndex]: true }));
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [messageIndex]: false }));
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+    }
+  };
+
+  const retryMessage = async (messageIndex: number) => {
+    if (!session || !isServiceReady || !conversationManager) return;
+
+    // Find the user message that we want to retry
+    const userMessage = messages[messageIndex - 1];
+    if (!userMessage || userMessage.role !== 'user') return;
+
+    // Remove the assistant response from UI and conversation history
+    const messagesUpToUser = messages.slice(0, messageIndex);
+    setMessages(messagesUpToUser);
+    setIsLoading(true);
+
+    try {
+      // Remove the last assistant message from conversation history
+      const conversationHistory = conversationManager.getConversationHistory();
+      const lastMessage = conversationHistory[conversationHistory.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        await conversationManager.deleteMessage(lastMessage.id);
+      }
+
+      let responseContent = '';
+      setStreamingContent('');
+
+      // Get context for current provider
+      const aiService = AIService.getInstance();
+      const currentProvider = aiService.getCurrentProviderName() || 'openai';
+      const contextMessages = await conversationManager.getContextForProvider(currentProvider);
+
+      // Use chat response with history
+      await aiService.generateChatResponseWithHistory(contextMessages, (chunk) => {
+        responseContent += chunk;
+        setStreamingContent(responseContent);
+      });
+
+      // Add new assistant message to conversation history
+      await conversationManager.addMessage({
+        role: 'assistant',
+        content: responseContent,
+        provider: currentProvider
+      });
+
+      // Add the complete message to UI
+      setMessages(prev => [...prev, { role: 'assistant', content: responseContent }]);
+      setStreamingContent('');
+
+    } catch (error) {
+      console.error('Error retrying AI response:', error);
+      setMessages(prev => [...prev, { role: 'error', content: 'Failed to retry. Please try again.' }]);
+      setStreamingContent('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // const clearConversation = async () => {
+  //   setMessages([]);
+  // };
 
   return (
     <div className="h-full flex flex-col">
@@ -205,36 +414,29 @@ const ChatPanel: React.FC = () => {
         {!isLoadingHistory && messages.length === 0 && !initializationError && (
           <>
             <WelcomeHint onDismiss={() => { }} />
-            
+
             {/* Sample prompts */}
             {isServiceReady && (
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Try these prompts:</h3>
-                  {conversationManager && (
-                    <button
-                      onClick={clearConversation}
-                      className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 underline"
-                    >
-                      Clear Chat
-                    </button>
-                  )}
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Let's start from here:</h3>
+                  {/* <button
+                    onClick={clearConversation}
+                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 underline"
+                  >
+                    Clear Chat
+                  </button> */}
                 </div>
                 <div className="grid gap-2">
-                  {[
-                    "Summarize this page for me",
-                    "What are the key points on this webpage?",
-                    "Help me understand this article",
-                    "Explain this content in simple terms",
-                    "What's the main takeaway from this page?"
-                  ].map((prompt, index) => (
-                    <button
+                  {selectedPrompts.map((prompt, index) => (
+                    <Button
                       key={index}
+                      variant="outline"
                       onClick={() => setInput(prompt)}
-                      className="text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors text-sm"
+                      className="text-left p-3 h-auto justify-start text-sm"
                     >
                       {prompt}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -250,12 +452,14 @@ const ChatPanel: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Service Not Available</p>
                   <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">{initializationError}</p>
-                  <button
+                  <Button
+                    variant="link"
+                    size="sm"
                     onClick={retryInitialization}
-                    className="text-xs text-blue-600 hover:text-blue-800 mt-2 underline"
+                    className="text-xs mt-2 p-0 h-auto"
                   >
                     Retry Connection
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -263,44 +467,137 @@ const ChatPanel: React.FC = () => {
         )}
 
         {!isLoadingHistory && messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-          >
+          <div key={index} className="space-y-2">
             <div
-              className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user'
-                ? 'bg-blue-500 text-white'
-                : message.role === 'error'
-                  ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700'
-                  : 'bg-gray-200 dark:bg-gray-700'
-                }`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.role === 'error' && (
-                <div className="flex items-center space-x-2 mb-1">
-                  <ExclamationTriangleIcon className="h-4 w-4" />
-                  <span className="text-xs font-medium">Error</span>
+              <div
+                className={`max-w-[80%] p-3 rounded-lg relative group ${message.role === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : message.role === 'error'
+                    ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700'
+                    : 'bg-gray-200 dark:bg-gray-700'
+                  }`}
+              >
+                {message.role === 'error' && (
+                  <div className="flex items-center space-x-2 mb-1">
+                    <ExclamationTriangleIcon className="h-4 w-4" />
+                    <span className="text-xs font-medium">Error</span>
+                  </div>
+                )}
+
+                <div className={message.role === 'error' ? 'text-sm' : ''}>
+                  {message.role === 'assistant' ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code: (props: any) => {
+                            const { inline, className, children, ...rest } = props;
+                            return inline ? (
+                              <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...rest}>
+                                {children}
+                              </code>
+                            ) : (
+                              <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
+                                <code className={className} {...rest}>
+                                  {children}
+                                </code>
+                              </pre>
+                            )
+                          }
+                        }}
+                      >
+                        {message.content}
+                      </Markdown>
+                    </div>
+                  ) : (
+                    message.content
+                  )}
                 </div>
-              )}
-              <div className={message.role === 'error' ? 'text-sm' : ''}>
-                {
-                  message.role === 'assistant'
-                    ? <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
-                    : message.content
-                }
-                {/* // {message.content} */}
+
+                {/* Copy button for user messages */}
+                {message.role === 'user' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(message.content, index)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-blue-600"
+                    title={copiedStates[index] ? 'Copied!' : 'Copy prompt'}
+                  >
+                    <DocumentDuplicateIcon className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
+
+            {/* Copy and Retry buttons for assistant messages - only show when response is complete */}
+            {message.role === 'assistant' && message.content && !isLoading && (
+              <div className="flex justify-start">
+                <div className="flex space-x-2 ml-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(message.content, index)}
+                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
+                    title={copiedStates[index] ? 'Copied!' : 'Copy response'}
+                  >
+                    <DocumentDuplicateIcon className="h-3 w-3" />
+                    <span>{copiedStates[index] ? 'Copied!' : 'Copy'}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => retryMessage(index)}
+                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
+                    title="Retry"
+                  >
+                    <ArrowPathIcon className="h-3 w-3" />
+                    <span>Retry</span>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
+        {/* Streaming response */}
         {!isLoadingHistory && isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-200 dark:bg-gray-700 p-3 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                <span>Thinking...</span>
-              </div>
+            <div className="max-w-[80%] bg-gray-200 dark:bg-gray-700 p-3 rounded-lg">
+              {streamingContent ? (
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code: (props: any) => {
+                        const { inline, className, children, ...rest } = props;
+                        return inline ? (
+                          <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...rest}>
+                            {children}
+                          </code>
+                        ) : (
+                          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
+                            <code className={className} {...rest}>
+                              {children}
+                            </code>
+                          </pre>
+                        )
+                      }
+                    }}
+                  >
+                    {streamingContent}
+                  </Markdown>
+                  <div className="inline-flex items-center ml-1">
+                    <div className="animate-pulse w-2 h-4 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  <span>Thinking...</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -309,32 +606,28 @@ const ChatPanel: React.FC = () => {
       {/* Input area */}
       <div className="border-t p-4">
         <div className="flex space-x-2">
-          <input
+          <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!isServiceReady || isLoading || isLoadingHistory}
-            className={`flex-1 p-2 border rounded-lg ${!isServiceReady || isLoadingHistory ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : ''
-              }`}
+            className="flex-1"
             placeholder={
               isLoadingHistory
                 ? 'Loading conversation...'
                 : !isServiceReady
-                ? 'AI service not available...'
-                : 'Type your message...'
+                  ? 'AI service not available...'
+                  : 'Type your message...'
             }
           />
-          <button
+          <Button
             onClick={sendMessage}
             disabled={!input.trim() || !isServiceReady || isLoading || isLoadingHistory}
-            className={`p-2 rounded-lg ${!input.trim() || !isServiceReady || isLoading || isLoadingHistory
-              ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
+            size="icon"
           >
             <PaperAirplaneIcon className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         {!isServiceReady && !isLoadingHistory && (
@@ -342,7 +635,7 @@ const ChatPanel: React.FC = () => {
             Configure an AI provider in Settings to start chatting
           </p>
         )}
-        
+
         {isLoadingHistory && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
             Loading conversation history...

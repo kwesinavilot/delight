@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.0.0 - Advanced Performance Optimization & Memory Management**
+## 🎉 **Version 4.1.0 - Enhanced Chat Experience & Persistent History**
 
-**NEW**: Revolutionary performance optimization system with lazy loading, message compression, automatic cleanup, and intelligent memory management!
+**NEW**: Persistent chat history across all modes, improved streaming experience, and seamless conversation continuity!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -22,13 +22,20 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
 
-### ⚡ Performance & Memory Management (NEW in v4.0.0)
+### ⚡ Performance & Memory Management (v4.0.0+)
 - **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
 - **Message Compression**: Automatic compression for old messages with Web Worker processing
 - **Automatic Cleanup**: Smart cleanup policies with age-based deletion and space optimization
 - **Performance Monitoring**: Real-time metrics tracking with automatic optimization triggers
 - **Memory Management**: Intelligent cache management with LRU eviction and memory limits
 - **Context Optimization**: Advanced processing for large conversation histories
+
+### 💾 Chat Experience & History (NEW in v4.1.0)
+- **Persistent Chat History**: Conversations persist across sidepanel ↔ fullscreen mode switches
+- **Seamless Mode Switching**: Continue conversations without interruption when changing modes
+- **Enhanced Streaming**: Real-time content display with graceful streaming visualization
+- **Smart Button Timing**: Copy/retry buttons only appear after AI responses are complete
+- **Conversation Continuity**: Automatic conversation loading and restoration on startup
 
 ### 🎨 User Experience
 - **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
@@ -218,9 +225,17 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (3.0.0)
+### Current Version (4.1.0)
 - ✅ Multi-provider AI support (OpenAI, Anthropic, Gemini, Grok, Groq, SambaNova)
+- ✅ Persistent chat history across all modes
+- ✅ Enhanced streaming experience with real-time visualization
+- ✅ Advanced performance optimization and memory management
+- ✅ Seamless sidepanel ↔ fullscreen mode switching
 - ✅ Secure configuration management with encryption
+- ✅ Complete AI service architecture with provider abstraction
+- ✅ Enhanced chat interface with improved error handling
+- ✅ Streaming responses with real-time updates
+- 🔄 Summary functionality (in progress)ion management with encryption
 - ✅ Complete AI service architecture with provider abstraction
 - ✅ Enhanced chat interface with error handling and provider status
 - ✅ Streaming responses with real-time updates

@@ -9,23 +9,18 @@ interface ChatSession {
 export const initializeChatSession = async (): Promise<ChatSession | null> => {
   try {
     const aiService = AIService.getInstance();
-    await aiService.initialize();
     
-    // Check if any provider is configured
+    // Don't initialize - just check if configured
     if (!aiService.isCurrentProviderConfigured()) {
-      console.warn('No AI provider is configured. Please configure an API key.');
       return null;
     }
     
     return {
       aiService,
-      destroy: () => {
-        // No cleanup needed for the new AI service
-        // The service manages its own lifecycle
-      }
+      destroy: () => {}
     };
   } catch (error) {
-    console.error('Failed to initialize AI service:', error);
+    console.error('Failed to get AI service:', error);
     return null;
   }
 };
@@ -118,9 +113,8 @@ export const testAIProvider = async (providerName?: string): Promise<boolean> =>
 export const isAIServiceReady = async (): Promise<boolean> => {
   try {
     const aiService = AIService.getInstance();
-    return await aiService.validateCurrentConfiguration();
+    return aiService.isCurrentProviderConfigured();
   } catch (error) {
-    console.error('Failed to validate AI service:', error);
     return false;
   }
 };
