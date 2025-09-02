@@ -12,6 +12,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [4.7.0] - 2025-02-09
+
+### 🚀 Provider SDK Upgrades & Model Expansion
+
+### Added
+- **🔧 Official Provider SDKs**
+  - Migrated Groq to official `@ai-sdk/groq` package for better reliability
+  - Migrated SambaNova to official `sambanova-ai-provider` package
+  - Improved streaming performance and error handling
+  - Better reasoning model support with proper temperature handling
+
+- **🤖 New Groq Models**
+  - `moonshotai/kimi-k2-instruct` - Moonshot AI's Kimi model
+  - `compound-beta` - Compound AI's beta model
+  - `compound-beta-mini` - Compound AI's mini beta model
+
+- **🧠 New SambaNova Models**
+  - **Text Models**: `DeepSeek-V3-0324`, `Llama-3.3-Swallow-70B-Instruct-v0.4`, `Meta-Llama-3.3-70B-Instruct`
+  - **Reasoning Models**: `DeepSeek-R1-0528`, `DeepSeek-R1-Distill-Llama-70B`, `DeepSeek-V3.1`, `Qwen3-32B`
+  - Enhanced reasoning capabilities with temperature exclusion for reasoning models
+
+### Enhanced
+- **⚡ Improved Error Handling**
+  - Better error messages for model-specific issues
+  - Graceful fallbacks for streaming problems
+  - Enhanced debugging and logging for provider issues
+
+- **🎯 Reasoning Model Support**
+  - Automatic temperature exclusion for reasoning models to prevent AI SDK warnings
+  - Support for both Groq and SambaNova reasoning models
+  - Better handling of model-specific capabilities
+
+### Fixed
+- **🔧 Provider Connection Issues**
+  - Resolved SambaNova connection failures with proper SDK integration
+  - Fixed Groq streaming errors (`summaryParts` issues) with official SDK
+  - Improved provider initialization and error recovery
+
+- **📝 System Prompt Improvements**
+  - Enhanced system prompts to ensure AI models answer questions directly
+  - Reduced generic greeting responses in favor of specific answers
+  - Better instruction following across all providers
+
 ## [4.6.0] - 2025-09-01
 
 ### 🎨 UI/UX Refinements & Responsive Design

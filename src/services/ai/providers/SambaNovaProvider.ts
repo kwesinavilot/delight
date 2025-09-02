@@ -1,4 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai';
+import { createSambaNova } from 'sambanova-ai-provider';
 import { streamText, generateText } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
@@ -20,10 +20,9 @@ export class SambaNovaProvider extends BaseAIProvider {
       return; // Client will be initialized when API key is available
     }
 
-    // SambaNova uses OpenAI-compatible API with custom base URL
-    this.client = createOpenAI({
+    // Use official SambaNova provider
+    this.client = createSambaNova({
       apiKey: this.config.apiKey,
-      baseURL: 'https://api.sambanova.ai/v1',
     });
   }
 
@@ -46,7 +45,11 @@ export class SambaNovaProvider extends BaseAIProvider {
     }
 
     try {
-      const model = this.client(this.config.model || 'Meta-Llama-3.1-8B-Instruct');
+      // Use centralized chat options preparation
+      const preparedOptions = this.prepareChatOptions(options);
+      // Use a known working model for testing
+      const modelName = this.config.model || 'DeepSeek-V3.1';
+      const model = this.client(modelName);
       
       // Convert messages to OpenAI format (handle 'model' role from Gemini)
       const sambaNovaMessages = messages.map(msg => ({
@@ -54,17 +57,18 @@ export class SambaNovaProvider extends BaseAIProvider {
         content: msg.content
       }));
 
-      // Add system prompt if provided and no system message exists
-      if (options?.systemPrompt && !sambaNovaMessages.some(msg => msg.role === 'system')) {
-        sambaNovaMessages.unshift({ role: 'system', content: options.systemPrompt });
-      }
+      console.log('SambaNova messages:', sambaNovaMessages);
+      console.log('SambaNova model:', modelName);
+      console.log('SambaNova API key (first 10 chars):', this.config.apiKey?.substring(0, 10));
+      console.log('SambaNova options:', preparedOptions);
 
-      if (options?.stream !== false) {
+      if (preparedOptions.stream !== false) {
         // Streaming response
         const result = streamText({
           model,
+          system: preparedOptions.systemPrompt,
           messages: sambaNovaMessages,
-          temperature: options?.temperature || this.config.temperature || 0.7,
+          temperature: preparedOptions.temperature,
         });
 
         return this.createAsyncIterable(result.textStream);
@@ -72,13 +76,16 @@ export class SambaNovaProvider extends BaseAIProvider {
         // Non-streaming response
         const result = await generateText({
           model,
+          system: preparedOptions.systemPrompt,
           messages: sambaNovaMessages,
-          temperature: options?.temperature || this.config.temperature || 0.7,
+          temperature: preparedOptions.temperature,
         });
 
+        console.log('SambaNova response:', result.text);
         return this.createAsyncIterable([result.text]);
       }
     } catch (error: any) {
+      console.error('SambaNova error details:', error);
       this.handleError(error, 'generateResponseWithHistory');
     }
   }
@@ -146,18 +153,21 @@ export class SambaNovaProvider extends BaseAIProvider {
   // Method to test the connection
   async testConnection(): Promise<boolean> {
     try {
+      console.log('Testing SambaNova connection...');
       const testStream = await this.generateResponse('Hello', { 
         systemPrompt: 'Respond with just "OK"',
         stream: false 
       });
       
       // Consume the stream to test connectivity
-      for await (const _ of testStream) {
-        // Just consume the response
+      for await (const chunk of testStream) {
+        console.log('SambaNova test response chunk:', chunk);
       }
       
+      console.log('SambaNova connection test successful');
       return true;
-    } catch {
+    } catch (error) {
+      console.error('SambaNova connection test failed:', error);
       return false;
     }
   }
@@ -165,9 +175,19 @@ export class SambaNovaProvider extends BaseAIProvider {
   // Get available models for this provider
   getAvailableModels(): string[] {
     return [
+      // Text models
+      'DeepSeek-V3-0324',
+      'Llama-3.3-Swallow-70B-Instruct-v0.4',
+      'Meta-Llama-3.1-8B-Instruct',
+      'Meta-Llama-3.3-70B-Instruct',
+      // Reasoning models
+      'DeepSeek-R1-0528',
+      'DeepSeek-R1-Distill-Llama-70B',
+      'DeepSeek-V3.1',
+      'Qwen3-32B',
+      // Legacy models (keeping for compatibility)
       'Meta-Llama-3.1-405B-Instruct',
       'Meta-Llama-3.1-70B-Instruct',
-      'Meta-Llama-3.1-8B-Instruct',
       'Llama-3.2-90B-Vision-Instruct',
       'Llama-3.2-11B-Vision-Instruct',
       'Llama-3.2-3B-Instruct',
@@ -177,7 +197,7 @@ export class SambaNovaProvider extends BaseAIProvider {
 
   // Get default model
   getDefaultModel(): string {
-    return 'Meta-Llama-3.1-8B-Instruct';
+    return 'DeepSeek-V3.1';
   }
 
   // Get model capabilities
@@ -185,9 +205,19 @@ export class SambaNovaProvider extends BaseAIProvider {
     const modelName = model || this.config.model || 'Meta-Llama-3.1-8B-Instruct';
     
     const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
+      // New text models
+      'DeepSeek-V3-0324': { maxTokens: 131072, supportsStreaming: true },
+      'Llama-3.3-Swallow-70B-Instruct-v0.4': { maxTokens: 131072, supportsStreaming: true },
+      'Meta-Llama-3.1-8B-Instruct': { maxTokens: 131072, supportsStreaming: true },
+      'Meta-Llama-3.3-70B-Instruct': { maxTokens: 131072, supportsStreaming: true },
+      // New reasoning models
+      'DeepSeek-R1-0528': { maxTokens: 131072, supportsStreaming: true },
+      'DeepSeek-R1-Distill-Llama-70B': { maxTokens: 131072, supportsStreaming: true },
+      'DeepSeek-V3.1': { maxTokens: 131072, supportsStreaming: true },
+      'Qwen3-32B': { maxTokens: 131072, supportsStreaming: true },
+      // Legacy models
       'Meta-Llama-3.1-405B-Instruct': { maxTokens: 131072, supportsStreaming: true },
       'Meta-Llama-3.1-70B-Instruct': { maxTokens: 131072, supportsStreaming: true },
-      'Meta-Llama-3.1-8B-Instruct': { maxTokens: 131072, supportsStreaming: true },
       'Llama-3.2-90B-Vision-Instruct': { maxTokens: 131072, supportsStreaming: true },
       'Llama-3.2-11B-Vision-Instruct': { maxTokens: 131072, supportsStreaming: true },
       'Llama-3.2-3B-Instruct': { maxTokens: 131072, supportsStreaming: true },

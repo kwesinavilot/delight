@@ -311,6 +311,20 @@ const MainSidePanel: React.FC = () => {
           {/* Control buttons */}
           {activeView === 'chat' && (
             <div className="flex items-center space-x-2">
+              {/* New Conversation button - show in fullscreen mode */}
+              {isFullscreen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={startNewConversation}
+                  className={!hasConversation ? 'opacity-50' : ''}
+                  title="Start new conversation"
+                  disabled={!hasConversation}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              )}
+              
               {/* Maximize/Minimize button */}
               {!isFullscreen ? (
                 <Button

@@ -1,4 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai';
+import { createGroq } from '@ai-sdk/groq';
 import { streamText, generateText } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
@@ -21,10 +21,9 @@ export class GroqProvider extends BaseAIProvider {
             return; // Client will be initialized when API key is available
         }
 
-        // Groq uses OpenAI-compatible API with custom base URL
-        this.client = createOpenAI({
+        // Use official Groq provider
+        this.client = createGroq({
             apiKey: this.config.apiKey,
-            baseURL: 'https://api.groq.com/openai/v1',
         });
     }
 
@@ -32,6 +31,11 @@ export class GroqProvider extends BaseAIProvider {
         // Convert single message to conversation format for consistency
         const messages = [{ role: 'user' as const, content: message }];
         return this.generateResponseWithHistory(messages, options);
+    }
+
+    private isProblematicModel(modelName?: string): boolean {
+        const problematicModels = ['gemma2-9b-it', 'gemma-7b-it', 'qwen', 'llama', 'meta-llama'];
+        return problematicModels.some(model => modelName?.includes(model));
     }
 
     async generateResponseWithHistory(
@@ -46,38 +50,65 @@ export class GroqProvider extends BaseAIProvider {
             this.initializeClient();
         }
 
+        const currentModel = this.config.model || 'openai/gpt-oss-20b';
+        const isProblematic = this.isProblematicModel(currentModel);
+
         try {
-            // Use centralized chat options preparation
-            const preparedOptions = this.prepareChatOptions(options);
-            const model = this.client(this.config.model || 'openai/gpt-oss-20b');
+            // Use centralized chat options preparation with model-specific handling
+            let preparedOptions = this.prepareChatOptions(options);
+            
+            // Override system prompt for problematic models
+            if (isProblematic) {
+                preparedOptions = {
+                    ...preparedOptions,
+                    systemPrompt: "You are a helpful AI assistant. Answer the user's question directly and accurately. Do not include thinking processes or unrelated information."
+                };
+            }
+            
+            const model = this.client(currentModel);
 
             // Convert messages to OpenAI format (handle 'model' role from Gemini)
             const groqMessages = messages.map(msg => ({
                 role: msg.role === 'model' ? 'assistant' as const : msg.role as 'user' | 'assistant' | 'system',
                 content: msg.content
             }));
+            
+            // Debug logging
+            console.log('Groq messages being sent:', groqMessages);
+            console.log('System prompt:', preparedOptions.systemPrompt);
 
-            if (preparedOptions.stream !== false) {
-                // Streaming response
-                const result = streamText({
-                    model,
-                    system: preparedOptions.systemPrompt,
-                    messages: groqMessages,
-                    temperature: preparedOptions.temperature,
-                });
+            // Force non-streaming for all Groq models due to AI SDK compatibility issues
+            const shouldStream = false; // Disable streaming for all Groq models
 
-                return this.createAsyncIterable(result.textStream);
-            } else {
-                // Non-streaming response
-                const result = await generateText({
-                    model,
-                    system: preparedOptions.systemPrompt,
-                    messages: groqMessages,
-                    temperature: preparedOptions.temperature,
-                });
+            if (shouldStream) {
+                // Streaming response with error recovery
+                try {
+                    const result = streamText({
+                        model,
+                        system: preparedOptions.systemPrompt,
+                        messages: groqMessages,
+                        temperature: preparedOptions.temperature,
+                    });
 
-                return this.createAsyncIterable([result.text]);
+                    return this.createAsyncIterable(result.textStream);
+                } catch (streamError) {
+                    console.warn('Streaming failed, falling back to non-streaming:', streamError);
+                    // Fallback to non-streaming
+                }
             }
+            
+            // Non-streaming response (default for problematic models or fallback)
+            const result = await generateText({
+                model,
+                system: preparedOptions.systemPrompt,
+                messages: groqMessages,
+                temperature: preparedOptions.temperature,
+            });
+            
+            console.log('Generated response:', result.text);
+
+            return this.createAsyncIterable([result.text]);
+            
         } catch (error: any) {
             this.handleError(error, 'generateResponseWithHistory');
         }
@@ -162,16 +193,28 @@ export class GroqProvider extends BaseAIProvider {
         if (Array.isArray(source)) {
             // Handle array of strings (non-streaming)
             for (const chunk of source) {
-                yield chunk;
-            }
-        } else {
-            // Handle async iterable (streaming)
-            try {
-                for await (const chunk of source) {
+                if (chunk && typeof chunk === 'string') {
                     yield chunk;
                 }
-            } catch (error) {
-                this.handleError(error, 'streaming');
+            }
+        } else {
+            // Handle async iterable (streaming) with robust error handling
+            let hasYieldedContent = false;
+            try {
+                for await (const chunk of source) {
+                    if (chunk !== undefined && chunk !== null && typeof chunk === 'string') {
+                        hasYieldedContent = true;
+                        yield chunk;
+                    }
+                }
+            } catch (error: any) {
+                console.error('Streaming error:', error);
+                
+                // If we haven't yielded any content, provide a fallback message
+                if (!hasYieldedContent) {
+                    yield 'I apologize, but there was an issue with the response. Please try again.';
+                }
+                return;
             }
         }
     }
@@ -215,7 +258,10 @@ export class GroqProvider extends BaseAIProvider {
             'llama-3.1-8b-instant',
             'qwen/qwen3-32b',
             'deepseek-r1-distill-llama-70b',
-            'gemma2-9b-it'
+            'gemma2-9b-it',
+            'moonshotai/kimi-k2-instruct',
+            'compound-beta',
+            'compound-beta-mini'
         ];
     }
 
@@ -237,7 +283,10 @@ export class GroqProvider extends BaseAIProvider {
             'llama-3.1-8b-instant': { maxTokens: 131072, supportsStreaming: true },
             'qwen/qwen3-32b': { maxTokens: 131072, supportsStreaming: true },
             'deepseek-r1-distill-llama-70b': { maxTokens: 131072, supportsStreaming: true },
-            'gemma2-9b-it': { maxTokens: 8192, supportsStreaming: true }
+            'gemma2-9b-it': { maxTokens: 8192, supportsStreaming: true },
+            'moonshotai/kimi-k2-instruct': { maxTokens: 131072, supportsStreaming: true },
+            'compound-beta': { maxTokens: 131072, supportsStreaming: true },
+            'compound-beta-mini': { maxTokens: 131072, supportsStreaming: true }
         };
 
         return capabilities[modelName] || { maxTokens: 8192, supportsStreaming: true };

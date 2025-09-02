@@ -18,30 +18,60 @@ export class FunctionManager {
   }
 
   /**
+   * Check if model is a reasoning model that doesn't support temperature
+   */
+  private isReasoningModel(modelName?: string): boolean {
+    if (!modelName) return false;
+    
+    const reasoningModels = [
+      // Groq reasoning models
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b', 
+      'deepseek-r1-distill-llama',
+      'qwen/qwen3-32b',
+      // SambaNova reasoning models
+      'DeepSeek-R1-0528',
+      'DeepSeek-R1-Distill-Llama-70B',
+      'DeepSeek-V3.1',
+      'Qwen3-32B'
+    ];
+    
+    return reasoningModels.some(model => modelName.includes(model.replace('/', '')));
+  }
+
+  /**
    * Prepare chat options with centralized system prompt
    */
-  prepareChatOptions(userOptions?: GenerationOptions, providerName?: string): GenerationOptions {
+  prepareChatOptions(userOptions?: GenerationOptions, providerName?: string, modelName?: string): GenerationOptions {
     const systemPrompt = promptManager.getChatSystemPrompt(providerName);
+    const isReasoning = this.isReasoningModel(modelName);
     
-    return {
+    const options: GenerationOptions = {
       systemPrompt,
       stream: userOptions?.stream !== false, // Default to streaming
-      temperature: userOptions?.temperature || 0.7,
       maxTokens: userOptions?.maxTokens || 1000,
       ...userOptions
     };
+    
+    // Only add temperature if not a reasoning model
+    if (!isReasoning) {
+      options.temperature = userOptions?.temperature || 0.7;
+    }
+    
+    return options;
   }
 
   /**
    * Prepare summary options with centralized prompts and settings
    */
-  prepareSummaryOptions(content: string, length: SummaryLength): {
+  prepareSummaryOptions(content: string, length: SummaryLength, modelName?: string): {
     prompt: string;
     systemPrompt: string;
     options: GenerationOptions;
   } {
     const prompt = promptManager.getSummaryPrompt(content, length);
     const systemPrompt = promptManager.getSummarySystemPrompt();
+    const isReasoning = this.isReasoningModel(modelName);
     
     // Token limits based on summary length
     const tokenLimits = {
@@ -52,10 +82,14 @@ export class FunctionManager {
 
     const options: GenerationOptions = {
       systemPrompt,
-      temperature: 0.3, // Lower temperature for consistent summaries
       maxTokens: tokenLimits[length],
       stream: false // Summaries don't need streaming
     };
+    
+    // Only add temperature if not a reasoning model
+    if (!isReasoning) {
+      options.temperature = 0.3; // Lower temperature for consistent summaries
+    }
 
     return { prompt, systemPrompt, options };
   }

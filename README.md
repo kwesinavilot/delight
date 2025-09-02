@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.6.0 - UI/UX Refinements & Responsive Design**
+## 🎉 **Version 4.7.0 - Provider SDK Upgrades & Model Expansion**
 
-**NEW**: Responsive chat layout, always-visible controls, and refined conversation management for optimal user experience!
+**NEW**: Official provider SDKs, enhanced streaming performance, and expanded model support with 30+ AI models!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -251,7 +251,13 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (4.6.0)
+### Current Version (4.7.0)
+- ✅ Official provider SDKs for Groq and SambaNova with improved reliability
+- ✅ Enhanced streaming performance and error handling
+- ✅ 30+ AI models across 6 major providers with reasoning model support
+- ✅ Automatic temperature exclusion for reasoning models
+- ✅ New Groq models: Moonshot Kimi, Compound Beta variants
+- ✅ New SambaNova models: DeepSeek V3.1, Llama 3.3 variants, Qwen3-32B
 - ✅ Responsive chat layout with optimized padding for different modes
 - ✅ Always-visible "New" button with smart disabled state
 - ✅ Refined conversation list with proper height and width management

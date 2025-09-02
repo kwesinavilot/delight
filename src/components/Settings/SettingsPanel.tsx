@@ -61,17 +61,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     groq: {
       name: 'Groq',
       description: 'Ultra-fast inference with Llama, Mixtral, and Gemma models',
-      models: ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'meta-llama/llama-4-maverick-17b-128e-instruct', 'meta-llama/llama-4-scout-17b-16e-instruct', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'qwen/qwen3-32b', 'deepseek-r1-distill-llama-70b', 'gemma2-9b-it'],
+      models: ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'meta-llama/llama-4-maverick-17b-128e-instruct', 'meta-llama/llama-4-scout-17b-16e-instruct', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'qwen/qwen3-32b', 'deepseek-r1-distill-llama-70b', 'gemma2-9b-it', 'moonshotai/kimi-k2-instruct', 'compound-beta', 'compound-beta-mini'],
       defaultModel: 'openai/gpt-oss-20b',
       apiKeyPlaceholder: 'gsk_...',
       website: 'https://console.groq.com/keys'
     },
     sambanova: {
       name: 'SambaNova',
-      description: 'Llama models from 1B to 405B parameters with vision support',
-      models: ['Meta-Llama-3.1-405B-Instruct', 'Meta-Llama-3.1-70B-Instruct', 'Meta-Llama-3.1-8B-Instruct'],
-      defaultModel: 'Meta-Llama-3.1-8B-Instruct',
-      apiKeyPlaceholder: 'sk-...',
+      description: 'DeepSeek, Llama, and Qwen models including reasoning variants',
+      models: ['DeepSeek-V3.1', 'Meta-Llama-3.1-8B-Instruct', 'Meta-Llama-3.1-70B-Instruct', 'Meta-Llama-3.1-405B-Instruct', 'Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Llama-3.2-11B-Vision-Instruct', 'Llama-3.2-90B-Vision-Instruct', 'DeepSeek-V3-0324', 'Llama-3.3-Swallow-70B-Instruct-v0.4', 'Meta-Llama-3.3-70B-Instruct', 'DeepSeek-R1-0528', 'DeepSeek-R1-Distill-Llama-70B', 'Qwen3-32B'],
+      defaultModel: 'DeepSeek-V3.1',
+      apiKeyPlaceholder: 'fad7da1c-...',
       website: 'https://cloud.sambanova.ai/'
     }
   };

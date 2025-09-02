@@ -20,18 +20,16 @@ export class PromptManager {
    * Get system prompt for chat functionality
    */
   getChatSystemPrompt(providerName?: string): string {
-    const basePrompt = `You are a helpful AI assistant integrated into the Delight Chrome extension. 
-You provide clear, accurate, and helpful responses to user questions. 
-Be concise but thorough, and maintain a friendly, professional tone.`;
+    const basePrompt = `You are a helpful AI assistant. ALWAYS answer the user's question directly. Do not give generic greetings or introductions. Focus on providing the specific information the user is asking for.`;
 
     // Provider-specific personality adjustments
     switch (providerName) {
       case 'grok':
-        return `${basePrompt} Feel free to add a touch of wit and humor when appropriate, but keep it professional.`;
+        return `${basePrompt} Feel free to add a touch of wit and humor when appropriate.`;
       case 'gemini':
-        return `${basePrompt} Leverage your fast processing capabilities to provide quick, efficient responses.`;
+        return `${basePrompt} Provide quick, efficient responses.`;
       case 'anthropic':
-        return `${basePrompt} Focus on being thoughtful and ethical in your responses, considering multiple perspectives.`;
+        return `${basePrompt} Be thoughtful and consider multiple perspectives.`;
       default:
         return basePrompt;
     }

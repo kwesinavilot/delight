@@ -25,12 +25,12 @@ export abstract class BaseAIProvider implements AIProvider {
 
   // Centralized method to prepare chat options
   protected prepareChatOptions(userOptions?: GenerationOptions): GenerationOptions {
-    return functionManager.prepareChatOptions(userOptions, this.name);
+    return functionManager.prepareChatOptions(userOptions, this.name, this.config.model);
   }
 
   // Centralized method to prepare summary options
   protected prepareSummaryOptions(content: string, length: SummaryLength) {
-    return functionManager.prepareSummaryOptions(content, length);
+    return functionManager.prepareSummaryOptions(content, length, this.config.model);
   }
 
   // Centralized method to get standard capabilities
