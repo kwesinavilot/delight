@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.4.0 - Enhanced User Experience & Real-time Updates**
+## 🎉 **Version 4.6.0 - UI/UX Refinements & Responsive Design**
 
-**NEW**: Real-time conversation management, centered fullscreen layout, improved stop handling, and seamless UI updates!
+**NEW**: Responsive chat layout, always-visible controls, and refined conversation management for optimal user experience!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -44,7 +44,15 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Non-blocking Operations**: All saves happen asynchronously without UI freezing
 - **Smart History Management**: Only loads recent messages for optimal performance
 
-### ➕ Smart Conversation Management (NEW in v4.2.0)
+### 📱 Sidepanel Conversation Management (NEW in v4.5.0)
+- **Sub-toolbar Navigation**: "New" and "Chats" buttons in sidepanel mode for easy conversation access
+- **Sidepanel Conversation List**: Full conversation history with rename/delete in compact sidepanel view
+- **Smart Scroll Controls**: Scroll-to-bottom button with intelligent visibility and auto-scroll behavior
+- **Multi-line Input**: Textarea support with Ctrl+Enter for new lines and auto-resize functionality
+- **Enhanced Copy Options**: Smart text copying with markdown stripping for clean, readable text
+- **Seamless Navigation**: SPA-like transitions between chat and conversation views
+
+### ➕ Smart Conversation Management
 - **New Conversation Button**: Contextual button that only appears when there's existing conversation history
 - **Fullscreen Conversation Sidebar**: Complete conversation history with sidebar navigation in fullscreen mode
 - **Conversation Management**: Rename, delete, and switch between conversations with three-dot menu
@@ -243,7 +251,15 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (4.4.0)
+### Current Version (4.6.0)
+- ✅ Responsive chat layout with optimized padding for different modes
+- ✅ Always-visible "New" button with smart disabled state
+- ✅ Refined conversation list with proper height and width management
+- ✅ Balanced fullscreen layout with proper sidebar-to-chat ratio
+- ✅ Sidepanel conversation management with sub-toolbar navigation
+- ✅ Smart scroll-to-bottom button with intelligent visibility
+- ✅ Multi-line input support with Ctrl+Enter for new lines
+- ✅ Enhanced copy functionality with markdown-to-text conversion
 - ✅ Real-time conversation management with instant sidebar updates
 - ✅ Centered sample prompts in fullscreen mode for better UX
 - ✅ Enhanced stop response handling without error messages
@@ -264,13 +280,12 @@ npm run test:watch
 - 🔄 Summary functionality (in progress)
 
 ### Upcoming Features
-- 🔲 Settings UI for provider configuration
 - 🔲 Advanced summary customization
-- 🔲 Chat history and persistence
 - 🔲 Custom prompt templates
 - 🔲 Batch processing for multiple pages
 - 🔲 Export functionality for conversations
 - 🔲 Additional AI providers (Cohere, Mistral)
+- 🔲 Multi-language support
 
 ## 🤝 Contributing
 

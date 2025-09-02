@@ -15,13 +15,17 @@ interface ConversationSidebarProps {
   onSessionSelect: (sessionId: string) => void;
   onSessionDelete: (sessionId: string) => void;
   onSessionRename: (sessionId: string, newTitle: string) => void;
+  showHeader?: boolean;
+  isFullscreen?: boolean;
 }
 
 const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   currentSessionId,
   onSessionSelect,
   onSessionDelete,
-  onSessionRename
+  onSessionRename,
+  showHeader = true,
+  isFullscreen = false
 }) => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -83,10 +87,12 @@ const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   };
 
   return (
-    <div className="w-64 border-r bg-muted/30 flex flex-col h-full">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-sm text-muted-foreground">Conversations</h2>
-      </div>
+    <div className={`${isFullscreen ? 'w-64' : 'w-full'} border-r bg-muted/30 flex flex-col h-full`}>
+      {showHeader && (
+        <div className="p-4 border-b">
+          <h2 className="font-semibold text-sm text-muted-foreground">Conversations</h2>
+        </div>
+      )}
       
       <div className="flex-1 overflow-y-auto">
         {sessions.map((session) => {

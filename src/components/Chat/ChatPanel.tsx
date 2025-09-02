@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon } from '@heroicons/react/24/solid';
+import React, { useState, useEffect, useRef } from 'react';
+import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
 
@@ -29,7 +29,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const [copiedStates, setCopiedStates] = useState<Record<number, boolean>>({});
 
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
@@ -171,6 +173,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       window.removeEventListener('loadSession', handleLoadSession);
     };
   }, []);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (!showScrollButton) {
+      scrollToBottom();
+    }
+  }, [messages, streamingContent]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 200;
+    setShowScrollButton(!isAtBottom);
+  };
 
   const initializeServices = async () => {
     setInitializationError(null);
@@ -320,6 +341,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
           default:
             errorMessage = error.message || 'AI service error occurred.';
         }
+      } else if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+        const errorMsg = (error as any).message;
+        if (errorMsg.includes('Developer instruction is not enabled')) {
+          errorMessage = 'This model does not support the requested operation. Try switching to a different model.';
+        } else if (errorMsg.includes('image-generation')) {
+          errorMessage = 'This model is designed for image generation, not text chat. Please select a text model.';
+        } else if (errorMsg.includes('not supported')) {
+          errorMessage = 'This operation is not supported by the current model. Please try a different model.';
+        } else {
+          errorMessage = errorMsg;
+        }
       }
 
       // Add error message to UI only (not to conversation history)
@@ -339,7 +371,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
       e.preventDefault();
       if (isLoading) {
         stopResponse();
@@ -362,9 +394,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
 
 
-  const copyToClipboard = async (text: string, messageIndex: number) => {
+  const copyToClipboard = async (text: string, messageIndex: number, asMarkdown = false) => {
     try {
-      await navigator.clipboard.writeText(text);
+      // For AI responses, convert markdown to plain text unless specifically requested as markdown
+      let textToCopy = text;
+      if (!asMarkdown && text.includes('```') || text.includes('**') || text.includes('*')) {
+        // Simple markdown to text conversion
+        textToCopy = text
+          .replace(/```[\s\S]*?```/g, (match) => match.replace(/```\w*\n?/g, '').replace(/```/g, ''))
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1')
+          .replace(/`(.*?)`/g, '$1')
+          .replace(/#{1,6}\s/g, '')
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+      }
+      
+      await navigator.clipboard.writeText(textToCopy);
       setCopiedStates(prev => ({ ...prev, [messageIndex]: true }));
       setTimeout(() => {
         setCopiedStates(prev => ({ ...prev, [messageIndex]: false }));
@@ -463,7 +508,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-12 py-8 space-y-4">
+      <div 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto space-y-4 relative ${isFullscreen ? 'px-12 py-8' : 'px-4 py-6'}`}
+      >
         {/* Show loading state for conversation history */}
         {isLoadingHistory && (
           <div className="flex justify-center">
@@ -587,7 +636,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(message.content, index)}
+                    onClick={() => copyToClipboard(message.content, index, false)}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-blue-600"
                     title={copiedStates[index] ? 'Copied!' : 'Copy prompt'}
                   >
@@ -604,13 +653,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(message.content, index)}
+                    onClick={() => copyToClipboard(message.content, index, false)}
                     className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
-                    title={copiedStates[index] ? 'Copied!' : 'Copy response'}
+                    title={copiedStates[index] ? 'Copied as text!' : 'Copy as text'}
                   >
                     <DocumentDuplicateIcon className="h-3 w-3" />
-                    <span>{copiedStates[index] ? 'Copied!' : 'Copy'}</span>
+                    <span>{copiedStates[index] ? 'Copied!' : 'Copy Text'}</span>
                   </Button>
+                  {/* <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(message.content, index, true)}
+                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto text-gray-500"
+                    title="Copy as markdown"
+                  >
+                    <span>MD</span>
+                  </Button> */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -667,25 +725,49 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
             </div>
           </div>
         )}
+        
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
+        
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <div className="absolute bottom-4 right-4">
+            <Button
+              onClick={scrollToBottom}
+              size="sm"
+              variant="secondary"
+              className="rounded-full shadow-lg"
+              title="Scroll to bottom"
+            >
+              <ChevronDownIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Input area */}
       <div className="border-t p-4">
-        <div className="flex space-x-2">
-          <Input
-            type="text"
+        <div className="flex space-x-2 items-end">
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!isServiceReady || isLoading || isLoadingHistory}
-            className="flex-1"
+            className="flex-1 min-h-[30px] max-h-24 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder={
               isLoadingHistory
                 ? 'Loading conversation...'
                 : !isServiceReady
                   ? 'AI service not available...'
-                  : 'Type your message...'
+                  : 'Type your message... (Enter to send, Ctrl+Enter for new line)'
             }
+            rows={1}
+            style={{ height: 'auto' }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+            }}
           />
           <Button
             onClick={isLoading ? stopResponse : sendMessage}

@@ -25,39 +25,39 @@ const WelcomePage: React.FC = () => {
   const features = [
     {
       icon: <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-500" />,
-      title: 'Real-time Conversations',
-      description: 'Instant sidebar updates, centered fullscreen layout, and seamless conversation management'
+      title: 'Responsive Design',
+      description: 'Optimized padding and layout for both sidepanel and fullscreen modes with better chat bubble spacing'
     },
     {
       icon: <DocumentTextIcon className="h-8 w-8 text-green-500" />,
-      title: 'Enhanced Fullscreen',
-      description: 'Complete conversation history sidebar with rename/delete options and optimized layout'
+      title: 'Always-Visible Controls',
+      description: 'New button always visible with smart disabled state, providing consistent UI expectations'
     },
     {
       icon: <BoltIcon className="h-8 w-8 text-yellow-500" />,
-      title: 'Performance Optimized',
-      description: 'Lightweight storage, non-blocking operations, and optimized memory usage'
+      title: 'Refined Conversations',
+      description: 'Clean conversation list with proper height management and balanced fullscreen layout'
     },
     {
       icon: <CogIcon className="h-8 w-8 text-purple-500" />,
-      title: 'Seamless Experience',
-      description: 'Switch between sidepanel and fullscreen without losing conversation context'
+      title: 'Optimized Experience',
+      description: 'Improved visual hierarchy and content flow across different screen sizes and modes'
     }
   ];
 
   const steps = [
     {
-      title: 'Welcome to Delight 4.4!',
-      subtitle: 'Real-time conversation management with enhanced user experience',
+      title: 'Welcome to Delight 4.6!',
+      subtitle: 'UI/UX refinements with responsive design',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 4.4!
+              Welcome to Delight 4.6!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Real-time conversation management with enhanced fullscreen experience.
+              UI/UX refinements with responsive design, optimized layouts, and refined conversation management.
               Chat with AI, manage conversations seamlessly, and boost your productivity with 6 major providers and 25+ models.
             </p>
           </div>
@@ -210,7 +210,7 @@ const WelcomePage: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <RocketLaunchIcon className="h-8 w-8 text-blue-500" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v4.4.0</span>
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v4.6.0</span>
           </div>
 
           {/* Progress indicator */}

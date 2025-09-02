@@ -12,6 +12,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [4.6.0] - 2025-09-01
+
+### 🎨 UI/UX Refinements & Responsive Design
+
+### Enhanced
+- **📱 Responsive Chat Layout**
+  - Optimized padding for different modes (fullscreen: px-12 py-8, sidepanel: px-4 py-6)
+  - Better chat bubble spacing and readability in sidepanel mode
+  - Improved content flow and visual hierarchy
+
+- **🔘 Always-Visible New Button**
+  - "New" button now always visible in sub-toolbar
+  - Appears faint/disabled when no conversations exist
+  - Provides consistent UI layout and better user expectations
+
+- **📋 Conversation List Improvements**
+  - Removed duplicate "Conversations" header in sidepanel mode
+  - Fixed conversation list height to stretch full screen in sidepanel
+  - Proper width management (w-64 fullscreen, w-full sidepanel)
+  - Clean, streamlined conversation management interface
+
+### Fixed
+- **⚖️ Fullscreen Layout Balance**
+  - Fixed conversation sidebar taking too much space in fullscreen mode
+  - Restored proper width ratio between sidebar and chat area
+  - Maintained responsive design across different screen sizes
+
+## [4.5.0] - 2025-09-01
+
+### 🎯 Sidepanel Conversation Management & Enhanced UX
+
+### Added
+- **📱 Sidepanel Sub-toolbar**
+  - New sub-toolbar in sidepanel mode with "New" and "Chats" navigation
+  - Seamless conversation management without switching to fullscreen
+  - SPA-like transitions between chat and conversation list views
+  - Contextual "New Conversation" button (only shows when conversations exist)
+
+- **💬 Sidepanel Conversation List**
+  - Full conversation history access in sidepanel mode
+  - Same rename/delete functionality as fullscreen mode
+  - Auto-return to chat view when selecting conversations
+  - Consistent conversation management across all modes
+
+- **📜 Smart Scroll Management**
+  - Scroll-to-bottom button with intelligent visibility (200px threshold)
+  - Auto-scroll for new messages when user is at bottom
+  - Manual scroll control with smooth scrolling behavior
+  - Better handling of long conversations
+
+- **✏️ Multi-line Input Support**
+  - Textarea input with auto-resize functionality
+  - Ctrl+Enter for new lines, Enter to send
+  - Visual feedback with keyboard shortcut hints
+  - Maximum height limit to prevent UI overflow
+
+- **📋 Enhanced Copy Functionality**
+  - "Copy Text" strips markdown formatting for clean text
+  - Smart markdown-to-text conversion (removes **bold**, `code`, etc.)
+  - Improved user experience for copying AI responses
+  - Preserved markdown copy option (commented for future use)
+
+### Enhanced
+- **🎨 Improved Layout**
+  - Dynamic content area spacing based on toolbar presence
+  - Better visual hierarchy in sidepanel mode
+  - Consistent button styling and iconography
+  - Responsive design for different screen sizes
+
+## [4.4.1] - 2025-09-01
+
+### 🐛 Critical Bug Fixes & Error Handling
+
+### Fixed
+- **🔧 TypeScript Error Resolution**
+  - Fixed error handling type checking for proper message property access
+  - Enhanced error parameter typing with proper type guards
+  - Improved error message extraction and display
+
+- **⚠️ Enhanced Error Messages**
+  - User-friendly error messages for model-specific issues
+  - Clear guidance for "Developer instruction not enabled" errors
+  - Helpful messages for image-generation model misuse
+  - Better error handling for unsupported operations
+
+- **🛠️ Streaming Response Improvements**
+  - Fixed blank response boxes during error states
+  - Better error detection during streaming responses
+  - Improved error message display without breaking UI flow
+
 ## [4.4.0] - 2025-09-01
 
 ### 🎨 Enhanced User Experience & Real-time Updates

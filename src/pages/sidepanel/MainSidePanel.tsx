@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
 // import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
-  const [activeView, setActiveView] = useState<'chat' | 'settings'>('chat');
+  const [activeView, setActiveView] = useState<'chat' | 'settings' | 'conversations'>('chat');
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isMinimizing, setIsMinimizing] = useState<boolean>(false);
@@ -237,7 +237,7 @@ const MainSidePanel: React.FC = () => {
     }
   };
 
-  const handleViewChange = async (newView: 'chat' | 'settings') => {
+  const handleViewChange = async (newView: 'chat' | 'settings' | 'conversations') => {
     if (newView === activeView) return;
 
     setIsTransitioning(true);
@@ -283,6 +283,18 @@ const MainSidePanel: React.FC = () => {
                 </Button>
                 <h1 className="text-lg font-semibold">Settings</h1>
               </>
+            ) : activeView === 'conversations' ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleViewChange('chat')}
+                  title="Back to Chat"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-lg font-semibold">Conversations</h1>
+              </>
             ) : (
               <>
                 <Avatar>
@@ -296,21 +308,9 @@ const MainSidePanel: React.FC = () => {
             )}
           </div>
 
-          {/* Control buttons - only show in chat view */}
+          {/* Control buttons */}
           {activeView === 'chat' && (
             <div className="flex items-center space-x-2">
-              {/* New Conversation button - only show if there's existing conversation */}
-              {hasConversation && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={startNewConversation}
-                  title="Start new conversation"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              )}
-
               {/* Maximize/Minimize button */}
               {!isFullscreen ? (
                 <Button
@@ -355,8 +355,40 @@ const MainSidePanel: React.FC = () => {
         </div>
       </div>
 
+      {/* Sub-toolbar for sidepanel mode */}
+      {!isFullscreen && activeView === 'chat' && (
+        <div className="fixed top-[60px] left-0 right-0 border-b bg-background z-10">
+          <div className="p-2 flex items-center space-x-2">
+            {/* New Conversation button - always visible, faint when no conversations */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={startNewConversation}
+              className={`flex items-center space-x-1 ${!hasConversation ? 'opacity-50' : ''}`}
+              title="Start new conversation"
+              disabled={!hasConversation}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-xs">New</span>
+            </Button>
+            
+            {/* Conversations List button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewChange('conversations')}
+              className="flex items-center space-x-1"
+              title="View conversations"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-xs">Chats</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Content Area with SPA-like transitions */}
-      <div className="flex-1 overflow-hidden mt-[60px] relative">
+      <div className={`flex-1 overflow-hidden ${!isFullscreen && activeView === 'chat' ? 'mt-[100px]' : 'mt-[60px]'} relative`}>
         <div
           className={`absolute inset-0 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 transform translate-x-2' : 'opacity-100 transform translate-x-0'
             }`}
@@ -364,6 +396,22 @@ const MainSidePanel: React.FC = () => {
           {activeView === 'settings' && (
             <div className="h-full animate-in slide-in-from-right-2 duration-300">
               <SettingsPanel />
+            </div>
+          )}
+
+          {activeView === 'conversations' && (
+            <div className="h-full animate-in slide-in-from-right-2 duration-300">
+              <ConversationSidebar
+                currentSessionId={currentSessionId}
+                onSessionSelect={(sessionId) => {
+                  handleSessionSelect(sessionId);
+                  handleViewChange('chat');
+                }}
+                onSessionDelete={handleSessionDelete}
+                onSessionRename={handleSessionRename}
+                showHeader={false}
+                isFullscreen={isFullscreen}
+              />
             </div>
           )}
 
@@ -376,6 +424,8 @@ const MainSidePanel: React.FC = () => {
                   onSessionSelect={handleSessionSelect}
                   onSessionDelete={handleSessionDelete}
                   onSessionRename={handleSessionRename}
+                  showHeader={true}
+                  isFullscreen={isFullscreen}
                 />
               )}
               
