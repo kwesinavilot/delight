@@ -323,6 +323,16 @@ const UserGuidePage: React.FC = () => {
                   <li>Refresh the page if the side panel doesn't appear</li>
                 </ul>
               </div>
+              
+              <div className="border-l-4 border-purple-400 pl-4">
+                <h5 className="font-medium text-gray-900 dark:text-white">Browser Compatibility</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
+                  <li><strong>Chrome:</strong> Full feature support recommended</li>
+                  <li><strong>Edge:</strong> Sidepanel works perfectly, fullscreen may occasionally have issues</li>
+                  <li>If fullscreen fails in Edge, try using sidepanel mode instead</li>
+                  <li>All AI tools and page attachment work identically across browsers</li>
+                </ul>
+              </div>
             </div>
           </div>
           
@@ -372,6 +382,11 @@ const UserGuidePage: React.FC = () => {
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Which provider is fastest?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Groq typically offers the fastest inference speeds (800+ tokens/sec), while Gemini Flash is also very fast. Speed may vary based on model and current load.</p>
+            </div>
+            
+            <div>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: Does this work on Microsoft Edge?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! Edge supports all core features including sidepanel mode and AI tools. Fullscreen mode is available but may occasionally have issues due to browser implementation differences. Chrome is recommended for the best experience.</p>
             </div>
             
             <div>

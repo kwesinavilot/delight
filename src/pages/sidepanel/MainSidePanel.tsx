@@ -176,11 +176,6 @@ const MainSidePanel: React.FC = () => {
   };
 
   const maximizeToFullscreen = async () => {
-    if (isEdge) {
-      alert('Fullscreen mode is not supported in Microsoft Edge. Please use Chrome for the best experience.');
-      return;
-    }
-
     try {
       // Get current tab before opening fullscreen
       const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -207,7 +202,11 @@ const MainSidePanel: React.FC = () => {
       console.log('Opened fullscreen tab and closed sidepanel');
     } catch (error) {
       console.error('Error maximizing to fullscreen:', error);
-      alert('Failed to open fullscreen mode. This feature works best in Chrome browser.');
+      if (isEdge) {
+        alert('Fullscreen mode may not work properly in Microsoft Edge. For the best experience, please use Google Chrome.');
+      } else {
+        alert('Failed to open fullscreen mode. Please try again.');
+      }
     }
   };
 
@@ -341,16 +340,16 @@ const MainSidePanel: React.FC = () => {
               )}
               
               {/* Maximize/Minimize button */}
-              {!isFullscreen && !isEdge ? (
+              {!isFullscreen ? (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={maximizeToFullscreen}
-                  title="Open in fullscreen"
+                  title={isEdge ? "Open in fullscreen (may not work properly in Edge)" : "Open in fullscreen"}
                 >
                   <Maximize2 className="h-5 w-5" />
                 </Button>
-              ) : isFullscreen ? (
+              ) : (
                 <Button
                   variant="ghost"
                   size="icon"

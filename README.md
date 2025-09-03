@@ -333,10 +333,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Seamless mode switching
 
 ### Microsoft Edge
-- ✅ Sidepanel mode supported
-- ❌ Fullscreen mode disabled (Edge API limitations)
+- ✅ Sidepanel mode fully supported
+- ⚠️ Fullscreen mode supported but may have issues
 - ✅ All AI tools and page attachment
-- ⚠️ Some features may have reduced performance
+- ⚠️ Some Chrome-specific behaviors may differ
 
 **Note**: For the best experience, we recommend using Google Chrome. Edge users will receive helpful notifications about feature limitations.
 

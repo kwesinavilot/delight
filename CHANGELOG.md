@@ -28,10 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tools disabled when no AI provider is configured
 
 - **🌐 Browser Compatibility**
-  - Edge browser detection with automatic feature adaptation
-  - Fullscreen mode disabled in Edge with user-friendly alerts
-  - Graceful degradation for unsupported browser features
-  - Clear messaging about Chrome recommendations for best experience
+  - Edge browser detection with enhanced error handling
+  - Improved fullscreen mode support for Edge with helpful warnings
+  - Graceful error handling for browser-specific implementation differences
+  - Clear messaging about optimal browser experience
 
 - **📎 Enhanced Page Attachment**
   - Streamlined "Attach Page Content" with paperclip icon
