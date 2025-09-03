@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.8.0 - Intelligent Page Content Extraction**
+## 🎉 **Version 1.0.0 - AI Tools & Enhanced Input System**
 
-**NEW**: Sophisticated page content extraction system that can intelligently analyze and extract content from any webpage structure!
+**NEW**: Comprehensive AI tools system with 10 specialized tools for explaining, rewriting, and changing tone, plus enhanced page attachment with Twitter-card previews!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -18,10 +18,11 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ### 🚀 Core AI Features
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
+- **AI Tools System**: 10 specialized tools for explaining, rewriting (paraphrase, improve, expand, shorten), and tone changes (academic, professional, persuasive, casual, funny)
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Smart Page Content Extraction**: Sophisticated system that can extract and analyze content from any webpage structure
-- **Page Context Integration**: Get page content directly in chat with multiple detail levels (Full Analysis, Summary, Quick Context)
+- **Enhanced Page Attachment**: Twitter-card style page previews with persistent context throughout conversations
 
 ### ⚡ Performance & Memory Management (v4.0.0+)
 - **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
@@ -64,9 +65,10 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ### 🎨 User Experience
 - **Smart Conversation Management**: Contextual "New Conversation" button that appears only when needed
-- **Fullscreen Conversation Sidebar**: Complete conversation history navigation with rename/delete capabilities
+- **Fullscreen Conversation Sidebar**: Complete conversation history navigation with rename/delete capabilities (Chrome only)
 - **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
-- **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience with automatic sidepanel closure
+- **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience (Chrome only)
+- **Browser Compatibility**: Automatic Edge detection with graceful feature degradation
 - **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
 - **Enhanced Onboarding**: Welcome flow opens directly in sidepanel mode for better UX
 - **Flexible Configuration**: Easy provider switching and API key management
@@ -81,7 +83,8 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ### Prerequisites
 
-- Chrome browser (version 88+)
+- **Chrome browser (version 88+)** - Recommended for full functionality
+- **Microsoft Edge (version 88+)** - Supported with limited features (sidepanel mode only)
 - API key from one or more supported AI providers (OpenAI, Anthropic, Google, X.AI, SambaNova)
 
 ### Installation
@@ -252,14 +255,14 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (4.8.0)
+### Current Version (1.0.0)
+- ✅ Comprehensive AI tools system with 10 specialized tools (explain, rewrite, tone changes)
+- ✅ Icon-based tools interface with upward dropdown and tool selection badges
+- ✅ Enhanced page attachment with Twitter-card style previews
+- ✅ Borderless input interface with separate tool and attachment sections
+- ✅ Persistent page context that remains throughout conversations
+- ✅ Smart tool integration with automatic prompt modification
 - ✅ Intelligent page content extraction system with multi-strategy analysis
-- ✅ Sophisticated content scoring and quality assessment algorithms
-- ✅ Comprehensive page analysis (metadata, structure, SEO data, reading metrics)
-- ✅ Smart page context buttons with three detail levels (Full, Summary, Quick)
-- ✅ Automatic content type detection and noise filtering
-- ✅ Real-time page content integration into chat conversations
-- ✅ Enhanced content script with semantic HTML analysis and heuristic scoring
 - ✅ Responsive chat layout with optimized padding for different modes
 - ✅ Always-visible "New" button with smart disabled state
 - ✅ Refined conversation list with proper height and width management
@@ -320,6 +323,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Radix UI](https://www.radix-ui.com/) for accessible UI components
 - [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
 - [OpenAI](https://openai.com/) and [Anthropic](https://www.anthropic.com/) for their powerful AI models
+
+## 🌐 Browser Compatibility
+
+### Chrome (Recommended)
+- ✅ Full feature support
+- ✅ Sidepanel and fullscreen modes
+- ✅ All AI tools and page attachment
+- ✅ Seamless mode switching
+
+### Microsoft Edge
+- ✅ Sidepanel mode supported
+- ❌ Fullscreen mode disabled (Edge API limitations)
+- ✅ All AI tools and page attachment
+- ⚠️ Some features may have reduced performance
+
+**Note**: For the best experience, we recommend using Google Chrome. Edge users will receive helpful notifications about feature limitations.
 
 ## 📞 Support
 

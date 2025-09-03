@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon, ChevronDownIcon, WrenchScrewdriverIcon, PaperClipIcon } from '@heroicons/react/24/solid';
 import { Button } from "@/components/ui/button";
 
 import { initializeChatSession, isAIServiceReady } from '@/utils/chat';
@@ -7,6 +7,7 @@ import { AIError, AIErrorType } from '@/types/ai';
 
 import { AIService } from '@/services/ai/AIService';
 import { PageContextService } from '@/services/PageContextService';
+import { AI_TOOLS, AITool, TOOL_CATEGORIES } from '@/types/tools';
 import WelcomeHint from './WelcomeHint';
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -33,11 +34,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
+  const attachDropdownRef = useRef<HTMLDivElement>(null);
 
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
   const [isGettingPageContext, setIsGettingPageContext] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<AITool | null>(null);
+  const [showToolsDropdown, setShowToolsDropdown] = useState(false);
+  const [showAttachDropdown, setShowAttachDropdown] = useState(false);
+  const [attachedPageContext, setAttachedPageContext] = useState<any>(null);
 
   useEffect(() => {
     initializeServices();
@@ -170,10 +177,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     window.addEventListener('newConversation', handleNewConversation);
     window.addEventListener('loadSession', handleLoadSession);
 
+    // Click outside handler for dropdowns
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(event.target as Node)) {
+        setShowToolsDropdown(false);
+      }
+      if (attachDropdownRef.current && !attachDropdownRef.current.contains(event.target as Node)) {
+        setShowAttachDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
       window.removeEventListener('newConversation', handleNewConversation);
       window.removeEventListener('loadSession', handleLoadSession);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -272,10 +292,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const sendMessage = async () => {
     if (!input.trim() || !session || !isServiceReady) return;
 
-    const userMessage = input.trim();
-    const newMessage: Message = { role: 'user', content: userMessage };
+    let userMessage = input.trim();
+    
+    // Add attached page context
+    if (attachedPageContext) {
+      const pageContent = await PageContextService.analyzePageForAI(attachedPageContext);
+      userMessage = `${userMessage}\n\nPage Context:\n${pageContent}`;
+    }
+    
+    // Apply tool prompt if selected
+    if (selectedTool) {
+      userMessage = `${selectedTool.prompt}\n\n${userMessage}`;
+    }
+    
+    const newMessage: Message = { role: 'user', content: input.trim() }; // Show original input in UI
     setMessages(prev => [...prev, newMessage]);
     setInput('');
+    setSelectedTool(null); // Clear tool after use
     setIsLoading(true);
 
     // Create abort controller for cancellation
@@ -287,7 +320,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       setStreamingContent('');
 
       // Convert current messages to simple format for AI
-      const contextMessages = messages.concat([newMessage]).map((msg, index) => ({
+      const contextMessages = messages.concat([{ role: 'user', content: userMessage }]).map((msg, index) => ({
         id: `msg_${Date.now()}_${index}`,
         role: msg.role as 'user' | 'assistant' | 'system',
         content: msg.content,
@@ -515,26 +548,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       console.log('Page context result:', context);
       
       if (context) {
-        let formattedContext;
-        
-        switch (format) {
-          case 'summary':
-            formattedContext = await PageContextService.getContextSummary(context);
-            break;
-          case 'minimal':
-            formattedContext = PageContextService.formatPageContext(context, {
-              format: 'minimal',
-              includeMetadata: false,
-              includeStructure: false,
-              maxContentLength: 300
-            });
-            break;
-          default:
-            formattedContext = PageContextService.formatPageContext(context);
-        }
-        
-        console.log('Formatted context:', formattedContext);
-        setInput(prev => prev + (prev ? '\n\n' : '') + formattedContext);
+        setAttachedPageContext(context);
+        setShowAttachDropdown(false);
       } else {
         setMessages(prev => [...prev, { 
           role: 'error', 
@@ -876,74 +891,164 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
       {/* Input area */}
       <div className="border-t p-4">
-        {/* Page context buttons */}
-        {isServiceReady && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            <Button
-              onClick={() => getPageContext('detailed')}
-              disabled={isGettingPageContext || isLoading}
-              variant="outline"
-              size="sm"
-              className="text-xs"
-            >
-              {isGettingPageContext ? 'Extracting...' : '📄 Full Analysis'}
-            </Button>
-            <Button
-              onClick={() => getPageContext('summary')}
-              disabled={isGettingPageContext || isLoading}
-              variant="outline"
-              size="sm"
-              className="text-xs"
-            >
-              📊 Summary
-            </Button>
-            <Button
-              onClick={() => getPageContext('minimal')}
-              disabled={isGettingPageContext || isLoading}
-              variant="outline"
-              size="sm"
-              className="text-xs"
-            >
-              ⚡ Quick Context
-            </Button>
+
+        
+        {/* Selected tool badge */}
+        {selectedTool && (
+          <div className="mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-sm">
+              <span>{selectedTool.label}</span>
+              <button
+                onClick={() => setSelectedTool(null)}
+                className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5"
+                title="Remove tool"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
         
-        <div className="flex space-x-2 items-end">
+        {/* Attached page preview */}
+        {attachedPageContext && (
+          <div className="mb-2">
+            <div className="flex items-center gap-3 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm w-full">
+              <img 
+                src={`https://www.google.com/s2/favicons?domain=${new URL(attachedPageContext.url).hostname}&sz=16`}
+                alt="Site favicon"
+                className="w-4 h-4 flex-shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate">{attachedPageContext.title}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{new URL(attachedPageContext.url).hostname}</div>
+              </div>
+              <button
+                onClick={() => setAttachedPageContext(null)}
+                className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded p-1 flex-shrink-0"
+                title="Remove page context"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Input area */}
+        <div className="space-y-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!isServiceReady || isLoading || isLoadingHistory}
-            className="flex-1 min-h-[30px] max-h-24 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full min-h-[60px] max-h-32 resize-none bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             placeholder={
               isLoadingHistory
                 ? 'Loading conversation...'
                 : !isServiceReady
                   ? 'AI service not available...'
-                  : 'Type your message... (Enter to send, Ctrl+Enter for new line)'
+                  : selectedTool
+                    ? `${selectedTool.description}...`
+                    : 'Type your message... (Enter to send, Ctrl+Enter for new line)'
             }
-            rows={1}
-            style={{ height: 'auto' }}
+            rows={2}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = 'auto';
               target.style.height = Math.min(target.scrollHeight, 128) + 'px';
             }}
           />
-          <Button
-            onClick={isLoading ? stopResponse : sendMessage}
-            disabled={(!input.trim() && !isLoading) || !isServiceReady || isLoadingHistory}
-            size="icon"
-            variant={isLoading ? "destructive" : "default"}
-            title={isLoading ? "Stop response" : "Send message"}
-          >
-            {isLoading ? (
-              <StopIcon className="h-5 w-5" />
-            ) : (
-              <PaperAirplaneIcon className="h-5 w-5" />
-            )}
-          </Button>
+          
+          {/* Button row */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              {/* Tools dropdown */}
+              <div className="relative" ref={toolsDropdownRef}>
+                <Button
+                  onClick={() => setShowToolsDropdown(!showToolsDropdown)}
+                  variant={selectedTool ? "default" : "outline"}
+                  size="icon"
+                  disabled={!isServiceReady}
+                  className={`${selectedTool ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                  title={isServiceReady ? "AI Tools" : "Configure AI provider to use tools"}
+                >
+                  <WrenchScrewdriverIcon className="h-4 w-4" />
+                </Button>
+              
+                {/* Tools dropdown */}
+                {showToolsDropdown && (
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                    {Object.entries(TOOL_CATEGORIES).map(([category, label]) => (
+                      <div key={category}>
+                        <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                          {label}
+                        </div>
+                        {AI_TOOLS.filter(tool => tool.category === category).map(tool => (
+                          <button
+                            key={tool.id}
+                            onClick={() => {
+                              setSelectedTool(tool);
+                              setShowToolsDropdown(false);
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                          >
+                            <div className="font-medium">{tool.label}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{tool.description}</div>
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Attach page content dropdown */}
+              {isServiceReady && (
+                <div className="relative" ref={attachDropdownRef}>
+                  <Button
+                    onClick={() => setShowAttachDropdown(!showAttachDropdown)}
+                    variant={attachedPageContext ? "default" : "outline"}
+                    size="icon"
+                    disabled={isGettingPageContext || isLoading}
+                    className={`${attachedPageContext ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    title="Attach Page Content"
+                  >
+                    <PaperClipIcon className="h-4 w-4" />
+                  </Button>
+                  
+                  {/* Attach dropdown */}
+                  {showAttachDropdown && (
+                    <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={() => getPageContext('detailed')}
+                        disabled={isGettingPageContext}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm border-b border-gray-100 dark:border-gray-700"
+                      >
+                        <div className="font-medium">{isGettingPageContext ? 'Extracting...' : 'Attach Page Content'}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Extract and attach current page content</div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <Button
+              onClick={isLoading ? stopResponse : sendMessage}
+              disabled={(!input.trim() && !isLoading) || !isServiceReady || isLoadingHistory}
+              size="icon"
+              variant={isLoading ? "destructive" : "default"}
+              title={isLoading ? "Stop response" : "Send message"}
+            >
+              {isLoading ? (
+                <StopIcon className="h-5 w-5" />
+              ) : (
+                <PaperAirplaneIcon className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {!isServiceReady && !isLoadingHistory && (

@@ -13,7 +13,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
-## [4.8.0] - 2025-09-03
+## [1.0.0] - 2025-09-03
+
+### 🛠️ AI Tools & Enhanced Input System
+
+### Added
+- **🔧 AI Tools Dropdown**
+  - Comprehensive AI tools system with 10 specialized tools
+  - **Quick Section**: Explain tool for in-depth simplified explanations
+  - **Rewrite Section**: Paraphrase, Improve, Expand, Shorten tools
+  - **Change Tone Section**: Academic, Professional, Persuasive, Casual, Funny tones
+  - Icon-based tools button with upward dropdown interface
+  - Tool selection badge system with easy removal
+  - Tools disabled when no AI provider is configured
+
+- **🌐 Browser Compatibility**
+  - Edge browser detection with automatic feature adaptation
+  - Fullscreen mode disabled in Edge with user-friendly alerts
+  - Graceful degradation for unsupported browser features
+  - Clear messaging about Chrome recommendations for best experience
+
+- **📎 Enhanced Page Attachment**
+  - Streamlined "Attach Page Content" with paperclip icon
+  - Twitter-card style page preview with favicon, title, and domain
+  - Full-width page card with white background for better visibility
+  - Persistent page context that remains attached throughout conversation
+  - Easy removal with dedicated remove button
+
+- **🎨 Redesigned Input Interface**
+  - Borderless textarea for seamless writing experience
+  - Removed focus borders for cleaner appearance
+  - Separate sections for tools and page attachments
+  - Tool badge appears above page card when selected
+  - Less rounded tool badges for modern rectangular look
+
+### Enhanced
+- **⚡ Smart Tool Integration**
+  - Tools automatically modify AI prompts based on selection
+  - Seamless integration with page content attachment
+  - Tool prompts combined with user input and page context
+  - One tool selection at a time for focused interactions
+
+- **🎯 Improved User Experience**
+  - Click-outside functionality to close dropdowns
+  - Visual feedback for selected tools and attached content
+  - Disabled states with helpful tooltips
+  - Consistent icon-based interface design
+
+### Technical Improvements
+- **🏗️ Enhanced Architecture**
+  - New AI tools type system with categorized tools
+  - Modular tool prompt system for easy expansion
+  - Improved state management for tools and attachments
+  - Better separation of concerns in chat interface
+  - Browser detection system for compatibility management
+
+## [0.9.0] - 2025-09-03
 
 ### 🧠 Intelligent Page Content Extraction
 
@@ -69,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - TypeScript interfaces for comprehensive page data
   - Modular extraction strategies for maintainability
 
-## [4.7.0] - 2025-09-02
+## [0.8.0] - 2025-09-02
 
 ### 🚀 Provider SDK Upgrades & Model Expansion
 
@@ -112,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduced generic greeting responses in favor of specific answers
   - Better instruction following across all providers
 
-## [4.6.0] - 2025-09-01
+## [0.7.0] - 2025-09-01
 
 ### 🎨 UI/UX Refinements & Responsive Design
 
@@ -139,7 +194,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Restored proper width ratio between sidebar and chat area
   - Maintained responsive design across different screen sizes
 
-## [4.5.0] - 2025-09-01
+## [0.6.0] - 2025-09-01
 
 ### 🎯 Sidepanel Conversation Management & Enhanced UX
 
@@ -181,7 +236,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Consistent button styling and iconography
   - Responsive design for different screen sizes
 
-## [4.4.1] - 2025-09-01
+## [0.5.1] - 2025-09-01
 
 ### 🐛 Critical Bug Fixes & Error Handling
 
@@ -202,7 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Better error detection during streaming responses
   - Improved error message display without breaking UI flow
 
-## [4.4.0] - 2025-09-01
+## [0.5.0] - 2025-09-01
 
 ### 🎨 Enhanced User Experience & Real-time Updates
 
@@ -231,7 +286,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved visual consistency across different screen sizes
   - Enhanced conversation sidebar integration with real-time updates
 
-## [4.2.0] - 2025-09-01
+## [0.4.0] - 2025-09-01
 
 ### 🆕 Smart Conversation Management
 
@@ -259,7 +314,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Better visual hierarchy with contextual controls
   - Fullscreen mode now provides complete conversation management interface
 
-## [4.1.1] - 2025-08-31
+## [0.3.1] - 2025-08-31
 
 ### 🚀 Performance Optimization & Enhanced UX
 
@@ -299,7 +354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduced memory footprint during chat operations
   - Faster message processing and UI updates
 
-## [4.1.0] - 2025-08-31
+## [0.3.0] - 2025-08-31
 
 ### 🎯 Enhanced Chat Experience & Persistent History
 
@@ -347,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Better separation of UI state and persistent conversation data
   - Enhanced error recovery and conversation restoration mechanisms
 
-## [4.0.0] - 2025-08-31
+## [0.2.0] - 2025-08-31
 
 ### 🚀 MAJOR RELEASE: Advanced Performance Optimization & Memory Management
 

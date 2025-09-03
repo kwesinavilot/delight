@@ -14,6 +14,7 @@ export default defineConfig({
                 sidepanel: resolve(__dirname, 'src/pages/sidepanel/index.html'),
                 welcome: resolve(__dirname, 'src/pages/welcome/index.html'),
                 userguide: resolve(__dirname, 'src/pages/userguide/index.html'),
+                privacy: resolve(__dirname, 'src/pages/privacy/index.html'),
                 background: resolve(__dirname, 'src/background/index.ts'),
                 content: resolve(__dirname, 'src/content/index.ts'),
             },

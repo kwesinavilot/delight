@@ -394,7 +394,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             <button
               onClick={() => {
                 chrome.tabs.create({
-                  url: 'https://github.com/kwesinavilot/delight/blob/main/PRIVACY.md',
+                  url: chrome.runtime.getURL('src/pages/privacy/index.html'),
                   active: true
                 });
               }}
@@ -405,6 +405,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             <button
               onClick={() => {
                 chrome.tabs.create({
+                  url: 'mailto:andrewsankomahene@gmail.com',
+                  active: true
+                });
+              }}
+              className="hover:text-blue-500 transition-colors"
+            >
+              Support
+            </button>
+            {/* <button
+              onClick={() => {
+                chrome.tabs.create({
                   url: 'https://github.com/kwesinavilot/delight',
                   active: true
                 });
@@ -412,8 +423,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               className="hover:text-blue-500 transition-colors"
             >
               GitHub
-            </button>
-            <button
+            </button> */}
+            {/* <button
               onClick={() => {
                 chrome.tabs.create({
                   url: 'https://github.com/kwesinavilot/delight/issues',
@@ -423,14 +434,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               className="hover:text-blue-500 transition-colors"
             >
               Support
-            </button>
+            </button> */}
           </div>
 
           {/* Version and Links */}
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v3.3.0</span>
+                <span className="font-medium">Delight v1.0.0</span>
               </div>
             </div>
           </div>

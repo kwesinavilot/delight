@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "4.8.0",
+  "version": "1.0.0",
   "description": "Multi-provider AI chat and page summaries with support for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova",
   "permissions": [
     "sidePanel",
@@ -14,9 +14,9 @@
   "action": {
     "default_popup": "src/pages/popup/index.html",
     "default_icon": {
-      "16": "icons/delightful-1.jpg",
-      "48": "icons/delightful-1.jpg",
-      "128": "icons/delightful-1.jpg"
+      "16": "icons/delight-icon.png",
+      "48": "icons/delight-icon.png",
+      "128": "icons/delight-icon.png"
     }
   },
   "side_panel": {
@@ -37,9 +37,9 @@
     }
   ],
   "icons": {
-    "16": "icons/delightful-1.jpg",
-    "48": "icons/delightful-1.jpg",
-    "128": "icons/delightful-1.jpg"
+    "16": "icons/delight-icon.png",
+    "48": "icons/delight-icon.png",
+    "128": "icons/delight-icon.png"
   },
   "commands": {
     "_execute_action": {
@@ -55,7 +55,8 @@
       "resources": [
         "src/pages/welcome/index.html",
         "src/pages/sidepanel/index.html",
-        "src/pages/userguide/index.html"
+        "src/pages/userguide/index.html",
+        "src/pages/privacy/index.html"
       ],
       "matches": ["<all_urls>"]
     }

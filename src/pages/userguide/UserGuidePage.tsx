@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   BookOpenIcon,
   ChevronRightIcon,
@@ -10,7 +10,9 @@ import {
   KeyIcon,
   BoltIcon,
   QuestionMarkCircleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  WrenchScrewdriverIcon,
+  // PaperClipIcon
 } from '@heroicons/react/24/outline';
 
 const UserGuidePage: React.FC = () => {
@@ -112,8 +114,63 @@ const UserGuidePage: React.FC = () => {
       )
     },
     {
+      id: 'ai-tools',
+      title: 'AI Tools & Page Attachment',
+      icon: <WrenchScrewdriverIcon className="h-5 w-5" />,
+      content: (
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Using AI Tools</h4>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+              <li>Type your text in the input area</li>
+              <li>Click the tools icon (🔧) next to the send button</li>
+              <li>Choose from 10 specialized tools organized in categories:</li>
+            </ol>
+            <div className="ml-6 mt-2 space-y-2">
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">Quick Tools</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400"><strong>Explain:</strong> Get detailed, simplified explanations</p>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">Rewrite Tools</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400"><strong>Paraphrase, Improve, Expand, Shorten:</strong> Transform your content</p>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">Change Tone</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400"><strong>Academic, Professional, Persuasive, Casual, Funny:</strong> Adjust writing style</p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Attaching Page Content</h4>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+              <li>Navigate to any webpage you want to analyze</li>
+              <li>Open Delight (popup, sidepanel, or fullscreen)</li>
+              <li>Click the paperclip icon (📎) next to the tools button</li>
+              <li>Select "Attach Page Content" from the dropdown</li>
+              <li>The page content will appear as a Twitter-card style preview</li>
+              <li>Type your question or use an AI tool with the attached content</li>
+              <li>The AI will use the page content as context for its response</li>
+            </ol>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Pro Tips</h4>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+              <li>Combine tools with page content: Attach a page, then use "Explain" to understand complex articles</li>
+              <li>Use "Improve" tool with your own writing for better clarity and flow</li>
+              <li>Try "Academic" tone for research papers or "Casual" for social media posts</li>
+              <li>Page content stays attached throughout your conversation for follow-up questions</li>
+              <li>Tools are disabled until you configure an AI provider</li>
+            </ul>
+          </div>
+        </div>
+      )
+    },
+    {
       id: 'features',
-      title: 'Features',
+      title: 'Core Features',
       icon: <ChatBubbleLeftRightIcon className="h-5 w-5" />,
       content: (
         <div className="space-y-4">
@@ -125,6 +182,28 @@ const UserGuidePage: React.FC = () => {
               <li>Persistent chat history within sessions</li>
               <li>Markdown formatting support</li>
               <li>Error handling with helpful messages</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">AI Tools System</h4>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+              <li><strong>Explain Tool:</strong> Get in-depth, simplified explanations of any concept or text</li>
+              <li><strong>Rewrite Tools:</strong> Paraphrase, improve, expand, or shorten your content</li>
+              <li><strong>Tone Change Tools:</strong> Convert text to academic, professional, persuasive, casual, or funny tones</li>
+              <li><strong>Easy Access:</strong> Click the tools icon (🔧) next to the send button</li>
+              <li><strong>One-Click Selection:</strong> Choose a tool and it automatically modifies your prompt</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Smart Page Attachment</h4>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+              <li><strong>Attach Page Content:</strong> Click the paperclip icon (📎) to attach current webpage content</li>
+              <li><strong>Twitter-Card Preview:</strong> See page title, favicon, and domain in a clean card format</li>
+              <li><strong>Intelligent Extraction:</strong> Multi-strategy content extraction works on any webpage structure</li>
+              <li><strong>Persistent Context:</strong> Page content remains attached throughout your conversation</li>
+              <li><strong>Easy Removal:</strong> Click the × button to remove attached content anytime</li>
             </ul>
           </div>
           
@@ -276,6 +355,16 @@ const UserGuidePage: React.FC = () => {
             </div>
             
             <div>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: How do AI tools work?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: AI tools automatically modify your prompt with specialized instructions. For example, selecting "Explain" adds "Please provide a detailed, simplified explanation of the following:" before your text.</p>
+            </div>
+            
+            <div>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: Can I attach content from any website?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! Our intelligent content extraction works on any webpage structure - from simple blogs to complex web applications. It automatically filters out navigation, ads, and other noise.</p>
+            </div>
+            
+            <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Is my data secure?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes, all data is stored locally in your browser. We don't collect or transmit any personal information.</p>
             </div>
@@ -305,7 +394,7 @@ const UserGuidePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Delight User Guide</h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Everything you need to know about using Delight, your AI-powered Chrome extension with 6 major providers.
+            Everything you need to know about using Delight, your AI-powered Chrome extension with 6 major providers, AI tools, and smart page attachment.
           </p>
         </div>
 
@@ -351,7 +440,7 @@ const UserGuidePage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v3.3.0 - AI-powered Chrome extension</p>
+          <p>Delight v1.0.0 - AI-powered Chrome extension</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}
@@ -359,9 +448,9 @@ const UserGuidePage: React.FC = () => {
             >
               Close Guide
             </button>
-            <a href="https://github.com/kwesinavilot/delight" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500">
+            {/* <a href="https://github.com/kwesinavilot/delight" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500">
               GitHub
-            </a>
+            </a> */}
           </div>
         </div>
       </div>

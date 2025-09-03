@@ -14,6 +14,15 @@ const MainSidePanel: React.FC = () => {
   const [isMinimizing, setIsMinimizing] = useState<boolean>(false);
   const [hasConversation, setHasConversation] = useState<boolean>(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isEdge, setIsEdge] = useState<boolean>(false);
+
+  // Detect Edge browser
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isEdgeBrowser = userAgent.includes('Edg/') || userAgent.includes('Edge/');
+    setIsEdge(isEdgeBrowser);
+    console.log('[MainSidePanel] Edge detection:', { userAgent, isEdgeBrowser });
+  }, []);
 
   // Detect if we're in fullscreen mode (opened as a tab vs sidepanel)
   useEffect(() => {
@@ -167,6 +176,11 @@ const MainSidePanel: React.FC = () => {
   };
 
   const maximizeToFullscreen = async () => {
+    if (isEdge) {
+      alert('Fullscreen mode is not supported in Microsoft Edge. Please use Chrome for the best experience.');
+      return;
+    }
+
     try {
       // Get current tab before opening fullscreen
       const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -193,6 +207,7 @@ const MainSidePanel: React.FC = () => {
       console.log('Opened fullscreen tab and closed sidepanel');
     } catch (error) {
       console.error('Error maximizing to fullscreen:', error);
+      alert('Failed to open fullscreen mode. This feature works best in Chrome browser.');
     }
   };
 
@@ -326,7 +341,7 @@ const MainSidePanel: React.FC = () => {
               )}
               
               {/* Maximize/Minimize button */}
-              {!isFullscreen ? (
+              {!isFullscreen && !isEdge ? (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -335,7 +350,7 @@ const MainSidePanel: React.FC = () => {
                 >
                   <Maximize2 className="h-5 w-5" />
                 </Button>
-              ) : (
+              ) : isFullscreen ? (
                 <Button
                   variant="ghost"
                   size="icon"
