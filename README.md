@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.0.0 - AI Tools & Enhanced Input System**
+## 🎉 **Version 1.0.1 - Streamlined Experience**
 
-**NEW**: Comprehensive AI tools system with 10 specialized tools for explaining, rewriting, and changing tone, plus enhanced page attachment with Twitter-card previews!
+**NEW**: 5 free AI requests to try all features immediately! Complete with AI tools system, smart page attachment, and enhanced browser compatibility.
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -77,7 +77,7 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 ### 🔒 Security & Privacy
 - **Privacy-Focused**: Secure local storage of API keys with encryption - [Privacy Policy](PRIVACY.md)
 - **Local Processing**: All performance optimization happens locally
-- **Multiple Interfaces**: Popup, side panel, fullscreen, and keyboard shortcuts
+- **Streamlined Interface**: Side panel and fullscreen modes with keyboard shortcuts
 
 ## 🚀 Quick Start
 
@@ -85,7 +85,8 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 - **Chrome browser (version 88+)** - Recommended for full functionality
 - **Microsoft Edge (version 88+)** - Supported with limited features (sidepanel mode only)
-- API key from one or more supported AI providers (OpenAI, Anthropic, Google, X.AI, SambaNova)
+- **No API key required initially** - Start with 5 free requests!
+- API key from supported AI providers for continued use (Google Gemini recommended - free tier available)
 
 ### Installation
 
@@ -120,7 +121,7 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
    - **Grok (X.AI)**: Add your API key from [X.AI Console](https://console.x.ai/)
    - **Groq**: Add your API key from [Groq Console](https://console.groq.com/keys)
    - **SambaNova**: Add your API key from [SambaNova Cloud](https://cloud.sambanova.ai/)
-3. **Select your preferred provider and model**, adjust settings as needed
+3. **Try it immediately** with 5 free requests, then add your API key for continued use
 
 ## 🛠️ Development
 
@@ -255,41 +256,16 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.0.0)
-- ✅ Comprehensive AI tools system with 10 specialized tools (explain, rewrite, tone changes)
-- ✅ Icon-based tools interface with upward dropdown and tool selection badges
-- ✅ Enhanced page attachment with Twitter-card style previews
-- ✅ Borderless input interface with separate tool and attachment sections
-- ✅ Persistent page context that remains throughout conversations
-- ✅ Smart tool integration with automatic prompt modification
-- ✅ Intelligent page content extraction system with multi-strategy analysis
-- ✅ Responsive chat layout with optimized padding for different modes
-- ✅ Always-visible "New" button with smart disabled state
-- ✅ Refined conversation list with proper height and width management
-- ✅ Balanced fullscreen layout with proper sidebar-to-chat ratio
-- ✅ Sidepanel conversation management with sub-toolbar navigation
-- ✅ Smart scroll-to-bottom button with intelligent visibility
-- ✅ Multi-line input support with Ctrl+Enter for new lines
-- ✅ Enhanced copy functionality with markdown-to-text conversion
-- ✅ Real-time conversation management with instant sidebar updates
-- ✅ Centered sample prompts in fullscreen mode for better UX
-- ✅ Enhanced stop response handling without error messages
-- ✅ Smart "New Conversation" button with contextual visibility
-- ✅ Fullscreen conversation sidebar with complete history navigation
-- ✅ Conversation management (rename, delete, switch between sessions)
-- ✅ Multi-provider AI support (OpenAI, Anthropic, Gemini, Grok, Groq, SambaNova)
-- ✅ Lightning-fast conversation loading (~100ms startup)
-- ✅ Stop/cancel button for AI response control
-- ✅ Persistent chat history across all modes
-- ✅ Enhanced streaming experience with real-time visualization
-- ✅ Advanced performance optimization and memory management
-- ✅ Seamless sidepanel ↔ fullscreen mode switching with automatic closure
-- ✅ Secure configuration management with encryption
-- ✅ Complete AI service architecture with provider abstraction
-- ✅ Enhanced chat interface with improved error handling
-- ✅ Streaming responses with real-time updates
-- ✅ Intelligent page content extraction and analysis
-- 🔄 Context menu summarization (in progress)
+### Current Version (1.0.1)
+- ✅ **Free Trial System**: 5 free AI requests for immediate user onboarding
+- ✅ **AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
+- ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context (sidepanel only)
+- ✅ **Enhanced Browser Compatibility**: Edge support with graceful degradation
+- ✅ **Complete Documentation**: User guide, privacy policy, and welcome flow
+- ✅ **Multi-Provider Support**: 6 major AI providers with 25+ models
+- ✅ **Streamlined Interface**: Focused sidepanel experience with fullscreen option
+- ✅ **Performance Optimized**: Lightning-fast loading and memory management
+- ✅ **Secure & Private**: Local storage with encryption, no data collection
 
 ### Upcoming Features
 - 🔲 Advanced summary customization

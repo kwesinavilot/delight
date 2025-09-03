@@ -8,12 +8,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Context menu summarization functionality
 - Advanced summary customization options
 - Custom prompt templates
 - Multi-language support
 
-## [1.0.0] - 2025-09-03
+## [1.0.1] - 2025-09-16
+
+### 🎯 Streamlined User Experience
+
+### Removed
+- **📱 Popup Interface**: Disabled popup mode to focus on sidepanel experience
+- **🖱️ Context Menu**: Temporarily disabled "Summarize with Delight" right-click option
+- **📋 Context Menu Permission**: Removed contextMenus permission from manifest
+
+### Enhanced
+- **🎯 Focused Interface**: Extension now opens directly in sidepanel mode for consistent UX
+- **⌨️ Keyboard Access**: Ctrl+Shift+Q remains the primary way to access Delight
+- **🖥️ Fullscreen Mode**: Still available via maximize button in sidepanel
+
+### Technical Changes
+- Removed default_popup from manifest.json
+- Commented out context menu creation and handling in background script
+- Streamlined permissions for better security and performance
+
+### Notes
+- Popup and context menu features will be re-enabled in future versions
+- Current focus is on perfecting the sidepanel experience
+- All core functionality (AI tools, page attachment, trial system) remains unchanged
+
+## [1.0.0] - 2025-09-15 - Launch Version
+
+### 🎉 Major Launch Features
+- **🎁 Trial System**: 5 free AI requests for immediate user onboarding
+- **🌐 Browser Compatibility**: Enhanced Edge support with graceful degradation
+- **📚 Complete Documentation**: Comprehensive user guide, privacy policy, and welcome flow
+- **🚀 Production Ready**: Stable, tested, and ready for Chrome Web Store
+
+### Added
+- **🎁 Free Trial System**
+  - 5 free AI requests using built-in Gemini key for instant user experience
+  - Trial usage tracking with client-side limits
+  - Automatic transition to user API keys after trial
+  - Trial status display in chat interface and settings
+  - Clear onboarding messaging about free requests
+
+- **🌐 Enhanced Browser Compatibility**
+  - Edge browser detection with user-friendly error handling
+  - Improved fullscreen mode support for Edge with helpful warnings
+  - Graceful degradation for unsupported browser features
+  - Clear messaging about Chrome recommendations for best experience
+
+- **📚 Complete Documentation Suite**
+  - Comprehensive user guide with 7 expandable sections
+  - In-app privacy policy page with detailed information
+  - Updated welcome flow highlighting trial system
+  - FAQ section covering trial, browser compatibility, and common questions
+
+### Enhanced
+- **🎯 Improved User Onboarding**
+  - Welcome page promotes 5 free requests upfront
+  - Settings panel shows trial status and hides trial key
+  - Chat interface displays remaining trial requests
+  - Smooth transition from trial to user API keys
+
+- **🔧 Settings Panel Improvements**
+  - Trial key masked and disabled in Gemini provider settings
+  - Trial status indicator with remaining request count
+  - Automatic trial data clearing when users add own keys
+  - Enhanced connection testing for trial mode
+
+### Technical Improvements
+- **🏗️ Trial Service Architecture**
+  - TrialService class for managing trial usage and limits
+  - AIService integration for automatic trial mode detection
+  - Secure trial key embedding with usage tracking
+  - Client-side enforcement of 5-request limit
+
+## [0.12.0] - 2025-09-10
 
 ### 🛠️ AI Tools & Enhanced Input System
 
@@ -26,12 +97,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Icon-based tools button with upward dropdown interface
   - Tool selection badge system with easy removal
   - Tools disabled when no AI provider is configured
-
-- **🌐 Browser Compatibility**
-  - Edge browser detection with enhanced error handling
-  - Improved fullscreen mode support for Edge with helpful warnings
-  - Graceful error handling for browser-specific implementation differences
-  - Clear messaging about optimal browser experience
 
 - **📎 Enhanced Page Attachment**
   - Streamlined "Attach Page Content" with paperclip icon
@@ -66,9 +131,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modular tool prompt system for easy expansion
   - Improved state management for tools and attachments
   - Better separation of concerns in chat interface
-  - Browser detection system for compatibility management
 
-## [0.9.0] - 2025-09-03
+## [0.11.0] - 2025-09-08
+
+### 🌐 Browser Compatibility & Error Handling
+
+### Added
+- **🌐 Edge Browser Detection**
+  - Automatic Microsoft Edge browser detection
+  - Browser-specific error handling and user messaging
+  - Graceful feature degradation for unsupported functionality
+  - Enhanced fullscreen mode compatibility checking
+
+- **⚠️ Improved Error Handling**
+  - Browser-specific error messages for better user guidance
+  - Enhanced fullscreen mode error recovery
+  - Better user feedback for browser limitations
+  - Automatic fallback suggestions for Edge users
+
+### Enhanced
+- **🔧 Settings & Configuration**
+  - Enhanced provider configuration with better validation
+  - Improved connection testing across different browsers
+  - Better error messaging for API key issues
+  - Enhanced user guidance for browser-specific features
+
+### Technical Improvements
+- **🏗️ Browser Detection System**
+  - User agent analysis for browser identification
+  - Feature capability detection and reporting
+  - Browser-specific UI adaptations
+  - Enhanced compatibility layer for cross-browser support
+
+## [0.10.0] - 2025-09-05
 
 ### 🧠 Intelligent Page Content Extraction
 
@@ -124,7 +219,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - TypeScript interfaces for comprehensive page data
   - Modular extraction strategies for maintainability
 
-## [0.8.0] - 2025-09-02
+## [0.9.0] - 2025-09-02
 
 ### 🚀 Provider SDK Upgrades & Model Expansion
 

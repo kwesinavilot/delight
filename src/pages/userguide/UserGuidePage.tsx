@@ -356,7 +356,7 @@ const UserGuidePage: React.FC = () => {
           <div className="space-y-3">
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I need to pay for API access?</h5>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes, you need to have accounts and API keys with the AI providers you want to use. Each provider has their own pricing structure.</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: After your 5 free trial requests, you'll need API keys from AI providers. Google Gemini offers a generous free tier (1,500 requests/day), making it perfect for most users. Other providers have their own pricing structures.</p>
             </div>
             
             <div>
@@ -382,6 +382,11 @@ const UserGuidePage: React.FC = () => {
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Which provider is fastest?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Groq typically offers the fastest inference speeds (800+ tokens/sec), while Gemini Flash is also very fast. Speed may vary based on model and current load.</p>
+            </div>
+            
+            <div>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I get free requests to try Delight?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! You get 5 free AI requests immediately after installation to try all features including AI tools and page attachment. After that, you'll need to add your own API key to continue.</p>
             </div>
             
             <div>
@@ -455,7 +460,7 @@ const UserGuidePage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.0.0 - AI-powered Chrome extension</p>
+          <p>Delight v1.0.0 Launch - AI-powered Chrome extension with free trial</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}

@@ -1,18 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-provider AI chat and page summaries with support for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova",
   "permissions": [
     "sidePanel",
-    "contextMenus",
     "activeTab",
     "scripting",
     "storage",
     "tabs"
   ],
   "action": {
-    "default_popup": "src/pages/popup/index.html",
     "default_icon": {
       "16": "icons/delight-icon.png",
       "48": "icons/delight-icon.png",

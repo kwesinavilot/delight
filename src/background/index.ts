@@ -54,13 +54,13 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 // Context menu setup and welcome page handling
 chrome.runtime.onInstalled.addListener(async (details) => {
-    // Create context menu
-    chrome.contextMenus.create({
-        id: 'summarize',
-        title: 'Summarize with Delight',
-        contexts: ['page'],
-        enabled: true
-    });
+    // Create context menu - DISABLED
+    // chrome.contextMenus.create({
+    //     id: 'summarize',
+    //     title: 'Summarize with Delight',
+    //     contexts: ['page'],
+    //     enabled: true
+    // });
 
     // Show welcome page on first install
     if (details.reason === 'install') {
@@ -108,57 +108,58 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (!tab?.id || !tab?.windowId) {
-        console.error('No tab found for context menu action');
-        return;
-    }
+// Context menu click handler - DISABLED
+// chrome.contextMenus.onClicked.addListener((info, tab) => {
+//     if (!tab?.id || !tab?.windowId) {
+//         console.error('No tab found for context menu action');
+//         return;
+//     }
 
-    (async () => {
-        try {
-            if (tab.url && tab.url.startsWith("chrome://")) {
-                console.error("Cannot open side panel on a chrome:// URL");
-                return;
-            }
+//     (async () => {
+//         try {
+//             if (tab.url && tab.url.startsWith("chrome://")) {
+//                 console.error("Cannot open side panel on a chrome:// URL");
+//                 return;
+//             }
 
-            if (info.menuItemId === 'summarize') {
-                // Store summarization request
-                await chrome.storage.local.set({
-                    pendingSummarization: {
-                        tabId: tab.id,
-                        url: tab.url,
-                        title: tab.title,
-                        timestamp: Date.now()
-                    }
-                });
-            }
+//             if (info.menuItemId === 'summarize') {
+//                 // Store summarization request
+//                 await chrome.storage.local.set({
+//                     pendingSummarization: {
+//                         tabId: tab.id,
+//                         url: tab.url,
+//                         title: tab.title,
+//                         timestamp: Date.now()
+//                     }
+//                 });
+//             }
 
-            await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
-            await chrome.sidePanel.setOptions({
-                tabId: tab.id,
-                path: 'sidepanel.html',
-                enabled: true
-            });
-        } catch (error) {
-            console.error('Error setting up side panel:', error);
-        }
-    })();
-    return true;
-});
+//             await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+//             await chrome.sidePanel.setOptions({
+//                 tabId: tab.id,
+//                 path: 'sidepanel.html',
+//                 enabled: true
+//             });
+//         } catch (error) {
+//             console.error('Error setting up side panel:', error);
+//         }
+//     })();
+//     return true;
+// });
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
     .catch((error) => console.error(error));
 
-// Update context menu based on the active tab
-chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-    if (!tab.url) return;
+// Update context menu based on the active tab - DISABLED
+// chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+//     if (!tab.url) return;
 
-    if (changeInfo.status === 'complete' && tab.active) {
-        const isUtilityPage = tab.url && tab.url.startsWith('chrome://');
-        chrome.contextMenus.update('summarize', { enabled: !isUtilityPage });
-    }
-});
+//     if (changeInfo.status === 'complete' && tab.active) {
+//         const isUtilityPage = tab.url && tab.url.startsWith('chrome://');
+//         chrome.contextMenus.update('summarize', { enabled: !isUtilityPage });
+//     }
+// });
 
 // Add connection listener
 chrome.runtime.onConnect.addListener((port) => {
