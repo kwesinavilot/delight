@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 4.7.0 - Provider SDK Upgrades & Model Expansion**
+## 🎉 **Version 4.8.0 - Intelligent Page Content Extraction**
 
-**NEW**: Official provider SDKs, enhanced streaming performance, and expanded model support with 30+ AI models!
+**NEW**: Sophisticated page content extraction system that can intelligently analyze and extract content from any webpage structure!
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference (NEW!)
@@ -20,7 +20,8 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
-- **Page Summaries**: Generate summaries of web pages in different lengths (short, medium, detailed)
+- **Smart Page Content Extraction**: Sophisticated system that can extract and analyze content from any webpage structure
+- **Page Context Integration**: Get page content directly in chat with multiple detail levels (Full Analysis, Summary, Quick Context)
 
 ### ⚡ Performance & Memory Management (v4.0.0+)
 - **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
@@ -251,13 +252,14 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (4.7.0)
-- ✅ Official provider SDKs for Groq and SambaNova with improved reliability
-- ✅ Enhanced streaming performance and error handling
-- ✅ 30+ AI models across 6 major providers with reasoning model support
-- ✅ Automatic temperature exclusion for reasoning models
-- ✅ New Groq models: Moonshot Kimi, Compound Beta variants
-- ✅ New SambaNova models: DeepSeek V3.1, Llama 3.3 variants, Qwen3-32B
+### Current Version (4.8.0)
+- ✅ Intelligent page content extraction system with multi-strategy analysis
+- ✅ Sophisticated content scoring and quality assessment algorithms
+- ✅ Comprehensive page analysis (metadata, structure, SEO data, reading metrics)
+- ✅ Smart page context buttons with three detail levels (Full, Summary, Quick)
+- ✅ Automatic content type detection and noise filtering
+- ✅ Real-time page content integration into chat conversations
+- ✅ Enhanced content script with semantic HTML analysis and heuristic scoring
 - ✅ Responsive chat layout with optimized padding for different modes
 - ✅ Always-visible "New" button with smart disabled state
 - ✅ Refined conversation list with proper height and width management
@@ -283,7 +285,8 @@ npm run test:watch
 - ✅ Complete AI service architecture with provider abstraction
 - ✅ Enhanced chat interface with improved error handling
 - ✅ Streaming responses with real-time updates
-- 🔄 Summary functionality (in progress)
+- ✅ Intelligent page content extraction and analysis
+- 🔄 Context menu summarization (in progress)
 
 ### Upcoming Features
 - 🔲 Advanced summary customization

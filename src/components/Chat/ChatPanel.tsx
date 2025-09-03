@@ -6,6 +6,7 @@ import { initializeChatSession, isAIServiceReady } from '@/utils/chat';
 import { AIError, AIErrorType } from '@/types/ai';
 
 import { AIService } from '@/services/ai/AIService';
+import { PageContextService } from '@/services/PageContextService';
 import WelcomeHint from './WelcomeHint';
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -36,9 +37,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
+  const [isGettingPageContext, setIsGettingPageContext] = useState(false);
 
   useEffect(() => {
     initializeServices();
+    checkForPendingSummarization();
 
     // Initialize prompts once
     const allPrompts = [
@@ -503,6 +506,132 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     }
   };
 
+  const getPageContext = async (format: 'detailed' | 'summary' | 'minimal' = 'detailed') => {
+    setIsGettingPageContext(true);
+    console.log('Getting page context with format:', format);
+    
+    try {
+      const context = await PageContextService.getCurrentPageContext();
+      console.log('Page context result:', context);
+      
+      if (context) {
+        let formattedContext;
+        
+        switch (format) {
+          case 'summary':
+            formattedContext = await PageContextService.getContextSummary(context);
+            break;
+          case 'minimal':
+            formattedContext = PageContextService.formatPageContext(context, {
+              format: 'minimal',
+              includeMetadata: false,
+              includeStructure: false,
+              maxContentLength: 300
+            });
+            break;
+          default:
+            formattedContext = PageContextService.formatPageContext(context);
+        }
+        
+        console.log('Formatted context:', formattedContext);
+        setInput(prev => prev + (prev ? '\n\n' : '') + formattedContext);
+      } else {
+        setMessages(prev => [...prev, { 
+          role: 'error', 
+          content: 'No content found on this page. Try refreshing the page and try again.' 
+        }]);
+      }
+    } catch (error) {
+      console.error('Failed to get page context:', error);
+      setMessages(prev => [...prev, { 
+        role: 'error', 
+        content: `Failed to extract page content: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      }]);
+    } finally {
+      setIsGettingPageContext(false);
+    }
+  };
+
+  const checkForPendingSummarization = async () => {
+    try {
+      const result = await chrome.storage.local.get(['pendingSummarization']);
+      const pending = result.pendingSummarization;
+      
+      if (pending && Date.now() - pending.timestamp < 10000) { // Within 10 seconds
+        // Clear the pending request
+        await chrome.storage.local.remove(['pendingSummarization']);
+        
+        // Start new conversation
+        setMessages([]);
+        setStreamingContent('');
+        setInput('');
+        
+        // Show loading message
+        setMessages([{
+          role: 'assistant',
+          content: '🔄 Analyzing page content and generating summary...'
+        }]);
+        
+        // Get page content and summarize
+        await summarizePage();
+      }
+    } catch (error) {
+      console.error('Failed to check pending summarization:', error);
+    }
+  };
+
+  const summarizePage = async () => {
+    if (!session || !isServiceReady) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const context = await PageContextService.getCurrentPageContext();
+      if (!context) {
+        setMessages([{
+          role: 'error',
+          content: 'Could not extract page content for summarization.'
+        }]);
+        return;
+      }
+
+      const prompt = `Please provide a comprehensive summary of this webpage:\n\n${await PageContextService.analyzePageForAI(context)}\n\nProvide:\n1. A brief overview (2-3 sentences)\n2. Key points or main topics\n3. Important details or insights\n4. Any actionable information`;
+      
+      let responseContent = '';
+      setStreamingContent('');
+      setMessages([]);
+
+      const contextMessages = [{
+        id: `msg_${Date.now()}`,
+        role: 'user' as const,
+        content: prompt,
+        timestamp: Date.now()
+      }];
+
+      const aiService = AIService.getInstance();
+      await aiService.generateChatResponseWithHistory(contextMessages, (chunk) => {
+        responseContent += chunk;
+        setStreamingContent(responseContent);
+      });
+
+      const assistantMessage = { role: 'assistant' as const, content: responseContent };
+      setMessages([assistantMessage]);
+      setStreamingContent('');
+
+      saveToQuickHistory([assistantMessage]);
+      saveToSession([assistantMessage]);
+
+    } catch (error) {
+      console.error('Summarization failed:', error);
+      setMessages([{
+        role: 'error',
+        content: 'Failed to generate summary. Please try again.'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
 
@@ -747,6 +876,39 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
       {/* Input area */}
       <div className="border-t p-4">
+        {/* Page context buttons */}
+        {isServiceReady && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            <Button
+              onClick={() => getPageContext('detailed')}
+              disabled={isGettingPageContext || isLoading}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              {isGettingPageContext ? 'Extracting...' : '📄 Full Analysis'}
+            </Button>
+            <Button
+              onClick={() => getPageContext('summary')}
+              disabled={isGettingPageContext || isLoading}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              📊 Summary
+            </Button>
+            <Button
+              onClick={() => getPageContext('minimal')}
+              disabled={isGettingPageContext || isLoading}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              ⚡ Quick Context
+            </Button>
+          </div>
+        )}
+        
         <div className="flex space-x-2 items-end">
           <textarea
             value={input}

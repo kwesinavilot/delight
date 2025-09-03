@@ -1,6 +1,23 @@
 chrome.runtime.onMessage.addListener((message, sender) => {
     console.log("Received message:", message);
 
+    if (message.action === 'getPageContent') {
+        (async () => {
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (!tab?.id) return;
+
+                await chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ['content.js']
+                });
+            } catch (error) {
+                console.log('Content script already injected or injection failed:', error);
+            }
+        })();
+        return true;
+    }
+
     if (message.action === 'openSidePanel') {
         (async () => {
             const tabId = message.tabId || sender.tab?.id;
@@ -91,7 +108,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-chrome.contextMenus.onClicked.addListener((_info, tab) => {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (!tab?.id || !tab?.windowId) {
         console.error('No tab found for context menu action');
         return;
@@ -104,15 +121,24 @@ chrome.contextMenus.onClicked.addListener((_info, tab) => {
                 return;
             }
 
+            if (info.menuItemId === 'summarize') {
+                // Store summarization request
+                await chrome.storage.local.set({
+                    pendingSummarization: {
+                        tabId: tab.id,
+                        url: tab.url,
+                        title: tab.title,
+                        timestamp: Date.now()
+                    }
+                });
+            }
+
             await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
             await chrome.sidePanel.setOptions({
                 tabId: tab.id,
                 path: 'sidepanel.html',
                 enabled: true
             });
-
-            // Note: Removed chrome.runtime.sendMessage to avoid "Receiving end does not exist" error
-            // The sidepanel will detect the context menu action through other means
         } catch (error) {
             console.error('Error setting up side panel:', error);
         }

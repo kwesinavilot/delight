@@ -8,11 +8,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+- Context menu summarization functionality
 - Advanced summary customization options
 - Custom prompt templates
 - Multi-language support
 
-## [4.7.0] - 2025-02-09
+## [4.8.0] - 2025-09-03
+
+### 🧠 Intelligent Page Content Extraction
+
+### Added
+- **🔍 Sophisticated Content Extraction System**
+  - Multi-strategy content extraction using 4 different algorithms
+  - Readability API integration for article extraction
+  - Semantic HTML analysis with ARIA support
+  - Heuristic scoring system for content quality assessment
+  - Intelligent fallback mechanisms for any webpage structure
+  - Content scoring and best result selection
+
+- **📊 Comprehensive Page Analysis**
+  - Automatic content type detection (blog, news, product, documentation, etc.)
+  - SEO metadata extraction (title, description, author, publish date)
+  - Page structure analysis (headings, links, images, videos, forms)
+  - Reading metrics calculation (word count, estimated reading time)
+  - Language detection and content classification
+
+- **⚡ Smart Page Context Buttons**
+  - **📄 Full Analysis**: Complete page analysis with metadata and structure
+  - **📊 Summary**: Key metrics with excerpt for quick understanding
+  - **⚡ Quick Context**: Essential info for lightweight context
+  - Real-time content extraction with loading indicators
+  - Intelligent error handling and user feedback
+
+- **🎯 Advanced Content Processing**
+  - Noise removal system (navigation, ads, sidebars automatically filtered)
+  - Content clustering and paragraph quality scoring
+  - Smart text cleaning and normalization
+  - Excerpt generation with sentence-aware truncation
+  - Multi-format output (detailed, summary, minimal)
+
+### Enhanced
+- **🔧 Content Script Architecture**
+  - Intelligent content extractor class with multiple strategies
+  - Element scoring system based on semantic value
+  - Tree walker for efficient text extraction
+  - Performance-optimized content processing
+  - Robust error handling and graceful degradation
+
+- **📱 Chat Interface Integration**
+  - Page context buttons integrated into chat interface
+  - Automatic content insertion into chat input
+  - Debug logging for troubleshooting extraction issues
+  - Better error messages and user guidance
+
+### Technical Improvements
+- **🏗️ Enhanced Architecture**
+  - PageContextService with sophisticated formatting options
+  - Content script auto-injection via manifest
+  - Background script integration for content extraction
+  - TypeScript interfaces for comprehensive page data
+  - Modular extraction strategies for maintainability
+
+## [4.7.0] - 2025-09-02
 
 ### 🚀 Provider SDK Upgrades & Model Expansion
 
