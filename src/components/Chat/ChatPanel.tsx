@@ -10,6 +10,7 @@ import { PageContextService } from '@/services/PageContextService';
 // import { TrialService } from '@/services/TrialService';
 import { AI_TOOLS, AITool, TOOL_CATEGORIES } from '@/types/tools';
 import WelcomeHint from './WelcomeHint';
+
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -51,6 +52,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     remainingRequests: number;
     totalRequests: number;
   }>({ isTrialMode: false, remainingRequests: 0, totalRequests: 5 });
+
 
   useEffect(() => {
     initializeServices();
@@ -193,7 +195,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
         setShowAttachDropdown(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
@@ -227,7 +229,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
   const handleScroll = () => {
     if (!messagesContainerRef.current) return;
-    
+
     const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 200;
     setShowScrollButton(!isAtBottom);
@@ -273,11 +275,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       // Quick load from Chrome storage
       const result = await chrome.storage.local.get(['quickChatHistory']);
       const history = result.quickChatHistory || [];
-      
+
       // Limit to last 20 messages for performance
       const recentHistory = history.slice(-20);
       setMessages(recentHistory);
-      
+
       if (recentHistory.length > 0) {
         console.log(`Loaded ${recentHistory.length} recent messages`);
       }
@@ -292,7 +294,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       const result = await chrome.storage.local.get(['chatSessions']);
       const sessions = result.chatSessions || {};
       const session = sessions[sessionId];
-      
+
       if (session) {
         setMessages(session.messages || []);
         setStreamingContent('');
@@ -310,18 +312,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     if (!input.trim() || !session || !isServiceReady) return;
 
     let userMessage = input.trim();
-    
+
     // Add attached page context
     if (attachedPageContext) {
       const pageContent = await PageContextService.analyzePageForAI(attachedPageContext);
       userMessage = `${userMessage}\n\nPage Context:\n${pageContent}`;
     }
-    
+
     // Apply tool prompt if selected
     if (selectedTool) {
       userMessage = `${selectedTool.prompt}\n\n${userMessage}`;
     }
-    
+
     const newMessage: Message = { role: 'user', content: input.trim() }; // Show original input in UI
     setMessages(prev => [...prev, newMessage]);
     setInput('');
@@ -363,7 +365,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       const updatedMessages = [...messages, newMessage, assistantMessage];
       saveToQuickHistory(updatedMessages);
       saveToSession(updatedMessages);
-      
+
       // Refresh trial status after successful request
       await loadTrialStatus();
 
@@ -464,7 +466,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
           .replace(/#{1,6}\s/g, '')
           .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
       }
-      
+
       await navigator.clipboard.writeText(textToCopy);
       setCopiedStates(prev => ({ ...prev, [messageIndex]: true }));
       setTimeout(() => {
@@ -540,7 +542,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     try {
       const result = await chrome.storage.local.get(['chatSessions']);
       const sessions = result.chatSessions || {};
-      
+
       // Create or update current session
       const sessionId = `session_${Date.now()}`;
       const session = {
@@ -551,7 +553,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
         provider: 'current',
         title: messages.find(m => m.role === 'user')?.content?.slice(0, 30) + '...' || 'New Chat'
       };
-      
+
       sessions[sessionId] = session;
       await chrome.storage.local.set({ chatSessions: sessions });
     } catch (error) {
@@ -562,25 +564,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const getPageContext = async (format: 'detailed' | 'summary' | 'minimal' = 'detailed') => {
     setIsGettingPageContext(true);
     console.log('Getting page context with format:', format);
-    
+
     try {
       const context = await PageContextService.getCurrentPageContext();
       console.log('Page context result:', context);
-      
+
       if (context) {
         setAttachedPageContext(context);
         setShowAttachDropdown(false);
       } else {
-        setMessages(prev => [...prev, { 
-          role: 'error', 
-          content: 'No content found on this page. Try refreshing the page and try again.' 
+        setMessages(prev => [...prev, {
+          role: 'error',
+          content: 'No content found on this page. Try refreshing the page and try again.'
         }]);
       }
     } catch (error) {
       console.error('Failed to get page context:', error);
-      setMessages(prev => [...prev, { 
-        role: 'error', 
-        content: `Failed to extract page content: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      setMessages(prev => [...prev, {
+        role: 'error',
+        content: `Failed to extract page content: ${error instanceof Error ? error.message : 'Unknown error'}`
       }]);
     } finally {
       setIsGettingPageContext(false);
@@ -591,22 +593,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     try {
       const result = await chrome.storage.local.get(['pendingSummarization']);
       const pending = result.pendingSummarization;
-      
+
       if (pending && Date.now() - pending.timestamp < 10000) { // Within 10 seconds
         // Clear the pending request
         await chrome.storage.local.remove(['pendingSummarization']);
-        
+
         // Start new conversation
         setMessages([]);
         setStreamingContent('');
         setInput('');
-        
+
         // Show loading message
         setMessages([{
           role: 'assistant',
           content: '🔄 Analyzing page content and generating summary...'
         }]);
-        
+
         // Get page content and summarize
         await summarizePage();
       }
@@ -617,9 +619,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
   const summarizePage = async () => {
     if (!session || !isServiceReady) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const context = await PageContextService.getCurrentPageContext();
       if (!context) {
@@ -631,7 +633,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       }
 
       const prompt = `Please provide a comprehensive summary of this webpage:\n\n${await PageContextService.analyzePageForAI(context)}\n\nProvide:\n1. A brief overview (2-3 sentences)\n2. Key points or main topics\n3. Important details or insights\n4. Any actionable information`;
-      
+
       let responseContent = '';
       setStreamingContent('');
       setMessages([]);
@@ -669,104 +671,189 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
   return (
     <div className="h-full flex flex-col">
-
-
       {/* Messages area */}
-      <div 
-        ref={messagesContainerRef}
-        onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto space-y-4 relative ${isFullscreen ? 'px-12 py-8' : 'px-4 py-6'}`}
-      >
-        {/* Show loading state for conversation history */}
-        {isLoadingHistory && (
-          <div className="flex justify-center">
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400">Loading conversation...</span>
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className={`flex-1 overflow-y-auto space-y-4 relative ${isFullscreen ? 'px-12 py-8' : 'px-4 py-6'}`}
+          >
+            {/* Show loading state for conversation history */}
+            {isLoadingHistory && (
+              <div className="flex justify-center">
+                <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Loading conversation...</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Show welcome hint when no messages and no errors */}
-        {!isLoadingHistory && messages.length === 0 && !initializationError && (
-          <>
-            <WelcomeHint onDismiss={() => { }} />
+            {/* Show welcome hint when no messages and no errors */}
+            {!isLoadingHistory && messages.length === 0 && !initializationError && (
+              <>
+                <WelcomeHint onDismiss={() => { }} />
 
-            {/* Sample prompts */}
-            {isServiceReady && (
-              <div className={`mt-6 ${isFullscreen ? 'max-w-2xl mx-auto' : ''}`}>
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Let's start from here:</h3>
-                  {/* <button
+                {/* Sample prompts */}
+                {isServiceReady && (
+                  <div className={`mt-6 ${isFullscreen ? 'max-w-2xl mx-auto' : ''}`}>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Let's start from here:</h3>
+                      {/* <button
                     onClick={clearConversation}
                     className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 underline"
                   >
                     Clear Chat
                   </button> */}
-                </div>
-                <div className="grid gap-2">
-                  {selectedPrompts.map((prompt, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      onClick={() => setInput(prompt)}
-                      className="text-left p-3 h-auto justify-start text-sm"
-                    >
-                      {prompt}
-                    </Button>
-                  ))}
+                    </div>
+                    <div className="grid gap-2">
+                      {selectedPrompts.map((prompt, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          onClick={() => setInput(prompt)}
+                          className="text-left p-3 h-auto justify-start text-sm"
+                        >
+                          {prompt}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!isLoadingHistory && initializationError && messages.length === 0 && (
+              <div className="flex justify-center">
+                <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 p-4 rounded-lg max-w-md">
+                  <div className="flex items-center space-x-2">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Service Not Available</p>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">{initializationError}</p>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={retryInitialization}
+                        className="text-xs mt-2 p-0 h-auto"
+                      >
+                        Retry Connection
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
-          </>
-        )}
 
-        {!isLoadingHistory && initializationError && messages.length === 0 && (
-          <div className="flex justify-center">
-            <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 p-4 rounded-lg max-w-md">
-              <div className="flex items-center space-x-2">
-                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Service Not Available</p>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">{initializationError}</p>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={retryInitialization}
-                    className="text-xs mt-2 p-0 h-auto"
+            {!isLoadingHistory && messages.map((message, index) => (
+              <div key={index} className="space-y-2">
+                <div
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg relative group ${message.role === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : message.role === 'error'
+                        ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700'
+                        : 'bg-gray-200 dark:bg-gray-700'
+                      }`}
                   >
-                    Retry Connection
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                    {message.role === 'error' && (
+                      <div className="flex items-center space-x-2 mb-1">
+                        <ExclamationTriangleIcon className="h-4 w-4" />
+                        <span className="text-xs font-medium">Error</span>
+                      </div>
+                    )}
 
-        {!isLoadingHistory && messages.map((message, index) => (
-          <div key={index} className="space-y-2">
-            <div
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg relative group ${message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : message.role === 'error'
-                    ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700'
-                    : 'bg-gray-200 dark:bg-gray-700'
-                  }`}
-              >
-                {message.role === 'error' && (
-                  <div className="flex items-center space-x-2 mb-1">
-                    <ExclamationTriangleIcon className="h-4 w-4" />
-                    <span className="text-xs font-medium">Error</span>
+                    <div className={message.role === 'error' ? 'text-sm' : ''}>
+                      {message.role === 'assistant' ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <Markdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code: (props: any) => {
+                                const { inline, className, children, ...rest } = props;
+                                return inline ? (
+                                  <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...rest}>
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
+                                    <code className={className} {...rest}>
+                                      {children}
+                                    </code>
+                                  </pre>
+                                )
+                              }
+                            }}
+                          >
+                            {message.content}
+                          </Markdown>
+                        </div>
+                      ) : (
+                        message.content
+                      )}
+                    </div>
+
+                    {/* Copy button for user messages */}
+                    {message.role === 'user' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(message.content, index, false)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-blue-600"
+                        title={copiedStates[index] ? 'Copied!' : 'Copy prompt'}
+                      >
+                        <DocumentDuplicateIcon className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Copy and Retry buttons for assistant messages - only show when response is complete */}
+                {message.role === 'assistant' && message.content && !isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex space-x-2 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(message.content, index, false)}
+                        className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
+                        title={copiedStates[index] ? 'Copied as text!' : 'Copy as text'}
+                      >
+                        <DocumentDuplicateIcon className="h-3 w-3" />
+                        <span>{copiedStates[index] ? 'Copied!' : 'Copy Text'}</span>
+                      </Button>
+                      {/* <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(message.content, index, true)}
+                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto text-gray-500"
+                    title="Copy as markdown"
+                  >
+                    <span>MD</span>
+                  </Button> */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => retryMessage(index)}
+                        className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
+                        title="Retry"
+                      >
+                        <ArrowPathIcon className="h-3 w-3" />
+                        <span>Retry</span>
+                      </Button>
+                    </div>
                   </div>
                 )}
+              </div>
+            ))}
 
-                <div className={message.role === 'error' ? 'text-sm' : ''}>
-                  {message.role === 'assistant' ? (
+            {/* Streaming response */}
+            {!isLoadingHistory && isLoading && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] bg-gray-200 dark:bg-gray-700 p-3 rounded-lg">
+                  {streamingContent ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
                       <Markdown
                         remarkPlugins={[remarkGfm]}
@@ -787,324 +874,238 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
                           }
                         }}
                       >
-                        {message.content}
+                        {streamingContent}
                       </Markdown>
+                      <div className="inline-flex items-center ml-1">
+                        <div className="animate-pulse w-2 h-4 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                      </div>
                     </div>
                   ) : (
-                    message.content
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                      <span>Thinking...</span>
+                    </div>
                   )}
-                </div>
-
-                {/* Copy button for user messages */}
-                {message.role === 'user' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(message.content, index, false)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-blue-600"
-                    title={copiedStates[index] ? 'Copied!' : 'Copy prompt'}
-                  >
-                    <DocumentDuplicateIcon className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Copy and Retry buttons for assistant messages - only show when response is complete */}
-            {message.role === 'assistant' && message.content && !isLoading && (
-              <div className="flex justify-start">
-                <div className="flex space-x-2 ml-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(message.content, index, false)}
-                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
-                    title={copiedStates[index] ? 'Copied as text!' : 'Copy as text'}
-                  >
-                    <DocumentDuplicateIcon className="h-3 w-3" />
-                    <span>{copiedStates[index] ? 'Copied!' : 'Copy Text'}</span>
-                  </Button>
-                  {/* <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(message.content, index, true)}
-                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto text-gray-500"
-                    title="Copy as markdown"
-                  >
-                    <span>MD</span>
-                  </Button> */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => retryMessage(index)}
-                    className="flex items-center space-x-1 px-2 py-1 text-xs h-auto"
-                    title="Retry"
-                  >
-                    <ArrowPathIcon className="h-3 w-3" />
-                    <span>Retry</span>
-                  </Button>
                 </div>
               </div>
             )}
-          </div>
-        ))}
 
-        {/* Streaming response */}
-        {!isLoadingHistory && isLoading && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] bg-gray-200 dark:bg-gray-700 p-3 rounded-lg">
-              {streamingContent ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code: (props: any) => {
-                        const { inline, className, children, ...rest } = props;
-                        return inline ? (
-                          <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...rest}>
-                            {children}
-                          </code>
-                        ) : (
-                          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
-                            <code className={className} {...rest}>
-                              {children}
-                            </code>
-                          </pre>
-                        )
-                      }
-                    }}
+            {/* Invisible element to scroll to */}
+            <div ref={messagesEndRef} />
+
+            {/* Scroll to bottom button */}
+            {showScrollButton && (
+              <div className="absolute bottom-4 right-4">
+                <Button
+                  onClick={scrollToBottom}
+                  size="sm"
+                  variant="secondary"
+                  className="rounded-full shadow-lg"
+                  title="Scroll to bottom"
+                >
+                  <ChevronDownIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Input area */}
+          <div className="border-t p-4">
+
+
+            {/* Selected tool badge */}
+            {selectedTool && (
+              <div className="mb-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-sm">
+                  <span>{selectedTool.label}</span>
+                  <button
+                    onClick={() => setSelectedTool(null)}
+                    className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5"
+                    title="Remove tool"
                   >
-                    {streamingContent}
-                  </Markdown>
-                  <div className="inline-flex items-center ml-1">
-                    <div className="animate-pulse w-2 h-4 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Attached page preview */}
+            {attachedPageContext && (
+              <div className="mb-2">
+                <div className="flex items-center gap-3 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm w-full">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${new URL(attachedPageContext.url).hostname}&sz=16`}
+                    alt="Site favicon"
+                    className="w-4 h-4 flex-shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{attachedPageContext.title}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{new URL(attachedPageContext.url).hostname}</div>
                   </div>
+                  <button
+                    onClick={() => setAttachedPageContext(null)}
+                    className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded p-1 flex-shrink-0"
+                    title="Remove page context"
+                  >
+                    ✕
+                  </button>
                 </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                  <span>Thinking...</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Invisible element to scroll to */}
-        <div ref={messagesEndRef} />
-        
-        {/* Scroll to bottom button */}
-        {showScrollButton && (
-          <div className="absolute bottom-4 right-4">
-            <Button
-              onClick={scrollToBottom}
-              size="sm"
-              variant="secondary"
-              className="rounded-full shadow-lg"
-              title="Scroll to bottom"
-            >
-              <ChevronDownIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
+              </div>
+            )}
 
-      {/* Input area */}
-      <div className="border-t p-4">
-
-        
-        {/* Selected tool badge */}
-        {selectedTool && (
-          <div className="mb-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-sm">
-              <span>{selectedTool.label}</span>
-              <button
-                onClick={() => setSelectedTool(null)}
-                className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5"
-                title="Remove tool"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* Attached page preview */}
-        {attachedPageContext && (
-          <div className="mb-2">
-            <div className="flex items-center gap-3 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm w-full">
-              <img 
-                src={`https://www.google.com/s2/favicons?domain=${new URL(attachedPageContext.url).hostname}&sz=16`}
-                alt="Site favicon"
-                className="w-4 h-4 flex-shrink-0"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
+            {/* Input area */}
+            <div className="space-y-2">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={!isServiceReady || isLoading || isLoadingHistory}
+                className="w-full min-h-[60px] max-h-32 resize-none bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder={
+                  isLoadingHistory
+                    ? 'Loading conversation...'
+                    : !isServiceReady
+                      ? 'AI service not available...'
+                      : selectedTool
+                        ? `${selectedTool.description}...`
+                        : 'Type your message... (Enter to send, Ctrl+Enter for new line)'
+                }
+                rows={2}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 128) + 'px';
                 }}
               />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{attachedPageContext.title}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{new URL(attachedPageContext.url).hostname}</div>
-              </div>
-              <button
-                onClick={() => setAttachedPageContext(null)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded p-1 flex-shrink-0"
-                title="Remove page context"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* Input area */}
-        <div className="space-y-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={!isServiceReady || isLoading || isLoadingHistory}
-            className="w-full min-h-[60px] max-h-32 resize-none bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder={
-              isLoadingHistory
-                ? 'Loading conversation...'
-                : !isServiceReady
-                  ? 'AI service not available...'
-                  : selectedTool
-                    ? `${selectedTool.description}...`
-                    : 'Type your message... (Enter to send, Ctrl+Enter for new line)'
-            }
-            rows={2}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-            }}
-          />
-          
-          {/* Button row */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              {/* Tools dropdown */}
-              <div className="relative" ref={toolsDropdownRef}>
-                <Button
-                  onClick={() => setShowToolsDropdown(!showToolsDropdown)}
-                  variant={selectedTool ? "default" : "outline"}
-                  size="icon"
-                  disabled={!isServiceReady}
-                  className={`${selectedTool ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                  title={isServiceReady ? "AI Tools" : "Configure AI provider to use tools"}
-                >
-                  <WrenchScrewdriverIcon className="h-4 w-4" />
-                </Button>
-              
-                {/* Tools dropdown */}
-                {showToolsDropdown && (
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                    {Object.entries(TOOL_CATEGORIES).map(([category, label]) => (
-                      <div key={category}>
-                        <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                          {label}
-                        </div>
-                        {AI_TOOLS.filter(tool => tool.category === category).map(tool => (
-                          <button
-                            key={tool.id}
-                            onClick={() => {
-                              setSelectedTool(tool);
-                              setShowToolsDropdown(false);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
-                          >
-                            <div className="font-medium">{tool.label}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{tool.description}</div>
-                          </button>
+
+              {/* Button row */}
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  {/* Tools dropdown */}
+                  <div className="relative" ref={toolsDropdownRef}>
+                    <Button
+                      onClick={() => setShowToolsDropdown(!showToolsDropdown)}
+                      variant={selectedTool ? "default" : "outline"}
+                      size="icon"
+                      disabled={!isServiceReady}
+                      className={`${selectedTool ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                      title={isServiceReady ? "AI Tools" : "Configure AI provider to use tools"}
+                    >
+                      <WrenchScrewdriverIcon className="h-4 w-4" />
+                    </Button>
+
+                    {/* Tools dropdown */}
+                    {showToolsDropdown && (
+                      <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+
+                        {Object.entries(TOOL_CATEGORIES).map(([category, label]) => (
+                          <div key={category}>
+                            <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                              {label}
+                            </div>
+                            {AI_TOOLS.filter(tool => tool.category === category).map(tool => (
+                              <button
+                                key={tool.id}
+                                onClick={() => {
+                                  setSelectedTool(tool);
+                                  setShowToolsDropdown(false);
+                                }}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                              >
+                                <div className="font-medium">{tool.label}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{tool.description}</div>
+                              </button>
+                            ))}
+                          </div>
                         ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-              
-              {/* Attach page content dropdown */}
-              {isServiceReady && !isFullscreen && (
-                <div className="relative" ref={attachDropdownRef}>
-                  <Button
-                    onClick={() => setShowAttachDropdown(!showAttachDropdown)}
-                    variant={attachedPageContext ? "default" : "outline"}
-                    size="icon"
-                    disabled={isGettingPageContext || isLoading}
-                    className={`${attachedPageContext ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                    title="Attach Page Content"
-                  >
-                    <PaperClipIcon className="h-4 w-4" />
-                  </Button>
-                  
-                  {/* Attach dropdown */}
-                  {showAttachDropdown && (
-                    <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                      <button
-                        onClick={() => getPageContext('detailed')}
-                        disabled={isGettingPageContext}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm border-b border-gray-100 dark:border-gray-700"
+
+                  {/* Attach page content dropdown */}
+                  {isServiceReady && !isFullscreen && (
+                    <div className="relative" ref={attachDropdownRef}>
+                      <Button
+                        onClick={() => setShowAttachDropdown(!showAttachDropdown)}
+                        variant={attachedPageContext ? "default" : "outline"}
+                        size="icon"
+                        disabled={isGettingPageContext || isLoading}
+                        className={`${attachedPageContext ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                        title="Attach Page Content"
                       >
-                        <div className="font-medium">{isGettingPageContext ? 'Extracting...' : 'Attach Page Content'}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Extract and attach current page content</div>
-                      </button>
+                        <PaperClipIcon className="h-4 w-4" />
+                      </Button>
+
+                      {/* Attach dropdown */}
+                      {showAttachDropdown && (
+                        <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                          <button
+                            onClick={() => getPageContext('detailed')}
+                            disabled={isGettingPageContext}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm border-b border-gray-100 dark:border-gray-700"
+                          >
+                            <div className="font-medium">{isGettingPageContext ? 'Extracting...' : 'Attach Page Content'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Extract and attach current page content</div>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-            
-            <Button
-              onClick={isLoading ? stopResponse : sendMessage}
-              disabled={(!input.trim() && !isLoading) || !isServiceReady || isLoadingHistory}
-              size="icon"
-              variant={isLoading ? "destructive" : "default"}
-              title={isLoading ? "Stop response" : "Send message"}
-            >
-              {isLoading ? (
-                <StopIcon className="h-5 w-5" />
-              ) : (
-                <PaperAirplaneIcon className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
-        </div>
 
-        {!isServiceReady && !isLoadingHistory && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Configure an AI provider in Settings to start chatting
-          </p>
-        )}
-        
-        {trialStatus.isTrialMode && (
-          <div className="mt-2 text-center">
-            <p className="text-xs font-medium">
-              {trialStatus.remainingRequests <= 0 ? (
-                <span className="text-red-600 dark:text-red-400">☹️ Trial mode: You've used up all your trial requests</span>
-              ) : (
-                <span className={trialStatus.remainingRequests <= 2 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
-                  🎁 Trial mode: {trialStatus.remainingRequests}/{trialStatus.totalRequests} trial requests remaining
-                </span>
-              )}
-            </p>
-            {trialStatus.remainingRequests <= 2 && (
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                <span className="font-medium">To continue using Delight, please set up your own API key in Settings.</span><br/>
-                <a className="underline" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
-                  Google Gemini has a free tier of up to 1,500 requests per day.
-                </a>
+                <Button
+                  onClick={isLoading ? stopResponse : sendMessage}
+                  disabled={(!input.trim() && !isLoading) || !isServiceReady || isLoadingHistory}
+                  size="icon"
+                  variant={isLoading ? "destructive" : "default"}
+                  title={isLoading ? "Stop response" : "Send message"}
+                >
+                  {isLoading ? (
+                    <StopIcon className="h-5 w-5" />
+                  ) : (
+                    <PaperAirplaneIcon className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {!isServiceReady && !isLoadingHistory && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Configure an AI provider in Settings to start chatting
+              </p>
+            )}
+
+            {trialStatus.isTrialMode && (
+              <div className="mt-2 text-center">
+                <p className="text-xs font-medium">
+                  {trialStatus.remainingRequests <= 0 ? (
+                    <span className="text-red-600 dark:text-red-400">☹️ Trial mode: You've used up all your trial requests</span>
+                  ) : (
+                    <span className={trialStatus.remainingRequests <= 2 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
+                      🎁 Trial mode: {trialStatus.remainingRequests}/{trialStatus.totalRequests} trial requests remaining
+                    </span>
+                  )}
+                </p>
+                {trialStatus.remainingRequests <= 2 && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    <span className="font-medium">To continue using Delight, please set up your own API key in Settings.</span><br />
+                    <a className="underline" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
+                      Google Gemini has a free tier of up to 1,500 requests per day.
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {isLoadingHistory && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Loading conversation history...
               </p>
             )}
           </div>
-        )}
-
-        {isLoadingHistory && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Loading conversation history...
-          </p>
-        )}
-      </div>
     </div>
   );
 };

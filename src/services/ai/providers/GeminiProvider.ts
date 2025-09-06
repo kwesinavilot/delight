@@ -3,6 +3,12 @@ import { streamText, generateText, type CoreMessage } from 'ai';
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
 
+// Structured output types
+export interface StructuredOutputOptions {
+  responseSchema?: any;
+  responseMimeType?: 'application/json' | 'text/x.enum';
+}
+
 export class GeminiProvider extends BaseAIProvider {
   private client: any;
 
@@ -29,6 +35,67 @@ export class GeminiProvider extends BaseAIProvider {
     // Convert single message to conversation format for consistency
     const messages = [{ role: 'user' as const, content: message }];
     return this.generateResponseWithHistory(messages, options);
+  }
+
+  // New method for structured output
+  async generateStructuredResponse<T = any>(
+    message: string, 
+    schema: any,
+    options?: GenerationOptions
+  ): Promise<T> {
+    if (!this.isConfigured()) {
+      this.handleError(new Error('Gemini provider not configured'), 'generateStructuredResponse');
+    }
+
+    if (!this.client) {
+      this.initializeClient();
+    }
+
+    try {
+      const preparedOptions = this.prepareChatOptions(options);
+      const model = this.client(this.config.model || 'gemini-2.5-flash');
+
+      console.log('🧠 [GeminiProvider] Generating structured response with schema:', schema);
+
+      // Enhanced prompt for structured JSON output
+      const structuredPrompt = `${message}
+
+IMPORTANT: Respond ONLY with valid JSON matching this exact schema:
+${JSON.stringify(schema, null, 2)}
+
+No explanations, no markdown, just the JSON object.`;
+
+      const result = await generateText({
+        model,
+        system: preparedOptions.systemPrompt,
+        messages: [{ role: 'user', content: structuredPrompt }],
+        temperature: preparedOptions.temperature
+      });
+
+      console.log('✅ [GeminiProvider] Structured response received:', result.text);
+      
+      // Clean up the response text to extract JSON
+      let jsonText = result.text.trim();
+      
+      // Remove markdown code blocks
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/```json\s*/, '').replace(/```\s*$/, '');
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/```\s*/, '').replace(/```\s*$/, '');
+      }
+      
+      // Find JSON object in the text
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[0];
+      }
+      
+      console.log('🧠 [GeminiProvider] Cleaned JSON text:', jsonText);
+      return JSON.parse(jsonText);
+    } catch (error: any) {
+      console.error('❌ [GeminiProvider] Structured response failed:', error);
+      this.handleError(error, 'generateStructuredResponse');
+    }
   }
 
   async generateResponseWithHistory(
@@ -168,8 +235,12 @@ export class GeminiProvider extends BaseAIProvider {
     return [
       'gemini-2.5-pro',
       'gemini-2.5-flash',
-      'gemini-1.0-pro',
-      'gemini-pro-vision'
+      'gemini-2.5-flash-lite',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemma-3-27b-it',
+      'gemma-3-12b-it',
+      'gemma-3-4b-it'
     ];
   }
 
@@ -185,8 +256,12 @@ export class GeminiProvider extends BaseAIProvider {
     const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
       'gemini-2.5-pro': { maxTokens: 2097152, supportsStreaming: true },
       'gemini-2.5-flash': { maxTokens: 1048576, supportsStreaming: true },
-      'gemini-1.0-pro': { maxTokens: 32768, supportsStreaming: true },
-      'gemini-pro-vision': { maxTokens: 16384, supportsStreaming: true }
+      'gemini-2.5-flash-lite': { maxTokens: 1048576, supportsStreaming: true },
+      'gemini-2.0-flash': { maxTokens: 1048576, supportsStreaming: true },
+      'gemini-2.0-flash-lite': { maxTokens: 1048576, supportsStreaming: true },
+      'gemma-3-27b-it': { maxTokens: 8192, supportsStreaming: true },
+      'gemma-3-12b-it': { maxTokens: 8192, supportsStreaming: true },
+      'gemma-3-4b-it': { maxTokens: 8192, supportsStreaming: true }
     };
 
     return capabilities[modelName] || { maxTokens: 32768, supportsStreaming: true };
@@ -226,5 +301,51 @@ export class GeminiProvider extends BaseAIProvider {
   supportsVision(model?: string): boolean {
     const modelName = model || this.config.model || 'gemini-2.5-flash';
     return modelName.includes('vision') || modelName.includes('1.5');
+  }
+
+  // Check if model supports structured output
+  supportsStructuredOutput(model?: string): boolean {
+    const modelName = model || this.config.model || 'gemini-2.5-flash';
+    // Structured output is supported on Gemini 2.5 models
+    return modelName.includes('2.5');
+  }
+
+  // Helper to create JSON schema for task planning
+  static createTaskPlanSchema() {
+    return {
+      type: 'object',
+      properties: {
+        description: {
+          type: 'string',
+          description: 'Brief description of the task'
+        },
+        steps: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              type: { 
+                type: 'string',
+                enum: ['navigate', 'click', 'extract', 'fill', 'wait']
+              },
+              description: { type: 'string' },
+              url: { type: 'string' },
+              selector: { type: 'string' },
+              data: { type: 'string' },
+              duration: { type: 'number' }
+            },
+            required: ['id', 'type', 'description'],
+            propertyOrdering: ['id', 'type', 'description', 'url', 'selector', 'data', 'duration']
+          }
+        },
+        estimatedDuration: {
+          type: 'number',
+          description: 'Estimated duration in milliseconds'
+        }
+      },
+      required: ['description', 'steps', 'estimatedDuration'],
+      propertyOrdering: ['description', 'steps', 'estimatedDuration']
+    };
   }
 }

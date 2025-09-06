@@ -51,7 +51,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     gemini: {
       name: 'Google Gemini',
       description: 'Gemini models including 2.5 Pro, Flash, and Vision variants',
-      models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-preview-image-generation', 'gemini-2.0-flash-lite'],
+      models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemma-3-27b-it', 'gemma-3-12b-it', 'gemma-3-4b-it'],
       defaultModel: 'gemini-2.5-flash',
       apiKeyPlaceholder: 'AI...',
       website: 'https://aistudio.google.com/app/apikey'
@@ -492,7 +492,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v1.0.0</span>
+                <span className="font-medium">Delight v1.2.0</span>
               </div>
             </div>
           </div>

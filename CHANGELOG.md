@@ -12,7 +12,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
-## [1.0.1] - 2025-09-16
+## [1.1.0] - 2025-09-06
+
+### 🤖 Agent Automation System - Phase 1
+
+### Added
+- **🤖 Agent Automation Framework**
+  - Complete multi-agent system with Planner, Navigator, and Monitor agents
+  - AgentOrchestrator for coordinating complex web automation tasks
+  - Task planning with structured JSON output using Gemini's advanced capabilities
+  - Real-time task execution with step-by-step progress tracking
+  - Intelligent error handling and recovery mechanisms
+
+- **🎯 Agent Page Interface**
+  - Dedicated Agent Automation page accessible from sidepanel sub-toolbar
+  - Real-time execution logs with color-coded status indicators
+  - Visual execution plan display with step progress tracking
+  - Interactive task input with natural language processing
+  - Stop/start controls for task execution management
+
+- **🧠 Enhanced Gemini Provider**
+  - Structured output support for task planning with JSON schema validation
+  - Advanced prompt engineering for agent coordination
+  - Task plan schema generation for consistent automation workflows
+  - Enhanced error handling for complex agent interactions
+
+- **📋 Agent Type System**
+  - Comprehensive TypeScript interfaces for agent communication
+  - Task step definitions with status tracking
+  - Agent message protocol for inter-agent communication
+  - Automation result structures with success/failure handling
+
+### Enhanced
+- **🎨 Sidepanel Navigation**
+  - Added "Agent" button to sub-toolbar for easy access
+  - Bot icon integration for clear agent automation identification
+  - Seamless navigation between chat and agent automation modes
+
+- **🔧 Manifest Permissions**
+  - Enhanced permissions for browser automation capabilities
+  - Prepared infrastructure for advanced web interaction features
+
+### Technical Improvements
+- **🏗️ Agent Architecture**
+  - Modular agent system with clear separation of concerns
+  - Event-driven communication between agents
+  - Scalable foundation for future automation capabilities
+  - Performance-optimized task execution pipeline
+
+### Notes
+- This is Phase 1 of the agent automation system
+- Current implementation focuses on framework and UI foundation
+- Future phases will add actual browser automation capabilities
+- Agent system designed for extensibility and advanced automation scenarios
+
+## [1.0.1] - 2025-09-05
 
 ### 🎯 Streamlined User Experience
 
@@ -36,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Current focus is on perfecting the sidepanel experience
 - All core functionality (AI tools, page attachment, trial system) remains unchanged
 
-## [1.0.0] - 2025-09-15 - Launch Version
+## [1.0.0] - 2025-09-05 - Launch Version
 
 ### 🎉 Major Launch Features
 - **🎁 Trial System**: 5 free AI requests for immediate user onboarding
@@ -84,7 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Secure trial key embedding with usage tracking
   - Client-side enforcement of 5-request limit
 
-## [0.12.0] - 2025-09-10
+## [0.12.0] - 2025-09-05
 
 ### 🛠️ AI Tools & Enhanced Input System
 
@@ -132,7 +186,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved state management for tools and attachments
   - Better separation of concerns in chat interface
 
-## [0.11.0] - 2025-09-08
+## [0.11.0] - 2025-09-05
 
 ### 🌐 Browser Compatibility & Error Handling
 

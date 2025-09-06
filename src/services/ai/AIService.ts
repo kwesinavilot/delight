@@ -359,6 +359,10 @@ export class AIService {
     return this.currentProvider?.name || null;
   }
 
+  getCurrentProvider(): AIProvider | null {
+    return this.currentProvider;
+  }
+
   isCurrentProviderConfigured(): boolean {
     try {
       // If not initialized, check config directly

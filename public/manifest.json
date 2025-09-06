@@ -1,14 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.0.1",
-  "description": "Multi-provider AI chat and page summaries with support for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova",
+  "version": "1.2.0",
+  "description": "AI assistant in your browser sidepanel. Chat with 6 major AI providers, analyze webpages, and boost productivity with 10 specialized tools. 5 free requests included.",
   "permissions": [
     "sidePanel",
     "activeTab",
     "scripting",
     "storage",
     "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_icon": {

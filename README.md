@@ -2,15 +2,15 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.0.1 - Streamlined Experience**
+## 🎉 **Version 1.2.0 - Agent Automation System**
 
-**NEW**: 5 free AI requests to try all features immediately! Complete with AI tools system, smart page attachment, and enhanced browser compatibility.
+**NEW**: Revolutionary agent automation framework! Multi-agent system for complex web tasks with natural language commands, plus enhanced Gemini integration with structured output capabilities.
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
-- ⚡ **Groq** - Ultra-fast inference (NEW!)
+- ⚡ **Groq** - Ultra-fast inference
 - 🤖 **OpenAI** - GPT-4o, GPT-4 Turbo
 - 🧠 **Anthropic** - Claude 3.5 Sonnet, Opus
-- 🔍 **Google Gemini** - 1.5 Pro/Flash, Vision
+- 🔍 **Google Gemini** - 2.5 Pro/Flash, Enhanced with structured output
 - 😄 **Grok (X.AI)** - Witty personality, real-time info
 - 🦙 **SambaNova** - Llama 3.1/3.2 (1B-405B)
 
@@ -18,13 +18,14 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 ### 🚀 Core AI Features
 - **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
+- **🤖 Agent Automation System**: Revolutionary multi-agent framework for complex web automation tasks
 - **AI Tools System**: 10 specialized tools for explaining, rewriting (paraphrase, improve, expand, shorten), and tone changes (academic, professional, persuasive, casual, funny)
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Smart Page Content Extraction**: Sophisticated system that can extract and analyze content from any webpage structure
 - **Enhanced Page Attachment**: Twitter-card style page previews with persistent context throughout conversations
 
-### ⚡ Performance & Memory Management (v4.0.0+)
+### ⚡ Performance & Memory Management
 - **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
 - **Message Compression**: Automatic compression for old messages with Web Worker processing
 - **Automatic Cleanup**: Smart cleanup policies with age-based deletion and space optimization
@@ -32,27 +33,35 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Memory Management**: Intelligent cache management with LRU eviction and memory limits
 - **Context Optimization**: Advanced processing for large conversation histories
 
-### 💾 Chat Experience & History (v4.1.0+)
+### 💾 Chat Experience & History
 - **Persistent Chat History**: Conversations persist across sidepanel ↔ fullscreen mode switches
 - **Seamless Mode Switching**: Continue conversations without interruption when changing modes
 - **Enhanced Streaming**: Real-time content display with graceful streaming visualization
 - **Smart Button Timing**: Copy/retry buttons only appear after AI responses are complete
 - **Conversation Continuity**: Automatic conversation loading and restoration on startup
 
-### 🚀 Performance & UX (NEW in v4.1.1)
+### 🚀 Performance & UX
 - **Lightning-Fast Loading**: Conversation history loads in ~100ms (vs 2-3 seconds before)
 - **Stop/Cancel Button**: Dynamic button to stop AI responses with clean cancellation
 - **Optimized Storage**: Lightweight message storage for instant access
 - **Non-blocking Operations**: All saves happen asynchronously without UI freezing
 - **Smart History Management**: Only loads recent messages for optimal performance
 
-### 📱 Sidepanel Conversation Management (NEW in v4.5.0)
-- **Sub-toolbar Navigation**: "New" and "Chats" buttons in sidepanel mode for easy conversation access
+### 🤖 Agent Automation System
+- **Multi-Agent Architecture**: Planner, Navigator, and Monitor agents working in coordination
+- **Natural Language Task Processing**: Describe complex web tasks in plain English
+- **Real-time Execution Tracking**: Visual progress monitoring with step-by-step execution logs
+- **Intelligent Task Planning**: AI-powered task decomposition with structured execution plans
+- **Error Handling & Recovery**: Robust error detection and recovery mechanisms
+- **Interactive Agent Interface**: Dedicated agent page with live execution monitoring
+
+### 📱 Sidepanel Conversation Management
+- **Sub-toolbar Navigation**: "New", "Chats", and "Agent" buttons in sidepanel mode for easy access
 - **Sidepanel Conversation List**: Full conversation history with rename/delete in compact sidepanel view
 - **Smart Scroll Controls**: Scroll-to-bottom button with intelligent visibility and auto-scroll behavior
 - **Multi-line Input**: Textarea support with Ctrl+Enter for new lines and auto-resize functionality
 - **Enhanced Copy Options**: Smart text copying with markdown stripping for clean, readable text
-- **Seamless Navigation**: SPA-like transitions between chat and conversation views
+- **Seamless Navigation**: SPA-like transitions between chat, conversation, and agent views
 
 ### ➕ Smart Conversation Management
 - **New Conversation Button**: Contextual button that only appears when there's existing conversation history
@@ -92,8 +101,8 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/delight-extension.git
-   cd delight-extension
+   git clone https://github.com/kwesinavilot/delight.git
+   cd delight
    ```
 
 2. **Install dependencies**
@@ -128,7 +137,7 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 ### Project Structure
 
 ```
-delight-extension/
+delight/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── Chat/           # Chat interface components
@@ -191,10 +200,11 @@ The extension uses a modular architecture with clear separation of concerns:
 - **Context**: Up to 200K tokens
 
 #### Google Gemini
-- **Models**: Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini 1.0 Pro, Gemini Pro Vision
-- **Features**: Ultra-fast responses, multimodal capabilities, vision support
-- **Use Cases**: Real-time chat, image analysis, quick responses, high-volume usage
-- **Context**: Up to 2M tokens (Gemini 1.5 Pro)
+- **Models**: Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash, Gemma 3 series
+- **Features**: Ultra-fast responses, structured output, agent automation, vision support
+- **Use Cases**: Real-time chat, agent automation, task planning, structured data extraction
+- **Context**: Up to 2M tokens (Gemini 2.5 Pro)
+- **🤖 Agent Features**: Structured JSON output for task planning and automation workflows
 
 #### Grok (X.AI)
 - **Models**: Grok Beta
@@ -256,10 +266,13 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.0.1)
+### Current Version (1.2.0)
+- ✅ **🤖 Agent Automation System**: Multi-agent framework for complex web automation
+- ✅ **Enhanced Gemini Integration**: Structured output and advanced task planning capabilities
+- ✅ **Agent Interface**: Dedicated agent page with real-time execution monitoring
 - ✅ **Free Trial System**: 5 free AI requests for immediate user onboarding
 - ✅ **AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
-- ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context (sidepanel only)
+- ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context
 - ✅ **Enhanced Browser Compatibility**: Edge support with graceful degradation
 - ✅ **Complete Documentation**: User guide, privacy policy, and welcome flow
 - ✅ **Multi-Provider Support**: 6 major AI providers with 25+ models
@@ -268,6 +281,9 @@ npm run test:watch
 - ✅ **Secure & Private**: Local storage with encryption, no data collection
 
 ### Upcoming Features
+- 🔲 **Agent Automation Phase 2**: Actual browser automation with DOM interaction
+- 🔲 **Advanced Agent Capabilities**: Form filling, data extraction, multi-tab coordination
+- 🔲 **Agent Templates**: Pre-built automation workflows for common tasks
 - 🔲 Advanced summary customization
 - 🔲 Custom prompt templates
 - 🔲 Batch processing for multiple pages
@@ -318,9 +334,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/delight-extension/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/delight-extension/discussions)
-- **Email**: support@delight-extension.com
+- **Issues**: [GitHub Issues](https://github.com/your-username/delight/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/delight/discussions)
+- **Email**: support@delight.com
 
 ---
 

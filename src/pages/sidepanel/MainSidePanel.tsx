@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare, Bot } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
+import AgentPage from '@/components/Agent/AgentPage';
 // import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
@@ -15,6 +16,7 @@ const MainSidePanel: React.FC = () => {
   const [hasConversation, setHasConversation] = useState<boolean>(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isEdge, setIsEdge] = useState<boolean>(false);
+  const [showAgentPage, setShowAgentPage] = useState<boolean>(false);
 
   // Detect Edge browser
   useEffect(() => {
@@ -389,6 +391,7 @@ const MainSidePanel: React.FC = () => {
           <div className="p-2 flex items-center space-x-2">
             {/* New Conversation button - always visible, faint when no conversations */}
             <Button
+              id="new-conversation-btn"
               variant="ghost"
               size="sm"
               onClick={startNewConversation}
@@ -402,6 +405,7 @@ const MainSidePanel: React.FC = () => {
             
             {/* Conversations List button */}
             <Button
+              id="conversations-btn"
               variant="ghost"
               size="sm"
               onClick={() => handleViewChange('conversations')}
@@ -410,6 +414,19 @@ const MainSidePanel: React.FC = () => {
             >
               <MessageSquare className="h-4 w-4" />
               <span className="text-xs">Chats</span>
+            </Button>
+            
+            {/* Agent Automation button */}
+            <Button
+              id="agent-automation-btn"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAgentPage(true)}
+              className="flex items-center space-x-1"
+              title="Agent Automation"
+            >
+              <Bot className="h-4 w-4" />
+              <span className="text-xs">Agent</span>
             </Button>
           </div>
         </div>
@@ -465,6 +482,13 @@ const MainSidePanel: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* Agent Page */}
+      {showAgentPage && (
+        <div className="absolute inset-0 bg-background z-20">
+          <AgentPage onBack={() => setShowAgentPage(false)} />
+        </div>
+      )}
     </div>
   );
 };
