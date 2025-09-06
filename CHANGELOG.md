@@ -12,6 +12,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [1.1.1] - 2025-09-06
+
+### 🤖 Agent Automation System - Phase 2
+
+### Added
+- **🌐 Cross-Browser Automation Engine**
+  - Playwright-core integration for Chrome, Firefox, Safari, Edge support
+  - 25+ automation actions: navigate, click, fill, extract, scroll, etc.
+  - Chrome Extension API fallback for maximum compatibility
+  - Dual-mode system: Playwright for advanced automation, Chrome APIs for basic tasks
+  - Smart error recovery and graceful degradation
+
+- **📋 Comprehensive Action Set**
+  - **Navigation**: navigate, back, forward, refresh, newTab, closeTab, switchTab
+  - **Interaction**: click, doubleClick, rightClick, hover, drag, scroll, focus
+  - **Forms**: fill, clear, select, check, uncheck, radio, upload, submit
+  - **Extraction**: extract, screenshot, getUrl, getTitle, getCookies
+  - **Timing**: wait, waitForElement, waitForText, waitForUrl, waitForLoad
+  - **Advanced**: executeScript, setViewport, handleAlert, switchFrame
+  - **Validation**: verify, verifyText, verifyUrl, verifyAttribute
+
+### Enhanced
+- **🔧 Build Configuration**
+  - Optimized Vite config for Playwright compatibility
+  - External module handling for browser compatibility
+  - Reduced bundle size while maintaining full functionality
+
+### Technical Improvements
+- **🏗️ Dual-Mode Architecture**
+  - Playwright-first approach with Chrome API fallback
+  - Cross-browser compatibility layer
+  - Dynamic import system for optimal performance
+  - Comprehensive error handling and recovery
+
+### Notes
+- **Phase 2 Complete**: Full browser automation capabilities implemented
+- **Cross-Browser Support**: Works on Chrome, Firefox, Safari, Edge
+- **Production Ready**: Robust error handling and fallback mechanisms
+
 ## [1.1.0] - 2025-09-06
 
 ### 🤖 Agent Automation System - Phase 1

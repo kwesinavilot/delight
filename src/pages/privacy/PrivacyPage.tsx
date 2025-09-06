@@ -63,6 +63,10 @@ const PrivacyPage: React.FC = () => {
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                <span><strong>Agent Automation Data:</strong> Task plans, execution logs, and automation results stay local</span>
+              </li>
+              <li className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                 <span><strong>Usage Analytics:</strong> We don't track how you use the extension or collect usage statistics</span>
               </li>
               <li className="flex items-start space-x-3">
@@ -82,7 +86,7 @@ const PrivacyPage: React.FC = () => {
               <p className="text-gray-700 dark:text-gray-300">
                 All your data is stored locally in your browser using Chrome's secure storage system:
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-2">
                     <KeyIcon className="h-5 w-5 text-blue-500" />
@@ -101,6 +105,17 @@ const PrivacyPage: React.FC = () => {
                     Your preferences (theme, provider selection) stored locally for convenience.
                   </p>
                 </div>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <svg className="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Agent Tasks</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Task plans and execution logs stored locally. No automation data sent to our servers.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -110,7 +125,12 @@ const PrivacyPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Provider Communication</h2>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
               <p className="text-blue-800 dark:text-blue-200 text-sm">
-                <strong>Direct Communication:</strong> When you chat with AI, your messages go directly from your browser to the AI provider (OpenAI, Anthropic, etc.). Delight acts as a secure bridge but never stores or processes this data.
+                <strong>Direct Communication:</strong> When you chat with AI or use agent automation, your messages go directly from your browser to the AI provider (OpenAI, Anthropic, etc.). Delight acts as a secure bridge but never stores or processes this data.
+              </p>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+              <p className="text-orange-800 dark:text-orange-200 text-sm">
+                <strong>Agent Automation:</strong> When you use the agent automation system, task descriptions are sent to AI providers for planning purposes only. No actual browser automation data is transmitted - all execution happens locally.
               </p>
             </div>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -213,7 +233,7 @@ const PrivacyPage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.0.0 - Privacy Policy</p>
+          <p>Delight v1.1.1 - Privacy Policy</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}

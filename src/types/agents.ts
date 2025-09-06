@@ -8,12 +8,33 @@ export interface AgentMessage {
   timestamp: number;
 }
 
+export type ActionType = 
+  // Core Navigation
+  | 'navigate' | 'back' | 'forward' | 'refresh' | 'newTab' | 'closeTab' | 'switchTab'
+  // Element Interaction  
+  | 'click' | 'doubleClick' | 'rightClick' | 'hover' | 'drag' | 'scroll' | 'focus'
+  // Form & Input
+  | 'fill' | 'clear' | 'select' | 'check' | 'uncheck' | 'radio' | 'upload' | 'submit'
+  // Data Extraction
+  | 'extract' | 'screenshot' | 'getUrl' | 'getTitle' | 'getCookies' | 'getLocalStorage'
+  // Waiting & Timing
+  | 'wait' | 'waitForElement' | 'waitForText' | 'waitForUrl' | 'waitForLoad'
+  // Advanced Actions
+  | 'executeScript' | 'setViewport' | 'authenticate' | 'handleAlert' | 'switchFrame' | 'downloadFile'
+  // Validation
+  | 'verify' | 'verifyText' | 'verifyUrl' | 'verifyAttribute'
+  // Multi-Page
+  | 'openInNewTab' | 'comparePages' | 'aggregateData' | 'parallelExecution';
+
 export interface TaskStep {
   id: string;
-  type: 'navigate' | 'click' | 'extract' | 'fill' | 'wait';
+  type: ActionType;
   selector?: string;
   url?: string;
   data?: any;
+  tabId?: number;
+  timeout?: number;
+  expected?: any;
   description: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
 }

@@ -34,7 +34,8 @@ export default defineConfig({
                     // Handle other assets
                     return `[name][extname]`;
                 }
-            }
+            },
+            external: ['playwright-core']
         },
         outDir: 'dist',
         emptyOutDir: true
@@ -43,5 +44,11 @@ export default defineConfig({
         alias: {
             '@': resolve(__dirname, './src')
         }
+    },
+    define: {
+        global: 'globalThis',
+    },
+    optimizeDeps: {
+        exclude: ['playwright-core']
     }
 });

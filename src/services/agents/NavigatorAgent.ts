@@ -5,11 +5,12 @@ export class NavigatorAgent {
 
   async initialize(): Promise<void> {
     console.log('🧭 [NavigatorAgent] Initializing...');
-    // Get current active tab
+    
+    // Use Chrome Extension APIs
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tabs[0]) {
       this.currentTabId = tabs[0].id!;
-      console.log('✅ [NavigatorAgent] Initialized with tab ID:', this.currentTabId);
+      console.log('✅ [NavigatorAgent] Initialized with Chrome APIs, tab ID:', this.currentTabId);
     } else {
       console.warn('⚠️ [NavigatorAgent] No active tab found during initialization');
     }
@@ -17,6 +18,7 @@ export class NavigatorAgent {
 
   async executeStep(step: TaskStep): Promise<any> {
     console.log('⚡ [NavigatorAgent] Executing step:', step);
+    
     try {
       let result;
       switch (step.type) {
@@ -39,7 +41,7 @@ export class NavigatorAgent {
           throw new Error(`Unknown step type: ${step.type}`);
       }
       console.log('✅ [NavigatorAgent] Step completed:', result);
-      return result;
+      return { result, mode: 'chrome-api' };
     } catch (error) {
       console.error('❌ [NavigatorAgent] Step failed:', error);
       throw error;
@@ -151,7 +153,7 @@ export class NavigatorAgent {
   }
 
   async stop(): Promise<void> {
-    // Stop any ongoing operations
     this.currentTabId = null;
+    console.log('✅ [NavigatorAgent] Stopped');
   }
 }

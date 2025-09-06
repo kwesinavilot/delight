@@ -4,7 +4,6 @@ import {
   RocketLaunchIcon,
   CheckCircleIcon,
   ArrowRightIcon,
-  BoltIcon,
   ChatBubbleLeftRightIcon,
   WrenchScrewdriverIcon,
   PaperClipIcon
@@ -75,6 +74,15 @@ const WelcomePage: React.FC = () => {
 
   const features = [
     {
+      icon: (
+        <svg className="h-8 w-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      title: '🤖 Agent Automation',
+      description: 'Revolutionary multi-agent system for complex web automation. Describe tasks in natural language and watch AI agents plan and execute them step-by-step'
+    },
+    {
       icon: <WrenchScrewdriverIcon className="h-8 w-8 text-blue-500" />,
       title: 'AI Tools System',
       description: '10 specialized tools for explaining, rewriting (paraphrase, improve, expand, shorten), and tone changes (academic, professional, persuasive, casual, funny)'
@@ -88,28 +96,23 @@ const WelcomePage: React.FC = () => {
       icon: <ChatBubbleLeftRightIcon className="h-8 w-8 text-purple-500" />,
       title: 'Multi-Provider AI',
       description: '6 major AI providers with 25+ models: OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova for every use case'
-    },
-    {
-      icon: <BoltIcon className="h-8 w-8 text-yellow-500" />,
-      title: 'Enhanced Interface',
-      description: 'Borderless input design, icon-based tools dropdown, and seamless conversation management across all modes'
     }
   ];
 
   const steps = [
     {
-      title: 'Welcome to Delight 1.0!',
-      subtitle: 'AI Tools & Enhanced Input System',
+      title: 'Welcome to Delight 1.2!',
+      subtitle: 'Agent Automation System & AI Tools',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 1.0!
+              Welcome to Delight 1.2!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
-              Comprehensive AI tools system with 10 specialized tools, smart page content attachment, and enhanced input interface.
-              Chat with AI, use powerful tools, and boost your productivity with 6 major providers and 25+ models.
+              Revolutionary agent automation system! Multi-agent framework for complex web tasks, plus enhanced AI tools and smart page attachment.
+              Chat with AI, automate web tasks, and boost your productivity with 6 major providers and 25+ models.
             </p>
             {/* <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 max-w-2xl mx-auto">
               <p className="text-green-800 dark:text-green-200 font-medium text-center">
@@ -219,7 +222,7 @@ const WelcomePage: React.FC = () => {
                   Explore All Features!
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Use popup, side panel, or keyboard shortcut (Ctrl+Shift+Q). Try AI tools for explaining, rewriting, tone changes, plus attach page content for context.
+                  Use sidepanel or keyboard shortcut (Ctrl+Shift+Q). Try agent automation, AI tools for explaining, rewriting, tone changes, plus attach page content for context.
                 </p>
               </div>
             </div>
@@ -292,7 +295,7 @@ const WelcomePage: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v1.0.0 Launch</span>
+            <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v1.1.1 Agent System</span>
           </div>
 
           {/* Progress indicator */}

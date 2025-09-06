@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.2.0 - Agent Automation System**
+## 🎉 **Version 1.1.1 - Complete Agent Automation**
 
-**NEW**: Revolutionary agent automation framework! Multi-agent system for complex web tasks with natural language commands, plus enhanced Gemini integration with structured output capabilities.
+**NEW**: Full browser automation capabilities! Cross-browser agent system with 25+ automation actions, Playwright integration, and dual-mode architecture for maximum compatibility.
 
 Now supporting **6 major AI providers** with **25+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
@@ -48,12 +48,13 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
 - **Smart History Management**: Only loads recent messages for optimal performance
 
 ### 🤖 Agent Automation System
-- **Multi-Agent Architecture**: Planner, Navigator, and Monitor agents working in coordination
-- **Natural Language Task Processing**: Describe complex web tasks in plain English
-- **Real-time Execution Tracking**: Visual progress monitoring with step-by-step execution logs
-- **Intelligent Task Planning**: AI-powered task decomposition with structured execution plans
-- **Error Handling & Recovery**: Robust error detection and recovery mechanisms
-- **Interactive Agent Interface**: Dedicated agent page with live execution monitoring
+- **Cross-Browser Automation**: Playwright integration for Chrome, Firefox, Safari, Edge
+- **25+ Automation Actions**: Navigate, click, fill, extract, scroll, and advanced interactions
+- **Dual-Mode Architecture**: Playwright for advanced automation, Chrome APIs for fallback
+- **Multi-Agent Coordination**: Planner, Navigator, and Monitor agents working together
+- **Natural Language Processing**: Describe complex web tasks in plain English
+- **Real-time Execution**: Visual progress monitoring with step-by-step logs
+- **Smart Error Recovery**: Robust fallback mechanisms and graceful degradation
 
 ### 📱 Sidepanel Conversation Management
 - **Sub-toolbar Navigation**: "New", "Chats", and "Agent" buttons in sidepanel mode for easy access
@@ -266,24 +267,24 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.2.0)
-- ✅ **🤖 Agent Automation System**: Multi-agent framework for complex web automation
-- ✅ **Enhanced Gemini Integration**: Structured output and advanced task planning capabilities
-- ✅ **Agent Interface**: Dedicated agent page with real-time execution monitoring
-- ✅ **Free Trial System**: 5 free AI requests for immediate user onboarding
+### Current Version (1.1.1)
+- ✅ **🤖 Complete Agent Automation**: Cross-browser automation with 25+ actions
+- ✅ **Playwright Integration**: Chrome, Firefox, Safari, Edge support
+- ✅ **Dual-Mode Architecture**: Advanced automation with Chrome API fallback
+- ✅ **Multi-Agent System**: Planner, Navigator, Monitor coordination
+- ✅ **Natural Language Tasks**: Describe complex web automation in plain English
+- ✅ **Real-time Execution**: Visual progress monitoring and error recovery
 - ✅ **AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
 - ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context
-- ✅ **Enhanced Browser Compatibility**: Edge support with graceful degradation
-- ✅ **Complete Documentation**: User guide, privacy policy, and welcome flow
 - ✅ **Multi-Provider Support**: 6 major AI providers with 25+ models
-- ✅ **Streamlined Interface**: Focused sidepanel experience with fullscreen option
+- ✅ **Enhanced Browser Compatibility**: Cross-browser automation capabilities
 - ✅ **Performance Optimized**: Lightning-fast loading and memory management
 - ✅ **Secure & Private**: Local storage with encryption, no data collection
 
 ### Upcoming Features
-- 🔲 **Agent Automation Phase 2**: Actual browser automation with DOM interaction
-- 🔲 **Advanced Agent Capabilities**: Form filling, data extraction, multi-tab coordination
 - 🔲 **Agent Templates**: Pre-built automation workflows for common tasks
+- 🔲 **Learning System**: AI agents that improve from user feedback
+- 🔲 **Visual Automation**: Screenshot-based task validation and verification
 - 🔲 Advanced summary customization
 - 🔲 Custom prompt templates
 - 🔲 Batch processing for multiple pages

@@ -114,6 +114,79 @@ const UserGuidePage: React.FC = () => {
       )
     },
     {
+      id: 'agent-automation',
+      title: '🤖 Agent Automation',
+      icon: (
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      content: (
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">What is Agent Automation?</h4>
+            <p className="text-gray-700 dark:text-gray-300 mb-3">
+              Agent Automation is a revolutionary multi-agent system that can understand complex web tasks described in natural language and break them down into executable steps. Think of it as having AI assistants that can plan, execute, and monitor web automation tasks for you.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">How to Use Agent Automation</h4>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+              <li>Open Delight in sidepanel mode</li>
+              <li>Click the "Agent" button in the sub-toolbar (🤖)</li>
+              <li>Describe your task in natural language (e.g., "Go to Google and search for AI news")</li>
+              <li>Press Enter or click the send button</li>
+              <li>Watch as the AI agents create an execution plan</li>
+              <li>Monitor real-time progress with step-by-step logs</li>
+              <li>Review the results when the task completes</li>
+            </ol>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Three-Agent System</h4>
+            <div className="space-y-2">
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">🧠 Planner Agent</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Analyzes your request and creates a detailed execution plan with step-by-step instructions</p>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">⚡ Navigator Agent</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Executes each step of the plan, handling web navigation and interactions</p>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">🔍 Monitor Agent</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Tracks progress, validates results, and provides real-time status updates</p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Example Tasks</h4>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+              <li>"Search for the latest AI research papers on ArXiv"</li>
+              <li>"Find flight prices to Lagos for next month"</li>
+              <li>"Get the top trending repositories on GitHub"</li>
+              <li>"Extract product information from this e-commerce page"</li>
+              <li>"Navigate to my email and check for important messages"</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Current Capabilities (Phase 1)</h4>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+              <li>✅ Natural language task understanding</li>
+              <li>✅ Intelligent task planning with structured output</li>
+              <li>✅ Real-time execution monitoring</li>
+              <li>✅ Step-by-step progress visualization</li>
+              <li>✅ Error handling and recovery mechanisms</li>
+              <li>🔄 Actual browser automation (coming in Phase 2)</li>
+            </ul>
+          </div>
+        </div>
+      )
+    },
+    {
       id: 'ai-tools',
       title: 'AI Tools & Page Attachment',
       icon: <WrenchScrewdriverIcon className="h-5 w-5" />,
@@ -414,7 +487,7 @@ const UserGuidePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Delight User Guide</h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Everything you need to know about using Delight, your AI-powered Chrome extension with 6 major providers, AI tools, and smart page attachment.
+            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 6 major providers, AI tools, and smart page attachment.
           </p>
         </div>
 
@@ -460,7 +533,7 @@ const UserGuidePage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.0.0 Launch - AI-powered Chrome extension with free trial</p>
+          <p>Delight v1.1.1 - AI-powered Chrome extension with agent automation</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}
