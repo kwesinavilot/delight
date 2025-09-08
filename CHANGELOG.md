@@ -12,6 +12,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [1.1.2] - 2025-09-08
+
+### 📚 Documentation & Architecture
+
+### Added
+- **📊 Architecture Diagrams**
+  - Comprehensive mermaid diagrams for system architecture
+  - Core AI architecture visualization with all 6 providers
+  - Message flow sequence diagrams showing streaming responses
+  - Chrome extension integration architecture
+  - Performance and memory management system diagrams
+  - AI tools system architecture documentation
+  - Page attachment workflow visualization
+
+- **📝 Technical Blog Content**
+  - Complete Medium blog post about Delight's architecture
+  - Detailed explanation of Vercel AI SDK integration
+  - User-friendly explanations of technical concepts
+  - Visual architecture overview for better understanding
+
+### Enhanced
+- **📖 Documentation Structure**
+  - Organized architecture documentation in dedicated files
+  - Visual diagrams complement existing agent workflow documentation
+  - Improved technical communication for developers and users
+
+### Technical Improvements
+- **🏗️ Documentation Architecture**
+  - Centralized architecture diagrams in `/docs` folder
+  - Mermaid chart integration for visual system representation
+  - Comprehensive coverage of all major system components
+
+### Notes
+- Documentation update focused on architecture visualization
+- Blog content ready for publication on Medium
+- Enhanced technical communication for better developer onboarding
+
 ## [1.1.1] - 2025-09-06
 
 ### 🤖 Agent Automation System - Phase 2

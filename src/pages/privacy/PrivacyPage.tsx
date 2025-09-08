@@ -233,7 +233,7 @@ const PrivacyPage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.1.1 - Privacy Policy</p>
+          <p>Delight v1.1.2 - Privacy Policy</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}

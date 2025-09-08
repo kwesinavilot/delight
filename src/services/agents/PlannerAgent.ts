@@ -19,11 +19,18 @@ export class PlannerAgent {
     const prompt = `You are a task planning agent. Break down user requests into executable steps.
 
 Available actions:
-- navigate: Go to a URL
+- navigate: Go to a URL (automatically waits for page load)
 - click: Click an element (provide CSS selector)
 - extract: Extract data from page (provide CSS selector)
 - fill: Fill form fields (provide selector and data)
-- wait: Wait for element or time
+- wait: Wait for specific duration (milliseconds)
+- waitForElement: Wait for element to appear (provide CSS selector)
+- waitForLoad: Wait for page to fully load
+
+IMPORTANT RULES:
+1. Always add waitForLoad after navigate actions
+2. Add waitForElement before interacting with dynamic content
+3. Use wait for delays between actions when needed
 
 IMPORTANT: Respond ONLY with valid JSON, no explanations or markdown:
 

@@ -20,9 +20,11 @@ interface AgentLog {
 const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
   const [input, setInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isPlanning, setIsPlanning] = useState(false);
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [currentPlan, setCurrentPlan] = useState<TaskStep[]>([]);
   const [currentStep, setCurrentStep] = useState<number>(-1);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const orchestratorRef = useRef<AgentOrchestrator | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -66,9 +68,11 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
     if (!input.trim() || !orchestratorRef.current) return;
 
     setIsExecuting(true);
+    setIsPlanning(true);
     setLogs([]);
     setCurrentPlan([]);
     setCurrentStep(-1);
+    setCompletedSteps(new Set());
 
     try {
       addLog('info', 'System', `Starting task: "${input}"`);
@@ -76,6 +80,7 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
       const result = await orchestratorRef.current.executeTask(input, {
         onPlanCreated: (plan) => {
           setCurrentPlan(plan);
+          setIsPlanning(false);
           addLog('thinking', 'Planner', `Created execution plan with ${plan.length} steps`, plan);
         },
         onStepStart: (stepIndex, step) => {
@@ -83,6 +88,7 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
           addLog('info', 'Navigator', `Step ${stepIndex + 1}: ${step.description}`);
         },
         onStepComplete: (stepIndex, _step, result) => {
+          setCompletedSteps(prev => new Set([...prev, stepIndex]));
           addLog('success', 'Navigator', `Completed step ${stepIndex + 1}`, result);
         },
         onStepError: (stepIndex, step, error) => {
@@ -102,6 +108,7 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
       addLog('error', 'System', `Execution error: ${error}`, error);
     } finally {
       setIsExecuting(false);
+      setIsPlanning(false);
       setCurrentStep(-1);
     }
   };
@@ -157,35 +164,18 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
 
       {/* Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Execution Plan */}
-        {currentPlan.length > 0 && (
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-            <h3 className="text-sm font-medium mb-2">🧠 Execution Plan</h3>
-            <div className="space-y-1">
-              {currentPlan.map((step, index) => (
-                <div
-                  key={index}
-                  className={`text-xs p-2 rounded flex items-center gap-2 ${
-                    index === currentStep
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                      : index < currentStep
-                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                  }`}
-                >
-                  <span className="font-mono">
-                    {index < currentStep ? '✅' : index === currentStep ? '⏳' : '⏸️'}
-                  </span>
-                  <span className="font-medium">{index + 1}.</span>
-                  <span>{step.description}</span>
-                </div>
-              ))}
+        {/* Planning Spinner */}
+        {isPlanning && (
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm text-blue-600 dark:text-blue-400">Creating execution plan...</span>
             </div>
           </div>
         )}
 
-        {/* Logs */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {/* Interleaved Logs and Steps */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {logs.length === 0 && !isExecuting && (
             <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
               <div className="text-4xl mb-4">🤖</div>
@@ -194,6 +184,48 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
                 Describe a task you want me to perform on web pages.<br />
                 I can navigate, click, fill forms, and extract information.
               </p>
+            </div>
+          )}
+
+          {/* Show execution plan after it's created */}
+          {currentPlan.length > 0 && logs.some(log => log.agent === 'Planner') && (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-medium mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+                📋 Execution Plan ({currentPlan.length} steps)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {currentPlan.map((step, index) => {
+                  const isCompleted = completedSteps.has(index);
+                  const isRunning = index === currentStep;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`text-xs p-2 rounded border flex items-center gap-2 transition-colors ${
+                        isCompleted
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                          : isRunning
+                          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+                          : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {isCompleted ? (
+                          <span className="text-green-600 dark:text-green-400">✅</span>
+                        ) : isRunning ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
+                        ) : (
+                          <span className="text-gray-400">⏸️</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">{index + 1}. {step.type}</div>
+                        <div className="truncate" title={step.description}>{step.description}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 

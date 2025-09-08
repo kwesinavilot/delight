@@ -533,7 +533,7 @@ const UserGuidePage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.1.1 - AI-powered Chrome extension with agent automation</p>
+          <p>Delight v1.1.2 - AI-powered Chrome extension with agent automation</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}

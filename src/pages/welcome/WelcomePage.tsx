@@ -101,14 +101,14 @@ const WelcomePage: React.FC = () => {
 
   const steps = [
     {
-      title: 'Welcome to Delight 1.2!',
+      title: 'Welcome to Delight 1.1.2!',
       subtitle: 'Agent Automation System & AI Tools',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 1.2!
+              Welcome to Delight 1.1.2!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
               Revolutionary agent automation system! Multi-agent framework for complex web tasks, plus enhanced AI tools and smart page attachment.
@@ -295,7 +295,7 @@ const WelcomePage: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v1.1.1 Agent System</span>
+            <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v1.1.2 Agent System</span>
           </div>
 
           {/* Progress indicator */}

@@ -35,7 +35,7 @@ export default defineConfig({
                     return `[name][extname]`;
                 }
             },
-            external: ['playwright-core']
+            external: []
         },
         outDir: 'dist',
         emptyOutDir: true
@@ -47,8 +47,9 @@ export default defineConfig({
     },
     define: {
         global: 'globalThis',
+        'process.env.NODE_ENV': '"production"'
     },
     optimizeDeps: {
-        exclude: ['playwright-core']
+        include: ['playwright-core']
     }
 });
