@@ -80,29 +80,29 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         }
     }
     
-    // Show welcome page on major version updates (optional)
+    // Show updates page on any version update
     if (details.reason === 'update') {
         const previousVersion = details.previousVersion;
         const currentVersion = chrome.runtime.getManifest().version;
         
-        // Show welcome for major version updates (e.g., 2.x.x -> 3.x.x)
-        if (previousVersion && currentVersion) {
-            const prevMajor = parseInt(previousVersion.split('.')[0]);
-            const currMajor = parseInt(currentVersion.split('.')[0]);
-            
-            if (currMajor > prevMajor) {
-                try {
-                    // Reset welcome completion for major updates
-                    await chrome.storage.sync.set({ welcomeCompleted: false });
-                    
-                    // Open welcome page
-                    await chrome.tabs.create({
-                        url: chrome.runtime.getURL('src/pages/welcome/index.html'),
-                        active: true
-                    });
-                } catch (error) {
-                    console.error('Error handling major version update:', error);
-                }
+        if (previousVersion && currentVersion && previousVersion !== currentVersion) {
+            try {
+                // Store update info for the updates page
+                await chrome.storage.local.set({
+                    updateInfo: {
+                        previousVersion,
+                        currentVersion,
+                        updateDate: new Date().toISOString()
+                    }
+                });
+                
+                // Open updates page
+                await chrome.tabs.create({
+                    url: chrome.runtime.getURL('src/pages/updates/index.html'),
+                    active: true
+                });
+            } catch (error) {
+                console.error('Error handling extension update:', error);
             }
         }
     }

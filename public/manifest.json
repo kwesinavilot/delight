@@ -57,7 +57,8 @@
         "src/pages/welcome/index.html",
         "src/pages/sidepanel/index.html",
         "src/pages/userguide/index.html",
-        "src/pages/privacy/index.html"
+        "src/pages/privacy/index.html",
+        "src/pages/updates/index.html"
       ],
       "matches": ["<all_urls>"]
     }
