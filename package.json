@@ -8,7 +8,7 @@
   },
   "private": true,
   "version": "1.1.2",
-  "description": "Multi-provider AI Chrome extension supporting OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova for chat and page summaries",
+  "description": "Multi-agent AI assistant to boost your productivity. Access 25+ premium models from 6 providers, automate web tasks, use webpages as context, and enhance writing with specialized tools - all without changing your workflow or shuttling through multiple tools.",
   "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/kwesinavilot/delight#readme",
