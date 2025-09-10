@@ -7,7 +7,7 @@
     "email": "andrewsankomahene@gmail.com"
   },
   "private": true,
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Multi-agent AI assistant to boost your productivity. Access 25+ premium models from 6 providers, automate web tasks, use webpages as context, and enhance writing with specialized tools - all without changing your workflow or shuttling through multiple tools.",
   "type": "module",
   "license": "MIT",

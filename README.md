@@ -2,22 +2,27 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.1.1 - Complete Agent Automation**
+## 🎉 **Version 1.2.0 - GPT-OSS Integration & Hackathon Ready**
 
-**NEW**: Full browser automation capabilities! Cross-browser agent system with 25+ automation actions, Playwright integration, and dual-mode architecture for maximum compatibility.
+**NEW**: GPT-OSS model support! OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b) with both hosted (Groq) and local (Ollama) options. Perfect for the OpenAI Open Model Hackathon!
 
-Now supporting **6 major AI providers** with **25+ models** for every use case:
+**ENHANCED**: Full browser automation capabilities! Cross-browser agent system with 25+ automation actions, Playwright integration, and dual-mode architecture for maximum compatibility.
+
+Now supporting **6 major AI providers** with **27+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
 - 🤖 **OpenAI** - GPT-4o, GPT-4 Turbo
 - 🧠 **Anthropic** - Claude 3.5 Sonnet, Opus
 - 🔍 **Google Gemini** - 2.5 Pro/Flash, Enhanced with structured output
 - 😄 **Grok (X.AI)** - Witty personality, real-time info
 - 🦙 **SambaNova** - Llama 3.1/3.2 (1B-405B)
+- 🏆 **GPT-OSS Online** - OpenAI's open models via Groq (hosted)
+- 💻 **GPT-OSS Offline** - OpenAI's open models via Ollama (local)
 
 ## 🌟 Features
 
 ### 🚀 Core AI Features
-- **Multi-Provider AI Support**: Choose between 6 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, and SambaNova
+- **Multi-Provider AI Support**: Choose between 8 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, SambaNova, and GPT-OSS (Online/Offline)
+- **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models with dual hosting options (Groq hosted + Ollama local)
 - **🤖 Agent Automation System**: Revolutionary multi-agent framework for complex web automation tasks
 - **AI Tools System**: 10 specialized tools for explaining, rewriting (paraphrase, improve, expand, shorten), and tone changes (academic, professional, persuasive, casual, funny)
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
@@ -131,6 +136,8 @@ Now supporting **6 major AI providers** with **25+ models** for every use case:
    - **Grok (X.AI)**: Add your API key from [X.AI Console](https://console.x.ai/)
    - **Groq**: Add your API key from [Groq Console](https://console.groq.com/keys)
    - **SambaNova**: Add your API key from [SambaNova Cloud](https://cloud.sambanova.ai/)
+   - **GPT-OSS Online**: Add your Groq API key from [Groq Console](https://console.groq.com/keys)
+   - **GPT-OSS Offline**: Install [Ollama](https://ollama.ai) and run `ollama pull gpt-oss-20b`
 3. **Try it immediately** with 5 free requests, then add your API key for continued use
 
 ## 🛠️ Development
@@ -226,6 +233,20 @@ The extension uses a modular architecture with clear separation of concerns:
 - **Use Cases**: Performance-focused tasks, research, scalable deployment
 - **Context**: Up to 131K tokens
 
+#### GPT-OSS Online (Groq Hosted)
+- **Models**: gpt-oss-120b, gpt-oss-20b
+- **Features**: OpenAI's open-weight reasoning models, ultra-fast inference via Groq
+- **Use Cases**: Hackathon projects, open model research, reasoning tasks
+- **Context**: Up to 131K tokens
+- **Setup**: Requires Groq API key
+
+#### GPT-OSS Offline (Ollama Local)
+- **Models**: gpt-oss-120b, gpt-oss-20b
+- **Features**: Fully local inference, no API key required, complete privacy
+- **Use Cases**: Offline development, privacy-focused applications, local reasoning
+- **Context**: Up to 131K tokens
+- **Setup**: Requires Ollama installation and model download
+
 ### Settings
 
 ```typescript
@@ -267,7 +288,11 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.1.1)
+### Current Version (1.2.0)
+- ✅ **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
+- ✅ **Dual GPT-OSS Hosting**: Groq hosted + Ollama local options
+- ✅ **Hackathon Ready**: Perfect for OpenAI Open Model Hackathon submissions
+- ✅ **Ollama Setup Assistant**: Automated detection and setup guidance
 - ✅ **🤖 Complete Agent Automation**: Cross-browser automation with 25+ actions
 - ✅ **Playwright Integration**: Chrome, Firefox, Safari, Edge support
 - ✅ **Dual-Mode Architecture**: Advanced automation with Chrome API fallback

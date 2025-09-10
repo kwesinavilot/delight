@@ -10,6 +10,8 @@ import { ConfigManager } from '@/services/config/ConfigManager';
 import { TrialService } from '@/services/TrialService';
 import { AIConfiguration } from '@/types/ai';
 
+// Set to true for hackathon mode, false for normal mode
+const OSS_MODE = true;
 
 interface SettingsPanelProps {
   onClose?: () => void;
@@ -28,6 +30,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     remainingRequests: number;
     totalRequests: number;
   }>({ isTrialMode: false, remainingRequests: 0, totalRequests: 5 });
+  const [gptOssMode] = useState<boolean>(OSS_MODE);
+  const [ollamaStatus, setOllamaStatus] = useState<{
+    isRunning: boolean;
+    hasModels: boolean;
+    availableModels: string[];
+    checking: boolean;
+  }>({ isRunning: false, hasModels: false, availableModels: [], checking: false });
 
 
   // Provider configurations
@@ -79,6 +88,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       defaultModel: 'DeepSeek-V3.1',
       apiKeyPlaceholder: 'fad7da1c-...',
       website: 'https://cloud.sambanova.ai/'
+    },
+    'gpt-oss-online': {
+      name: 'GPT-OSS Online',
+      description: 'GPT-OSS models via Groq (hosted)',
+      models: ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'],
+      defaultModel: 'openai/gpt-oss-20b',
+      apiKeyPlaceholder: 'gsk_...',
+      website: 'https://console.groq.com/keys'
+    },
+    'gpt-oss-offline': {
+      name: 'GPT-OSS Offline',
+      description: 'GPT-OSS models via local Ollama',
+      models: ['gpt-oss-120b', 'gpt-oss-20b'],
+      defaultModel: 'gpt-oss-20b',
+      apiKeyPlaceholder: 'Not required for local',
+      website: 'https://ollama.ai'
     }
   };
 
@@ -86,6 +111,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     loadSettings();
     loadTrialStatus();
   }, []);
+
+  useEffect(() => {
+    if (selectedProvider === 'gpt-oss-offline') {
+      checkOllamaStatus();
+    }
+  }, [selectedProvider]);
 
   const loadTrialStatus = async () => {
     try {
@@ -107,7 +138,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       const configManager = ConfigManager.getInstance();
       const allConfigs = await configManager.getAllConfigurations();
       const currentProvider = await configManager.getCurrentProvider();
-
       setProviders(allConfigs);
       setSelectedProvider(currentProvider || '');
 
@@ -206,6 +236,69 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     });
   };
 
+  const checkOllamaStatus = async () => {
+    setOllamaStatus(prev => ({ ...prev, checking: true }));
+    
+    try {
+      // Check if Ollama is running
+      const response = await fetch('http://localhost:11434/api/tags');
+      const isRunning = response.ok;
+      
+      if (isRunning) {
+        const data = await response.json();
+        const models = data.models || [];
+        const gptOssModels = models.filter((m: any) => 
+          m.name.includes('gpt-oss') || m.name.includes('gpt_oss')
+        );
+        
+        setOllamaStatus({
+          isRunning: true,
+          hasModels: gptOssModels.length > 0,
+          availableModels: gptOssModels.map((m: any) => m.name),
+          checking: false
+        });
+      } else {
+        setOllamaStatus({
+          isRunning: false,
+          hasModels: false,
+          availableModels: [],
+          checking: false
+        });
+      }
+    } catch (error) {
+      setOllamaStatus({
+        isRunning: false,
+        hasModels: false,
+        availableModels: [],
+        checking: false
+      });
+    }
+  };
+
+  const getFilteredProviders = () => {
+    if (gptOssMode) {
+      return {
+        'gpt-oss-online': {
+          name: 'GPT-OSS Online',
+          description: 'GPT-OSS models via Groq (hosted)',
+          models: ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'],
+          defaultModel: 'openai/gpt-oss-20b',
+          apiKeyPlaceholder: 'gsk_...',
+          website: 'https://console.groq.com/keys'
+        },
+        'gpt-oss-offline': {
+          name: 'GPT-OSS Offline',
+          description: 'GPT-OSS models via local Ollama',
+          models: ['gpt-oss-120b', 'gpt-oss-20b'],
+          defaultModel: 'gpt-oss-20b',
+          apiKeyPlaceholder: 'Not required for local',
+          website: 'https://ollama.ai'
+        }
+      };
+    }
+    return availableProviders;
+  };
+
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900">
       {/* Header */}
@@ -242,7 +335,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'providers' && (
           <div className="space-y-6">
-            {Object.entries(availableProviders).map(([providerId, providerInfo]) => {
+            {/* GPT-OSS Hackathon Info - Only show in OSS mode */}
+            {gptOssMode && (
+              <div className="border rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                  🏆 OpenAI GPT-OSS Hackathon Edition
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Delight is configured for the OpenAI Open Model Hackathon. Choose between hosted (Groq) or local (Ollama) GPT-OSS models.
+                </p>
+              </div>
+            )}
+
+            {Object.entries(getFilteredProviders()).map(([providerId, providerInfo]) => {
               const config = providers[providerId] || { provider: providerId, apiKey: '', model: providerInfo.defaultModel };
               const isSelected = selectedProvider === providerId;
               const status = connectionStatus[providerId];
@@ -354,6 +459,65 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                 </div>
               );
             })}
+
+            {/* Ollama Setup Checklist - Show when offline provider is selected */}
+            {selectedProvider === 'gpt-oss-offline' && (
+              <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    🛠️ Ollama Setup Checklist
+                  </h3>
+                  <button
+                    onClick={checkOllamaStatus}
+                    disabled={ollamaStatus.checking}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:bg-gray-400"
+                  >
+                    {ollamaStatus.checking ? 'Checking...' : 'Check Status'}
+                  </button>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <span className={ollamaStatus.isRunning ? 'text-green-600' : 'text-red-600'}>
+                      {ollamaStatus.isRunning ? '✓' : '✗'}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Ollama server running on http://localhost:11434
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className={ollamaStatus.hasModels ? 'text-green-600' : 'text-red-600'}>
+                      {ollamaStatus.hasModels ? '✓' : '✗'}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      GPT-OSS models installed
+                    </span>
+                  </div>
+                  
+                  {ollamaStatus.availableModels.length > 0 && (
+                    <div className="ml-6 text-xs text-gray-600 dark:text-gray-400">
+                      Available: {ollamaStatus.availableModels.join(', ')}
+                    </div>
+                  )}
+                </div>
+                
+                {!ollamaStatus.isRunning && (
+                  <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-700">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-2">
+                      Setup Required:
+                    </p>
+                    <ol className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 ml-4 list-decimal">
+                      <li>Install Ollama from <a href="https://ollama.ai" target="_blank" className="underline">ollama.ai</a></li>
+                      <li>Start Ollama application</li>
+                      <li>Run: <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">ollama pull gpt-oss-20b</code></li>
+                      <li>Run: <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">ollama pull gpt-oss-120b</code></li>
+                      <li>Click "Check Status" to verify</li>
+                    </ol>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Trial Status Display */}
             {trialStatus.isTrialMode && (
@@ -492,7 +656,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v1.1.1</span>
+                <span className="font-medium">Delight v1.2.0</span>
               </div>
             </div>
           </div>

@@ -1,10 +1,13 @@
 import { AIConfiguration, ExtensionSettings } from '../../types/ai';
 
+// Set to true for hackathon mode, false for normal mode
+const OSS_MODE = true;
+
 export class ConfigManager {
   private static instance: ConfigManager;
   private settings: ExtensionSettings | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): ConfigManager {
     if (!ConfigManager.instance) {
@@ -28,9 +31,11 @@ export class ConfigManager {
   }
 
   private getDefaultSettings(): ExtensionSettings {
+    const ossMode = OSS_MODE;
     return {
       ai: {
-        currentProvider: 'openai',
+        currentProvider: ossMode ? 'gpt-oss-online' : 'openai',
+        gptOssMode: ossMode,
         providers: {
           openai: {
             apiKey: '',
@@ -67,6 +72,18 @@ export class ConfigManager {
             model: 'Meta-Llama-3.1-8B-Instruct',
             maxTokens: 1000,
             temperature: 0.7
+          },
+          'gpt-oss-online': {
+            apiKey: '',
+            model: 'openai/gpt-oss-20b',
+            maxTokens: 1000,
+            temperature: 0.7
+          },
+          'gpt-oss-offline': {
+            apiKey: '',
+            model: 'gpt-oss-20b',
+            maxTokens: 1000,
+            temperature: 0.7
           }
         }
       }
@@ -80,20 +97,20 @@ export class ConfigManager {
 
   async setCurrentProvider(provider: string): Promise<void> {
     if (!this.settings) await this.loadSettings();
-    
+
     if (!this.settings!.ai.providers[provider]) {
       throw new Error(`Provider ${provider} is not configured`);
     }
-    
+
     this.settings!.ai.currentProvider = provider;
     await this.saveSettings();
   }
 
   async getProviderConfig(provider: string): Promise<AIConfiguration> {
     if (!this.settings) await this.loadSettings();
-    
+
     let providerSettings = this.settings!.ai.providers[provider];
-    
+
     // If provider doesn't exist, create default settings
     if (!providerSettings) {
       const defaultSettings = this.getDefaultProviderSettings(provider);
@@ -123,7 +140,9 @@ export class ConfigManager {
       gemini: 'gemini-2.5-flash',
       grok: 'grok-beta',
       groq: 'openai/gpt-oss-20b',
-      sambanova: 'Meta-Llama-3.1-8B-Instruct'
+      sambanova: 'Meta-Llama-3.1-8B-Instruct',
+      'gpt-oss-online': 'openai/gpt-oss-20b',
+      'gpt-oss-offline': 'gpt-oss-20b'
     };
 
     return {
@@ -141,7 +160,7 @@ export class ConfigManager {
 
   async updateProviderConfig(provider: string, config: Partial<AIConfiguration>): Promise<void> {
     if (!this.settings) await this.loadSettings();
-    
+
     if (!this.settings!.ai.providers[provider]) {
       this.settings!.ai.providers[provider] = {
         apiKey: '',
@@ -152,7 +171,7 @@ export class ConfigManager {
     }
 
     const providerSettings = this.settings!.ai.providers[provider];
-    
+
     if (config.apiKey !== undefined) providerSettings.apiKey = config.apiKey;
     if (config.model !== undefined) providerSettings.model = config.model;
     if (config.maxTokens !== undefined) providerSettings.maxTokens = config.maxTokens;
@@ -186,7 +205,7 @@ export class ConfigManager {
 
   private async saveSettings(): Promise<void> {
     if (!this.settings) return;
-    
+
     try {
       await chrome.storage.sync.set({ aiSettings: this.settings });
     } catch (error) {
@@ -207,38 +226,38 @@ export class ConfigManager {
 
   async exportSettings(): Promise<string> {
     if (!this.settings) await this.loadSettings();
-    
+
     // Create a copy without sensitive data for export
     const exportData = JSON.parse(JSON.stringify(this.settings));
-    
+
     // Remove API keys from export
     Object.keys(exportData.ai.providers).forEach(provider => {
       exportData.ai.providers[provider].apiKey = '';
     });
-    
+
     return JSON.stringify(exportData, null, 2);
   }
 
   async importSettings(settingsJson: string): Promise<void> {
     try {
       const importedSettings = JSON.parse(settingsJson) as ExtensionSettings;
-      
+
       // Validate the structure
       if (!importedSettings.ai || !importedSettings.ai.providers) {
         throw new Error('Invalid settings format');
       }
-      
+
       // Preserve existing API keys if not provided in import
       if (this.settings) {
         Object.keys(importedSettings.ai.providers).forEach(provider => {
-          if (!importedSettings.ai.providers[provider].apiKey && 
-              this.settings!.ai.providers[provider]?.apiKey) {
-            importedSettings.ai.providers[provider].apiKey = 
+          if (!importedSettings.ai.providers[provider].apiKey &&
+            this.settings!.ai.providers[provider]?.apiKey) {
+            importedSettings.ai.providers[provider].apiKey =
               this.settings!.ai.providers[provider].apiKey;
           }
         });
       }
-      
+
       this.settings = importedSettings;
       await this.saveSettings();
     } catch (error) {
@@ -250,9 +269,9 @@ export class ConfigManager {
   // Methods required by SettingsPanel
   async getAllConfigurations(): Promise<Record<string, AIConfiguration>> {
     if (!this.settings) await this.loadSettings();
-    
+
     const configurations: Record<string, AIConfiguration> = {};
-    
+
     Object.entries(this.settings!.ai.providers).forEach(([provider, config]) => {
       configurations[provider] = {
         provider,
@@ -262,7 +281,7 @@ export class ConfigManager {
         temperature: config.temperature
       };
     });
-    
+
     return configurations;
   }
 
@@ -275,15 +294,26 @@ export class ConfigManager {
       // Import AIService to test connection
       const { AIService } = await import('../ai/AIService');
       const aiService = AIService.getInstance();
-      
+
       // Get the provider config
       const config = await this.getProviderConfig(provider);
-      
+
       // Test the connection using the AI service
       return await aiService.testProviderConnection(provider, config);
     } catch (error) {
       console.error(`Failed to test connection for ${provider}:`, error);
       return false;
     }
+  }
+
+  async getGptOssMode(): Promise<boolean> {
+    if (!this.settings) await this.loadSettings();
+    return this.settings!.ai.gptOssMode || false;
+  }
+
+  async setGptOssMode(enabled: boolean): Promise<void> {
+    if (!this.settings) await this.loadSettings();
+    this.settings!.ai.gptOssMode = enabled;
+    await this.saveSettings();
   }
 }

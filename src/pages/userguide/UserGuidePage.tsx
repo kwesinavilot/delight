@@ -96,11 +96,50 @@ const UserGuidePage: React.FC = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Llama models (1B-405B parameters)</p>
                 <a href="https://cloud.sambanova.ai/" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
               </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Online</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">OpenAI open models via Groq (hosted)</p>
+                <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Offline</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">OpenAI open models via Ollama (local)</p>
+                <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Install Ollama →</a>
+              </div>
             </div>
           </div>
           
           <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Configuration Steps</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">GPT-OSS Models Setup</h4>
+            <div className="space-y-3">
+              <div className="border border-orange-200 dark:border-orange-700 rounded-lg p-3 bg-orange-50 dark:bg-orange-900/20">
+                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Online (Recommended)</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Use OpenAI's open reasoning models via Groq's fast infrastructure:</p>
+                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                  <li>Get a free Groq API key from <a href="https://console.groq.com/keys" target="_blank" className="text-blue-600 hover:text-blue-800">console.groq.com</a></li>
+                  <li>Select "GPT-OSS Online" in Settings → AI Providers</li>
+                  <li>Enter your Groq API key</li>
+                  <li>Choose between gpt-oss-120b or gpt-oss-20b models</li>
+                  <li>Test connection and start using OpenAI's open reasoning models!</li>
+                </ol>
+              </div>
+              
+              <div className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20">
+                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Offline (Privacy-First)</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Run OpenAI's open models completely locally with Ollama:</p>
+                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                  <li>Install Ollama from <a href="https://ollama.ai" target="_blank" className="text-blue-600 hover:text-blue-800">ollama.ai</a></li>
+                  <li>Run: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">ollama pull gpt-oss-20b</code></li>
+                  <li>Select "GPT-OSS Offline" in Settings → AI Providers</li>
+                  <li>Delight will automatically detect your local Ollama setup</li>
+                  <li>Enjoy completely private, offline AI reasoning!</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">General Configuration Steps</h4>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
               <li>Go to Settings → AI Providers</li>
               <li>Select your preferred provider by clicking the radio button</li>
@@ -250,8 +289,8 @@ const UserGuidePage: React.FC = () => {
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">AI Chat</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              <li>Real-time streaming responses from 6 major AI providers</li>
-              <li>Support for 25+ different AI models</li>
+              <li>Real-time streaming responses from 8 major AI providers</li>
+              <li>Support for 27+ different AI models</li>
               <li>Persistent chat history within sessions</li>
               <li>Markdown formatting support</li>
               <li>Error handling with helpful messages</li>
@@ -468,8 +507,13 @@ const UserGuidePage: React.FC = () => {
             </div>
             
             <div>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: What are GPT-OSS models?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: GPT-OSS are OpenAI's open-weight reasoning models (gpt-oss-120b and gpt-oss-20b) that you can use either hosted via Groq or locally via Ollama. They offer advanced reasoning capabilities and are completely open-source.</p>
+            </div>
+            
+            <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Can I use this offline?</h5>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: No, the extension requires an internet connection to communicate with AI providers' APIs.</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! With GPT-OSS Offline, you can run OpenAI's open models completely locally using Ollama. This provides full privacy and works without internet connection for AI inference.</p>
             </div>
           </div>
         </div>
@@ -487,7 +531,7 @@ const UserGuidePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Delight User Guide</h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 6 major providers, AI tools, and smart page attachment.
+            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 8 major providers, AI tools, and smart page attachment.
           </p>
         </div>
 
@@ -533,7 +577,7 @@ const UserGuidePage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.1.2 - AI-powered Chrome extension with agent automation</p>
+          <p>Delight v1.2.0 - AI-powered Chrome extension with GPT-OSS integration</p>
           <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={() => window.close()}

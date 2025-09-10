@@ -12,6 +12,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom prompt templates
 - Multi-language support
 
+## [1.2.0] - 2025-09-10
+
+### 🏆 GPT-OSS Integration & Hackathon Ready
+
+### Added
+- **🤖 GPT-OSS Model Support**
+  - OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
+  - Dual hosting options: Groq (hosted) and Ollama (local)
+  - Perfect for OpenAI Open Model Hackathon submissions
+  - Hackathon mode toggle for simplified provider selection
+
+- **🌐 GPT-OSS Online Provider**
+  - Hosted GPT-OSS models via Groq infrastructure
+  - Ultra-fast inference with Groq's optimized platform
+  - Easy setup with Groq API key
+  - Full streaming support and error handling
+
+- **💻 GPT-OSS Offline Provider**
+  - Local GPT-OSS models via Ollama integration
+  - Complete privacy with no internet required for inference
+  - Automatic Ollama detection and setup guidance
+  - Model availability checking and installation instructions
+
+- **🛠️ Ollama Setup Assistant**
+  - Automated Ollama server detection (localhost:11434)
+  - GPT-OSS model availability checking
+  - Step-by-step setup instructions with command examples
+  - Real-time status checking with visual indicators
+  - Comprehensive setup checklist for offline usage
+
+- **🎯 Hackathon Mode**
+  - Environment-driven mode switching (OSS_MODE constant)
+  - Simplified provider selection for hackathon demos
+  - Hackathon-specific UI with orange branding
+  - Easy toggle between hackathon and production modes
+
+### Enhanced
+- **📊 Provider Ecosystem Expansion**
+  - Now supporting 8 major AI providers (up from 6)
+  - 27+ models available across all providers
+  - GPT-OSS providers integrated into normal provider list
+  - Seamless provider switching with GPT-OSS options
+
+- **🔧 Configuration Management**
+  - Enhanced ConfigManager with GPT-OSS provider support
+  - Default configurations for both online and offline GPT-OSS
+  - Automatic provider registration and initialization
+  - Improved error handling for local model detection
+
+### Technical Improvements
+- **🏗️ Provider Architecture**
+  - GPTOSSOnlineProvider extending GroqProvider for hosted models
+  - GPTOSSOfflineProvider with native Ollama integration
+  - Dual-mode architecture supporting both hosting options
+  - Enhanced AIService with GPT-OSS provider registration
+
+- **🎨 UI/UX Enhancements**
+  - Hackathon mode banner with clear branding
+  - Ollama setup checklist with real-time status updates
+  - Visual indicators for server status and model availability
+  - Improved error messages and setup guidance
+
+### Notes
+- **Hackathon Ready**: Perfect for OpenAI Open Model Hackathon
+- **Future-Proof**: GPT-OSS providers remain available after hackathon
+- **Flexible Architecture**: Easy switching between hackathon and production modes
+- **Local-First Option**: Complete offline capability with Ollama integration
+
 ## [1.1.2] - 2025-09-08
 
 ### 📚 Documentation & Architecture

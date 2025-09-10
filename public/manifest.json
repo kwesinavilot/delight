@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.1.2",
-  "description": "AI assistant in your browser sidepanel. Chat with 6 major AI providers, analyze webpages, and boost productivity with 10 specialized tools. 5 free requests included.",
+  "version": "1.2.0",
+  "description": "Multi-agent AI assistant to boost your productivity. Access 25+ models, automate tasks and enhance writing with specialized tools.",
   "permissions": [
     "sidePanel",
     "activeTab",
