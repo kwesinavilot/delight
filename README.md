@@ -2,11 +2,11 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.2.0 - GPT-OSS Integration & Hackathon Ready**
+## 🎉 **Version 1.3.0 - Advanced Agent Automation & Performance Optimization**
 
-**NEW**: GPT-OSS model support! OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b) with both hosted (Groq) and local (Ollama) options. Perfect for the OpenAI Open Model Hackathon!
+**NEW**: Enterprise-grade browser automation with Action Registry Pattern, dynamic schema generation, and intelligent DOM analysis with visual highlighting! Advanced Puppeteer integration with anti-detection measures.
 
-**ENHANCED**: Full browser automation capabilities! Cross-browser agent system with 25+ automation actions, Playwright integration, and dual-mode architecture for maximum compatibility.
+**ENHANCED**: Performance-optimized automation with DOM caching, viewport filtering, and change detection. Smart action system with retry logic and multiple execution modes for maximum reliability.
 
 Now supporting **6 major AI providers** with **27+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
@@ -52,14 +52,16 @@ Now supporting **6 major AI providers** with **27+ models** for every use case:
 - **Non-blocking Operations**: All saves happen asynchronously without UI freezing
 - **Smart History Management**: Only loads recent messages for optimal performance
 
-### 🤖 Agent Automation System
-- **Cross-Browser Automation**: Playwright integration for Chrome, Firefox, Safari, Edge
-- **25+ Automation Actions**: Navigate, click, fill, extract, scroll, and advanced interactions
-- **Dual-Mode Architecture**: Playwright for advanced automation, Chrome APIs for fallback
+### 🤖 Advanced Agent Automation System
+- **Enterprise Browser Automation**: Puppeteer CDP integration with anti-detection measures
+- **Action Registry Pattern**: Dynamic schema generation and structured LLM responses
+- **Visual DOM Analysis**: Interactive element detection with numbered highlighting
+- **Performance Optimized**: DOM caching, viewport filtering, and change detection
+- **Smart Actions**: Multiple execution modes (index, selector, query) with retry logic
 - **Multi-Agent Coordination**: Planner, Navigator, and Monitor agents working together
 - **Natural Language Processing**: Describe complex web tasks in plain English
 - **Real-time Execution**: Visual progress monitoring with step-by-step logs
-- **Smart Error Recovery**: Robust fallback mechanisms and graceful degradation
+- **Intelligent Error Recovery**: Robust fallback mechanisms and graceful degradation
 
 ### 📱 Sidepanel Conversation Management
 - **Sub-toolbar Navigation**: "New", "Chats", and "Agent" buttons in sidepanel mode for easy access
@@ -288,20 +290,20 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.2.0)
-- ✅ **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
+### Current Version (1.3.0) - October 9, 2025
+- ✅ **🏆 Enterprise Agent Automation**: Advanced Puppeteer CDP integration with anti-detection
+- ✅ **Action Registry Pattern**: Dynamic schema generation and structured LLM responses
+- ✅ **Visual DOM Analysis**: Interactive element detection with numbered highlighting
+- ✅ **Performance Optimization**: DOM caching, viewport filtering, change detection
+- ✅ **Smart Action System**: Multiple execution modes with intelligent retry logic
+- ✅ **GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
 - ✅ **Dual GPT-OSS Hosting**: Groq hosted + Ollama local options
-- ✅ **Hackathon Ready**: Perfect for OpenAI Open Model Hackathon submissions
-- ✅ **Ollama Setup Assistant**: Automated detection and setup guidance
-- ✅ **🤖 Complete Agent Automation**: Cross-browser automation with 25+ actions
-- ✅ **Playwright Integration**: Chrome, Firefox, Safari, Edge support
-- ✅ **Dual-Mode Architecture**: Advanced automation with Chrome API fallback
 - ✅ **Multi-Agent System**: Planner, Navigator, Monitor coordination
 - ✅ **Natural Language Tasks**: Describe complex web automation in plain English
 - ✅ **Real-time Execution**: Visual progress monitoring and error recovery
 - ✅ **AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
 - ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context
-- ✅ **Multi-Provider Support**: 6 major AI providers with 25+ models
+- ✅ **Multi-Provider Support**: 8 major AI providers with 27+ models
 - ✅ **Enhanced Browser Compatibility**: Cross-browser automation capabilities
 - ✅ **Performance Optimized**: Lightning-fast loading and memory management
 - ✅ **Secure & Private**: Local storage with encryption, no data collection

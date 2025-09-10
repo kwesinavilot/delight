@@ -21,16 +21,20 @@ export class PlannerAgent {
 Available actions:
 - navigate: Go to a URL (automatically waits for page load)
 - click: Click an element (provide CSS selector)
+- smartClick: Click element by description (e.g., "search button", "first video")
 - extract: Extract data from page (provide CSS selector)
 - fill: Fill form fields (provide selector and data)
+- smartFill: Fill input by description (e.g., "search", "email")
+- analyzePage: Analyze page for interactive elements
 - wait: Wait for specific duration (milliseconds)
 - waitForElement: Wait for element to appear (provide CSS selector)
 - waitForLoad: Wait for page to fully load
 
 IMPORTANT RULES:
 1. Always add waitForLoad after navigate actions
-2. Add waitForElement before interacting with dynamic content
-3. Use wait for delays between actions when needed
+2. Use smartFill and smartClick instead of fill/click when possible (more reliable)
+3. Add analyzePage before complex interactions to understand page structure
+4. Use wait for delays between actions when needed
 
 IMPORTANT: Respond ONLY with valid JSON, no explanations or markdown:
 

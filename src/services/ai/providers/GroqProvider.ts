@@ -74,8 +74,8 @@ export class GroqProvider extends BaseAIProvider {
             }));
             
             // Debug logging
-            console.log('Groq messages being sent:', groqMessages);
-            console.log('System prompt:', preparedOptions.systemPrompt);
+            // console.log('Groq messages being sent:', groqMessages);
+            // console.log('System prompt:', preparedOptions.systemPrompt);
 
             // Force non-streaming for all Groq models due to AI SDK compatibility issues
             const shouldStream = false; // Disable streaming for all Groq models

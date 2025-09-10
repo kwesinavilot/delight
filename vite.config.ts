@@ -36,7 +36,7 @@ export default defineConfig({
                     return `[name][extname]`;
                 }
             },
-            external: []
+            external: ['chromium-bidi/lib/cjs/bidiMapper/BidiMapper.js']
         },
         outDir: 'dist',
         emptyOutDir: true
@@ -51,6 +51,6 @@ export default defineConfig({
         'process.env.NODE_ENV': '"production"'
     },
     optimizeDeps: {
-        include: ['playwright-core']
+        include: ['puppeteer-core']
     }
 });

@@ -17,6 +17,10 @@ export type ActionType =
   | 'fill' | 'clear' | 'select' | 'check' | 'uncheck' | 'radio' | 'upload' | 'submit'
   // Data Extraction
   | 'extract' | 'screenshot' | 'getUrl' | 'getTitle' | 'getCookies' | 'getLocalStorage'
+  // DOM Analysis
+  | 'analyzePage' | 'clearHighlights'
+  // Smart Actions
+  | 'smartFill' | 'smartClick'
   // Waiting & Timing
   | 'wait' | 'waitForElement' | 'waitForText' | 'waitForUrl' | 'waitForLoad'
   // Advanced Actions

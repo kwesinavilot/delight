@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare, Bot } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
@@ -33,7 +33,7 @@ const MainSidePanel: React.FC = () => {
       const hasTabMode = urlParams.get('mode') === 'tab';
       const isWideWindow = window.outerWidth > 500; // More conservative threshold
       const isTabContext = window.location.pathname.includes('sidepanel') && hasTabMode;
-      
+
       // Primary check: URL parameter
       // Secondary check: window width (sidepanels are typically 320-400px)
       const isTabMode = hasTabMode || (isWideWindow && !window.chrome?.sidePanel);
@@ -105,12 +105,12 @@ const MainSidePanel: React.FC = () => {
       const sessions = result.chatSessions || {};
       delete sessions[sessionId];
       await chrome.storage.local.set({ chatSessions: sessions });
-      
+
       if (currentSessionId === sessionId) {
         setCurrentSessionId(null);
         window.dispatchEvent(new CustomEvent('newConversation'));
       }
-      
+
       // Trigger sidebar update
       window.dispatchEvent(new CustomEvent('sessionsUpdated'));
     } catch (error) {
@@ -126,7 +126,7 @@ const MainSidePanel: React.FC = () => {
         sessions[sessionId].title = newTitle;
         await chrome.storage.local.set({ chatSessions: sessions });
       }
-      
+
       // Trigger sidebar update
       window.dispatchEvent(new CustomEvent('sessionsUpdated'));
     } catch (error) {
@@ -156,7 +156,7 @@ const MainSidePanel: React.FC = () => {
 
       // For sidepanel mode, try window.close() first (most reliable)
       window.close();
-      
+
       // If window.close() doesn't work, try Chrome API as fallback
       setTimeout(async () => {
         try {
@@ -182,7 +182,7 @@ const MainSidePanel: React.FC = () => {
       // Get current tab before opening fullscreen
       const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const currentTab = currentTabs[0];
-      
+
       // Close sidepanel first if it exists
       if (currentTab?.id) {
         try {
@@ -194,13 +194,13 @@ const MainSidePanel: React.FC = () => {
           console.warn('Could not disable sidepanel:', error);
         }
       }
-      
+
       // Open the sidepanel page in a new tab for fullscreen experience
       await chrome.tabs.create({
         url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
         active: true
       });
-      
+
       console.log('Opened fullscreen tab and closed sidepanel');
     } catch (error) {
       console.error('Error maximizing to fullscreen:', error);
@@ -220,9 +220,9 @@ const MainSidePanel: React.FC = () => {
     try {
       // Try to find existing valid tab first
       const tabs = await chrome.tabs.query({});
-      let targetTab = tabs.find(async tab => 
-        tab.url && 
-        !tab.url.startsWith('chrome://') && 
+      let targetTab = tabs.find(async tab =>
+        tab.url &&
+        !tab.url.startsWith('chrome://') &&
         !tab.url.startsWith('chrome-extension://') &&
         tab.id !== (await chrome.tabs.getCurrent())?.id
       );
@@ -270,10 +270,10 @@ const MainSidePanel: React.FC = () => {
       // Clear the conversation history
       await chrome.storage.local.remove(['quickChatHistory']);
       setHasConversation(false);
-      
+
       // Dispatch custom event to notify ChatPanel to reset
       window.dispatchEvent(new CustomEvent('newConversation'));
-      
+
       console.log('Started new conversation');
     } catch (error) {
       console.error('Failed to start new conversation:', error);
@@ -340,7 +340,7 @@ const MainSidePanel: React.FC = () => {
                   <Plus className="h-5 w-5" />
                 </Button>
               )}
-              
+
               {/* Maximize/Minimize button */}
               {!isFullscreen ? (
                 <Button
@@ -402,7 +402,7 @@ const MainSidePanel: React.FC = () => {
               <Plus className="h-4 w-4" />
               <span className="text-xs">New</span>
             </Button>
-            
+
             {/* Conversations List button */}
             <Button
               id="conversations-btn"
@@ -415,9 +415,9 @@ const MainSidePanel: React.FC = () => {
               <MessageSquare className="h-4 w-4" />
               <span className="text-xs">Chats</span>
             </Button>
-            
+
             {/* Agent Automation button */}
-            {/* <Button
+            <Button
               id="agent-automation-btn"
               variant="ghost"
               size="sm"
@@ -427,7 +427,7 @@ const MainSidePanel: React.FC = () => {
             >
               <Bot className="h-4 w-4" />
               <span className="text-xs">Agent</span>
-            </Button> */}
+            </Button>
           </div>
         </div>
       )}
@@ -473,7 +473,7 @@ const MainSidePanel: React.FC = () => {
                   isFullscreen={isFullscreen}
                 />
               )}
-              
+
               {/* Chat Panel */}
               <div className={`flex-1 ${isFullscreen ? 'max-w-4xl mx-auto' : ''}`}>
                 <ChatPanel isFullscreen={isFullscreen} />
@@ -482,7 +482,7 @@ const MainSidePanel: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Agent Page */}
       {showAgentPage && (
         <div className="absolute inset-0 bg-background z-20">

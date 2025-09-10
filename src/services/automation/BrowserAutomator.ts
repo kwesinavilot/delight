@@ -2,11 +2,13 @@
 type Browser = any;
 type Page = any;
 import { TaskStep } from '../../types/agents';
+import { DOMAnalyzer, DOMAnalysisResult } from './DOMAnalyzer';
 
 export class BrowserAutomator {
   private browser: Browser | null = null;
   private page: Page | null = null;
   private pages: Map<number, Page> = new Map();
+  private domAnalyzer: DOMAnalyzer = new DOMAnalyzer();
 
   async initialize(): Promise<void> {
     try {
@@ -106,6 +108,10 @@ export class BrowserAutomator {
           return await this.page.title();
         case 'getCookies':
           return await this.page.context().cookies();
+        case 'analyzePage':
+          return await this.analyzePage(step.data?.highlight !== false);
+        case 'clearHighlights':
+          return await this.clearHighlights();
 
         // Waiting & Timing
         case 'wait':
@@ -243,8 +249,36 @@ export class BrowserAutomator {
     });
   }
 
+  private async analyzePage(highlight: boolean = true): Promise<DOMAnalysisResult> {
+    if (!this.page) {
+      throw new Error('No active page to analyze');
+    }
+
+    // Get current tab ID from Chrome API
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabId = tabs[0]?.id;
+    
+    if (!tabId) {
+      throw new Error('Could not get active tab ID');
+    }
+
+    return await this.domAnalyzer.analyzeTab(tabId, highlight);
+  }
+
+  private async clearHighlights(): Promise<void> {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabId = tabs[0]?.id;
+    
+    if (tabId) {
+      await this.domAnalyzer.clearHighlights(tabId);
+    }
+  }
+
   async cleanup(): Promise<void> {
     try {
+      // Clear any highlights
+      await this.clearHighlights();
+      
       // Close all managed pages
       for (const page of this.pages.values()) {
         await page.close();
