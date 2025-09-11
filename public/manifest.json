@@ -8,7 +8,9 @@
     "activeTab",
     "scripting",
     "storage",
+    "unlimitedStorage",
     "tabs",
+    "webNavigation",
     "debugger"
   ],
   "host_permissions": [
@@ -60,7 +62,9 @@
         "src/pages/userguide/index.html",
         "src/pages/privacy/index.html",
         "src/pages/updates/index.html",
-        "dom-analyzer.js"
+        "dom-analyzer.js",
+        "advanced-dom-analyzer.js",
+        "buildDomTree.js"
       ],
       "matches": ["<all_urls>"]
     }

@@ -2,11 +2,11 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.3.0 - Advanced Agent Automation & Performance Optimization**
+## 🎉 **Version 1.3.7 - Simplified Universal Automation**
 
-**NEW**: Enterprise-grade browser automation with Action Registry Pattern, dynamic schema generation, and intelligent DOM analysis with visual highlighting! Advanced Puppeteer integration with anti-detection measures.
+**NEW**: Complete rebuild of automation system focusing on reliability over complexity! Works on ANY page including chrome://, edge://, settings, and new tabs without restrictions.
 
-**ENHANCED**: Performance-optimized automation with DOM caching, viewport filtering, and change detection. Smart action system with retry logic and multiple execution modes for maximum reliability.
+**ENHANCED**: True planner-navigator-planner flow with smart re-planning, reliable visual highlighting, and streamlined actions that actually work consistently.
 
 Now supporting **6 major AI providers** with **27+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
@@ -23,7 +23,8 @@ Now supporting **6 major AI providers** with **27+ models** for every use case:
 ### 🚀 Core AI Features
 - **Multi-Provider AI Support**: Choose between 8 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, SambaNova, and GPT-OSS (Online/Offline)
 - **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models with dual hosting options (Groq hosted + Ollama local)
-- **🤖 Agent Automation System**: Revolutionary multi-agent framework for complex web automation tasks
+- **🤖 Iterative Agent System**: Memory-driven multi-agent framework inspired by Vercel AI SDK patterns for reliable web automation
+- **🧠 Agent Memory & Messaging**: Persistent context and structured communication between agents for better decision making
 - **AI Tools System**: 10 specialized tools for explaining, rewriting (paraphrase, improve, expand, shorten), and tone changes (academic, professional, persuasive, casual, funny)
 - **Interactive Sample Prompts**: One-click prompt insertion for common tasks like page summarization
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
@@ -52,16 +53,17 @@ Now supporting **6 major AI providers** with **27+ models** for every use case:
 - **Non-blocking Operations**: All saves happen asynchronously without UI freezing
 - **Smart History Management**: Only loads recent messages for optimal performance
 
-### 🤖 Advanced Agent Automation System
-- **Enterprise Browser Automation**: Puppeteer CDP integration with anti-detection measures
-- **Action Registry Pattern**: Dynamic schema generation and structured LLM responses
-- **Visual DOM Analysis**: Interactive element detection with numbered highlighting
-- **Performance Optimized**: DOM caching, viewport filtering, and change detection
-- **Smart Actions**: Multiple execution modes (index, selector, query) with retry logic
-- **Multi-Agent Coordination**: Planner, Navigator, and Monitor agents working together
-- **Natural Language Processing**: Describe complex web tasks in plain English
-- **Real-time Execution**: Visual progress monitoring with step-by-step logs
-- **Intelligent Error Recovery**: Robust fallback mechanisms and graceful degradation
+### 🤖 Iterative Agent Automation System
+- **Universal Page Support**: Works on ANY page including chrome://, edge://, settings, new tabs
+- **Tool-Based Planning**: Planner creates simple tool calls instead of complex upfront plans
+- **Memory-Driven Context**: Agents share state through persistent memory for better coordination
+- **Iterative Execution**: Like Vercel AI SDK's stopWhen pattern - plan → execute → store → repeat
+- **Visual Highlighting**: Red borders and numbered labels that appear consistently
+- **Smart Re-planning**: Planner sees actual page elements before planning interactions
+- **Agent Messaging**: Structured communication between agents with conversation history
+- **Natural Language Processing**: Describe web tasks in plain English
+- **Real-time Execution**: Clear progress monitoring with data extraction logging
+- **Specialized Agents Available**: FormHandler, DataExtractor, SearchAgent, ErrorRecovery kept as utilities
 
 ### 📱 Sidepanel Conversation Management
 - **Sub-toolbar Navigation**: "New", "Chats", and "Agent" buttons in sidepanel mode for easy access
@@ -290,28 +292,32 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.3.0) - October 9, 2025
-- ✅ **🏆 Enterprise Agent Automation**: Advanced Puppeteer CDP integration with anti-detection
-- ✅ **Action Registry Pattern**: Dynamic schema generation and structured LLM responses
-- ✅ **Visual DOM Analysis**: Interactive element detection with numbered highlighting
-- ✅ **Performance Optimization**: DOM caching, viewport filtering, change detection
-- ✅ **Smart Action System**: Multiple execution modes with intelligent retry logic
-- ✅ **GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
-- ✅ **Dual GPT-OSS Hosting**: Groq hosted + Ollama local options
-- ✅ **Multi-Agent System**: Planner, Navigator, Monitor coordination
-- ✅ **Natural Language Tasks**: Describe complex web automation in plain English
-- ✅ **Real-time Execution**: Visual progress monitoring and error recovery
-- ✅ **AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
-- ✅ **Smart Page Attachment**: Twitter-card style previews with persistent context
-- ✅ **Multi-Provider Support**: 8 major AI providers with 27+ models
-- ✅ **Enhanced Browser Compatibility**: Cross-browser automation capabilities
-- ✅ **Performance Optimized**: Lightning-fast loading and memory management
-- ✅ **Secure & Private**: Local storage with encryption, no data collection
+### Current Version (1.3.8) - December 20, 2024
+- ✅ **🧠 Agent Memory System**: Persistent context and conversation history across automation steps
+- ✅ **📨 Agent Messaging**: Structured communication between agents with typed message schemas
+- ✅ **🔄 Iterative Execution**: Vercel AI SDK-inspired pattern - plan → execute → store → repeat
+- ✅ **🛠️ Tool-Based Planning**: Planner creates simple tool calls instead of complex upfront plans
+- ✅ **🎯 Context-Aware Planning**: Planner sees actual page elements before planning interactions
+- ✅ **🌐 Universal Page Support**: Works on ANY page including chrome://, edge://, settings, new tabs
+- ✅ **🚀 Simplified Automation**: Reliable navigate, click, fill, extract, wait, analyze actions
+- ✅ **🎨 Visual Highlighting**: Consistent red borders and numbered labels on all pages
+- ✅ **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
+- ✅ **🔄 Dual GPT-OSS Hosting**: Groq hosted + Ollama local options
+- ✅ **🤖 Multi-Agent System**: Enhanced Planner, Navigator, Monitor with specialized utilities
+- ✅ **🗣️ Natural Language Tasks**: Describe web automation in plain English
+- ✅ **⚡ Real-time Execution**: Clear progress monitoring and error recovery
+- ✅ **🛠️ AI Tools System**: 10 specialized tools (explain, rewrite, tone changes)
+- ✅ **📎 Smart Page Attachment**: Twitter-card style previews with persistent context
+- ✅ **🌐 Multi-Provider Support**: 8 major AI providers with 27+ models
+- ✅ **🔒 Secure & Private**: Local storage with encryption, no data collection
 
 ### Upcoming Features
+- 🔲 **Enhanced Tool System**: More sophisticated browser automation tools
+- 🔲 **Agent Learning**: Memory-based improvement from user feedback
+- 🔲 **Visual Validation**: Screenshot-based task verification
+- 🔲 **Specialized Agent Integration**: Bring FormHandler, DataExtractor back into main flow
 - 🔲 **Agent Templates**: Pre-built automation workflows for common tasks
-- 🔲 **Learning System**: AI agents that improve from user feedback
-- 🔲 **Visual Automation**: Screenshot-based task validation and verification
+- 🔲 **Error Recovery Enhancement**: Intelligent failure handling and retry strategies
 - 🔲 Advanced summary customization
 - 🔲 Custom prompt templates
 - 🔲 Batch processing for multiple pages

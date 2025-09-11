@@ -1,57 +1,59 @@
 import { AIService } from '../ai/AIService';
 import { TaskPlan } from '../../types/agents';
 import { GeminiProvider } from '../ai/providers/GeminiProvider';
+import { AgentMemory } from './AgentMemory';
 
 export class PlannerAgent {
   private aiService: AIService;
+  private memory: AgentMemory;
 
   constructor() {
     console.log('🧠 [PlannerAgent] Initializing...');
     this.aiService = AIService.getInstance();
+    this.memory = new AgentMemory();
   }
 
   async initialize(): Promise<void> {
     await this.aiService.initialize();
   }
 
-  async createPlan(userInput: string): Promise<TaskPlan> {
+  async createPlan(userInput: string, context?: any): Promise<TaskPlan> {
     console.log('🧠 [PlannerAgent] Creating plan for:', userInput);
-    const prompt = `You are a task planning agent. Break down user requests into executable steps.
-
-Available actions:
-- navigate: Go to a URL (automatically waits for page load)
-- click: Click an element (provide CSS selector)
-- smartClick: Click element by description (e.g., "search button", "first video")
-- extract: Extract data from page (provide CSS selector)
-- fill: Fill form fields (provide selector and data)
-- smartFill: Fill input by description (e.g., "search", "email")
-- analyzePage: Analyze page for interactive elements
-- wait: Wait for specific duration (milliseconds)
-- waitForElement: Wait for element to appear (provide CSS selector)
-- waitForLoad: Wait for page to fully load
-
-IMPORTANT RULES:
-1. Always add waitForLoad after navigate actions
-2. Use smartFill and smartClick instead of fill/click when possible (more reliable)
-3. Add analyzePage before complex interactions to understand page structure
-4. Use wait for delays between actions when needed
-
-IMPORTANT: Respond ONLY with valid JSON, no explanations or markdown:
-
-{
-  "description": "Brief task description",
-  "steps": [
-    {
-      "id": "step_1",
-      "type": "navigate",
-      "url": "https://example.com",
-      "description": "Navigate to example.com"
+    
+    // Store in memory
+    this.memory.addToConversation('user', userInput);
+    if (context) {
+      this.memory.remember('currentContext', context, 'context');
     }
-  ],
-  "estimatedDuration": 30000
-}
+    
+    const conversationHistory = this.memory.getConversationContext(5);
+    const previousResults = this.memory.recallByType('result');
+    
+    const prompt = `You are a web automation planner using available tools.
 
-Task: ${userInput}`;
+Available Tools:
+- navigate(url): Navigate to a website
+- analyzePage(): Get numbered interactive elements from current page  
+- clickElement(index): Click element by number
+- fillElement(index, text): Fill input by number
+- wait(seconds): Wait for loading
+
+Conversation History:
+${conversationHistory.map(h => `${h.role}: ${h.content}`).join('\n')}
+
+Previous Results:
+${JSON.stringify(previousResults.slice(-3))}
+
+Task: ${userInput}
+
+Create next step(s) as JSON:
+{
+  "description": "What we're doing",
+  "steps": [
+    {"id": "step_1", "type": "navigate", "url": "https://example.com", "description": "Navigate to site"}
+  ],
+  "estimatedDuration": 10000
+}`;
 
     try {
       console.log('🤖 [PlannerAgent] Sending request to AI...');
@@ -68,6 +70,10 @@ Task: ${userInput}`;
         
         plan = await currentProvider.generateStructuredResponse(structuredPrompt, schema);
         console.log('✅ [PlannerAgent] Structured response received:', plan);
+        
+        // Store result in memory
+        this.memory.remember('lastPlan', plan, 'plan');
+        this.memory.addToConversation('planner', JSON.stringify(plan));
       } else {
         console.log('💬 [PlannerAgent] Using fallback text parsing...');
         const response = await this.aiService.generateChatResponse(prompt, undefined);
@@ -93,6 +99,10 @@ Task: ${userInput}`;
         
         console.log('🧠 [PlannerAgent] Parsing JSON:', jsonStr);
         plan = JSON.parse(jsonStr);
+        
+        // Store result in memory
+        this.memory.remember('lastPlan', plan, 'plan');
+        this.memory.addToConversation('planner', JSON.stringify(plan));
       }
 
 
@@ -116,5 +126,47 @@ Task: ${userInput}`;
       console.error('❌ [PlannerAgent] Planning failed:', error);
       throw new Error(`Planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+  
+  async replan(userInput: string, currentContext: any, completedSteps: any[]): Promise<TaskPlan> {
+    console.log('🔄 [PlannerAgent] Re-planning based on new context...');
+    
+    // Check if we have page analysis results to work with
+    const lastResult = currentContext.lastResult;
+    const hasPageElements = lastResult?.result?.elementCount > 0;
+    
+    let contextualPrompt;
+    
+    if (hasPageElements) {
+      // We have page elements - plan specific interactions
+      contextualPrompt = `Original task: ${userInput}
+
+Page Analysis Results:
+- Found ${lastResult.result.elementCount} interactive elements
+- Current page: ${lastResult.result.url}
+- Page title: ${lastResult.result.title}
+
+Now plan specific element interactions using elementIndex numbers (0, 1, 2, etc.).
+
+Available interaction actions:
+- click: Click element by number (use "elementIndex": 0)
+- fill: Fill input by number (use "elementIndex": 1, "data": "text")
+- extract: Extract text from element (use "elementIndex": 2)
+- scrollToText: Scroll to find text (use "data": {"text": "search term"})
+- wait: Wait between actions
+
+Plan the remaining steps to complete: ${userInput}`;
+    } else {
+      // No page elements yet - continue with navigation
+      contextualPrompt = `Original task: ${userInput}
+
+Current situation:
+- Completed steps: ${completedSteps.length}
+- Data collected: ${JSON.stringify(currentContext.extractedData || {})}
+
+Continue planning navigation steps to complete: ${userInput}`;
+    }
+    
+    return await this.createPlan(contextualPrompt, currentContext);
   }
 }

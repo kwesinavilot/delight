@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseAction, ActionResult } from '../ActionRegistry';
+import { ActionResult } from '../ActionRegistry';
 
 export const clickActionSchema = z.object({
   selector: z.string().optional(),
@@ -7,7 +7,7 @@ export const clickActionSchema = z.object({
   query: z.string().optional()
 });
 
-export class ClickAction extends BaseAction {
+export class ClickAction {
   name(): string {
     return 'click';
   }
@@ -36,14 +36,12 @@ export class ClickAction extends BaseAction {
 
       return {
         success: true,
-        data: { clicked: true },
-        timestamp: Date.now()
+        data: { clicked: true }
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }

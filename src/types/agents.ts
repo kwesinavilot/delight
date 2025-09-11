@@ -10,35 +10,42 @@ export interface AgentMessage {
 
 export type ActionType = 
   // Core Navigation
-  | 'navigate' | 'back' | 'forward' | 'refresh' | 'newTab' | 'closeTab' | 'switchTab'
+  | 'navigate' | 'goBack' | 'forward' | 'refresh' | 'newTab' | 'closeTab' | 'switchTab'
   // Element Interaction  
-  | 'click' | 'doubleClick' | 'rightClick' | 'hover' | 'drag' | 'scroll' | 'focus'
+  | 'click' | 'clickElement' | 'doubleClick' | 'rightClick' | 'hover' | 'drag' | 'focus'
   // Form & Input
-  | 'fill' | 'clear' | 'select' | 'check' | 'uncheck' | 'radio' | 'upload' | 'submit'
+  | 'fill' | 'inputText' | 'clear' | 'select' | 'selectDropdownOption' | 'getDropdownOptions'
+  | 'check' | 'uncheck' | 'radio' | 'upload' | 'submit'
   // Data Extraction
-  | 'extract' | 'screenshot' | 'getUrl' | 'getTitle' | 'getCookies' | 'getLocalStorage'
+  | 'extract' | 'extractText' | 'screenshot' | 'getUrl' | 'getTitle' | 'getCookies' | 'getLocalStorage'
   // DOM Analysis
   | 'analyzePage' | 'clearHighlights'
-  // Smart Actions
-  | 'smartFill' | 'smartClick'
+  // Scrolling Actions
+  | 'scroll' | 'scrollToPercent' | 'scrollToText' | 'scrollToTop' | 'scrollToBottom'
+  // Keyboard Actions
+  | 'sendKeys' | 'type'
   // Waiting & Timing
   | 'wait' | 'waitForElement' | 'waitForText' | 'waitForUrl' | 'waitForLoad'
-  // Advanced Actions
-  | 'executeScript' | 'setViewport' | 'authenticate' | 'handleAlert' | 'switchFrame' | 'downloadFile'
+  // Utility Actions
+  | 'cacheContent' | 'executeScript' | 'setViewport' | 'authenticate' | 'handleAlert' | 'switchFrame'
   // Validation
   | 'verify' | 'verifyText' | 'verifyUrl' | 'verifyAttribute'
   // Multi-Page
-  | 'openInNewTab' | 'comparePages' | 'aggregateData' | 'parallelExecution';
+  | 'openInNewTab' | 'comparePages' | 'aggregateData' | 'parallelExecution'
+  // Specialized Actions
+  | 'search' | 'handleForm' | 'extractData' | 'recoverError';
 
 export interface TaskStep {
   id: string;
   type: ActionType;
   selector?: string;
+  elementIndex?: number;
   url?: string;
   data?: any;
   tabId?: number;
   timeout?: number;
   expected?: any;
+  expectedOutcome?: string;
   description: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
 }

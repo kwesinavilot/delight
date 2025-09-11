@@ -19,7 +19,7 @@ export const AgentMode: React.FC<AgentModeProps> = ({ onResult }) => {
     setIsExecuting(true);
     setProgress(null);
 
-    orchestrator.setProgressCallback(setProgress);
+
 
     try {
       await orchestrator.initialize();

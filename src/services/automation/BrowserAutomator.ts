@@ -54,7 +54,7 @@ export class BrowserAutomator {
         // Navigation Actions
         case 'navigate':
           return await this.navigate(step.url!);
-        case 'back':
+        case 'goBack':
           return await this.page.goBack();
         case 'forward':
           return await this.page.goForward();
