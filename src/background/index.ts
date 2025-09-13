@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
                 await chrome.sidePanel.open({ tabId: tabId });
                 await chrome.sidePanel.setOptions({
                     tabId: tabId,
-                    path: 'sidepanel.html',
+                    path: 'src/pages/sidepanel/index.html',
                     enabled: true
                 });
 
@@ -48,28 +48,83 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         })();
         return true;
     }
-
-
 });
 
-// Context menu setup and welcome page handling
+// Handle keyboard shortcut
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command === '_execute_action') {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (!tab?.id) return;
+
+            if (tab.url && tab.url.startsWith("chrome://")) {
+                console.error("Cannot open side panel on a chrome:// URL:", tab.url);
+                return;
+            }
+
+            await chrome.sidePanel.open({ tabId: tab.id });
+            await chrome.sidePanel.setOptions({
+                tabId: tab.id,
+                path: 'src/pages/sidepanel/index.html',
+                enabled: true
+            });
+
+            console.log('Side panel opened via keyboard shortcut');
+        } catch (error) {
+            console.error('Error opening side panel via shortcut:', error);
+        }
+    }
+});
+
+// Context menu setup
 chrome.runtime.onInstalled.addListener(async (details) => {
-    // Create context menu - DISABLED
-    // chrome.contextMenus.create({
-    //     id: 'summarize',
-    //     title: 'Summarize with Delight',
-    //     contexts: ['page'],
-    //     enabled: true
-    // });
+    // Create context menus with error handling
+    try {
+        chrome.contextMenus.create({
+            id: 'open-delight',
+            title: 'Open Delight',
+            contexts: ['page']
+        });
+
+        chrome.contextMenus.create({
+            id: 'summarize-page',
+            title: 'Summarize with Delight',
+            contexts: ['page']
+        });
+
+        chrome.contextMenus.create({
+            id: 'chat-about-page',
+            title: 'Chat about page with Delight',
+            contexts: ['page']
+        });
+
+        chrome.contextMenus.create({
+            id: 'explain-selection',
+            title: 'Explain with Delight',
+            contexts: ['selection']
+        });
+
+        chrome.contextMenus.create({
+            id: 'rewrite-selection',
+            title: 'Rewrite with Delight',
+            contexts: ['selection']
+        });
+
+        // chrome.contextMenus.create({
+        //     id: 'translate-selection',
+        //     title: 'Translate with Delight',
+        //     contexts: ['selection']
+        // });
+    } catch (error) {
+        console.error('Failed to create context menus:', error);
+    }
 
     // Show welcome page on first install
     if (details.reason === 'install') {
         try {
-            // Check if welcome has been completed before
             const result = await chrome.storage.sync.get(['welcomeCompleted']);
             
             if (!result.welcomeCompleted) {
-                // Open welcome page in a new tab
                 await chrome.tabs.create({
                     url: chrome.runtime.getURL('src/pages/welcome/index.html'),
                     active: true
@@ -80,14 +135,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         }
     }
     
-    // Show updates page on any version update
+    // Show updates page on version update
     if (details.reason === 'update') {
         const previousVersion = details.previousVersion;
         const currentVersion = chrome.runtime.getManifest().version;
         
         if (previousVersion && currentVersion && previousVersion !== currentVersion) {
             try {
-                // Store update info for the updates page
                 await chrome.storage.local.set({
                     updateInfo: {
                         previousVersion,
@@ -96,7 +150,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
                     }
                 });
                 
-                // Open updates page
                 await chrome.tabs.create({
                     url: chrome.runtime.getURL('src/pages/updates/index.html'),
                     active: true
@@ -108,60 +161,47 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-// Context menu click handler - DISABLED
-// chrome.contextMenus.onClicked.addListener((info, tab) => {
-//     if (!tab?.id || !tab?.windowId) {
-//         console.error('No tab found for context menu action');
-//         return;
-//     }
+// Context menu click handler
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (!tab?.id || !tab?.windowId) return;
 
-//     (async () => {
-//         try {
-//             if (tab.url && tab.url.startsWith("chrome://")) {
-//                 console.error("Cannot open side panel on a chrome:// URL");
-//                 return;
-//             }
+    try {
+        if (tab.url && tab.url.startsWith("chrome://")) {
+            console.error("Cannot open side panel on chrome:// URL");
+            return;
+        }
 
-//             if (info.menuItemId === 'summarize') {
-//                 // Store summarization request
-//                 await chrome.storage.local.set({
-//                     pendingSummarization: {
-//                         tabId: tab.id,
-//                         url: tab.url,
-//                         title: tab.title,
-//                         timestamp: Date.now()
-//                     }
-//                 });
-//             }
+        // Clear existing chat and store the context menu action
+        chrome.storage.local.remove(['quickChatHistory']);
+        
+        const contextAction = {
+            action: info.menuItemId,
+            selectedText: info.selectionText || '',
+            pageUrl: info.pageUrl || '',
+            timestamp: Date.now(),
+            autoSend: true
+        };
 
-//             await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
-//             await chrome.sidePanel.setOptions({
-//                 tabId: tab.id,
-//                 path: 'sidepanel.html',
-//                 enabled: true
-//             });
-//         } catch (error) {
-//             console.error('Error setting up side panel:', error);
-//         }
-//     })();
-//     return true;
-// });
+        chrome.storage.local.set({ pendingContextAction: contextAction });
+
+        // Open sidepanel synchronously to preserve user gesture
+        chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+        chrome.sidePanel.setOptions({
+            tabId: tab.id,
+            path: 'src/pages/sidepanel/index.html',
+            enabled: true
+        });
+
+        console.log('Context menu action:', info.menuItemId);
+    } catch (error) {
+        console.error('Error handling context menu:', error);
+    }
+});
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
     .catch((error) => console.error(error));
 
-// Update context menu based on the active tab - DISABLED
-// chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-//     if (!tab.url) return;
-
-//     if (changeInfo.status === 'complete' && tab.active) {
-//         const isUtilityPage = tab.url && tab.url.startsWith('chrome://');
-//         chrome.contextMenus.update('summarize', { enabled: !isUtilityPage });
-//     }
-// });
-
-// Add connection listener
 chrome.runtime.onConnect.addListener((port) => {
     console.log('Connected to port:', port.name);
 

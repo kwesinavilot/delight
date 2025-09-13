@@ -9,8 +9,8 @@ import { GeminiProvider } from './providers/GeminiProvider';
 import { GrokProvider } from './providers/GrokProvider';
 import { GroqProvider } from './providers/GroqProvider';
 import { SambaNovaProvider } from './providers/SambaNovaProvider';
-import { GPTOSSOnlineProvider } from './providers/GPTOSSOnlineProvider';
-import { GPTOSSOfflineProvider } from './providers/GPTOSSOfflineProvider';
+// import { GPTOSSOnlineProvider } from './providers/GPTOSSOnlineProvider';
+import { OllamaProvider } from './providers/OllamaProvider';
 
 export class AIService {
   private static instance: AIService;
@@ -45,8 +45,8 @@ export class AIService {
       grok: GrokProvider,
       groq: GroqProvider,
       sambanova: SambaNovaProvider,
-      'gpt-oss-online': GPTOSSOnlineProvider,
-      'gpt-oss-offline': GPTOSSOfflineProvider
+      ollama: OllamaProvider
+      // 'gpt-oss-online': GPTOSSOnlineProvider,
     };
 
     // Check if we should use trial mode
@@ -474,11 +474,11 @@ export class AIService {
         case 'sambanova':
           tempProvider = new SambaNovaProvider(config);
           break;
-        case 'gpt-oss-online':
-          tempProvider = new GPTOSSOnlineProvider(config);
-          break;
-        case 'gpt-oss-offline':
-          tempProvider = new GPTOSSOfflineProvider(config);
+        // case 'gpt-oss-online':
+        //   tempProvider = new GPTOSSOnlineProvider(config);
+        //   break;
+        case 'ollama':
+          tempProvider = new OllamaProvider(config);
           break;
         default:
           return false;

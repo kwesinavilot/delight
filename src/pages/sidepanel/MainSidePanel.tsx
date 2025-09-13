@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare, Bot } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
@@ -417,7 +417,7 @@ const MainSidePanel: React.FC = () => {
             </Button>
 
             {/* Agent Automation button */}
-            <Button
+            {/* <Button
               id="agent-automation-btn"
               variant="ghost"
               size="sm"
@@ -427,7 +427,7 @@ const MainSidePanel: React.FC = () => {
             >
               <Bot className="h-4 w-4" />
               <span className="text-xs">Agent</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
       )}

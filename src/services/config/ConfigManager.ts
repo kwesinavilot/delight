@@ -1,8 +1,5 @@
 import { AIConfiguration, ExtensionSettings } from '../../types/ai';
 
-// Set to true for hackathon mode, false for normal mode
-const OSS_MODE = true;
-
 export class ConfigManager {
   private static instance: ConfigManager;
   private settings: ExtensionSettings | null = null;
@@ -31,11 +28,9 @@ export class ConfigManager {
   }
 
   private getDefaultSettings(): ExtensionSettings {
-    const ossMode = OSS_MODE;
     return {
       ai: {
-        currentProvider: ossMode ? 'gpt-oss-online' : 'openai',
-        gptOssMode: ossMode,
+        currentProvider: 'gemini',
         providers: {
           openai: {
             apiKey: '',
@@ -73,13 +68,13 @@ export class ConfigManager {
             maxTokens: 1000,
             temperature: 0.7
           },
-          'gpt-oss-online': {
-            apiKey: '',
-            model: 'openai/gpt-oss-20b',
-            maxTokens: 1000,
-            temperature: 0.7
-          },
-          'gpt-oss-offline': {
+          // 'gpt-oss-online': {
+          //   apiKey: '',
+          //   model: 'openai/gpt-oss-20b',
+          //   maxTokens: 1000,
+          //   temperature: 0.7
+          // },
+          ollama: {
             apiKey: '',
             model: 'gpt-oss-20b',
             maxTokens: 1000,
@@ -304,16 +299,5 @@ export class ConfigManager {
       console.error(`Failed to test connection for ${provider}:`, error);
       return false;
     }
-  }
-
-  async getGptOssMode(): Promise<boolean> {
-    if (!this.settings) await this.loadSettings();
-    return this.settings!.ai.gptOssMode || false;
-  }
-
-  async setGptOssMode(enabled: boolean): Promise<void> {
-    if (!this.settings) await this.loadSettings();
-    this.settings!.ai.gptOssMode = enabled;
-    await this.saveSettings();
   }
 }

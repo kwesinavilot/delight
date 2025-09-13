@@ -11,7 +11,8 @@
     "unlimitedStorage",
     "tabs",
     "webNavigation",
-    "debugger"
+    "debugger",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"

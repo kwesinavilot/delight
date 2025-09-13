@@ -58,6 +58,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     initializeServices();
     checkForPendingSummarization();
     loadTrialStatus();
+  }, []);
+
+  // Separate effect to check for context actions after services are ready
+  useEffect(() => {
+    if (isServiceReady && session) {
+      checkForPendingContextAction();
+    }
+  }, [isServiceReady, session]);
+
+  // Also check when component becomes visible and initialize prompts
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isServiceReady && session) {
+        checkForPendingContextAction();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Initialize prompts once
     const allPrompts = [
@@ -203,8 +221,91 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       window.removeEventListener('newConversation', handleNewConversation);
       window.removeEventListener('loadSession', handleLoadSession);
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
+
+  const checkForPendingContextAction = async () => {
+    try {
+      const result = await chrome.storage.local.get(['pendingContextAction']);
+      const pending = result.pendingContextAction;
+
+      if (pending && Date.now() - pending.timestamp < 10000) {
+        await chrome.storage.local.remove(['pendingContextAction']);
+
+        // Only clear if we have a valid action
+        let prompt = '';
+        let isPageAction = false;
+
+        switch (pending.action) {
+          case 'open-delight':
+            return;
+          case 'summarize-page':
+            prompt = 'Summarize this page';
+            isPageAction = true;
+            break;
+          case 'chat-about-page':
+            prompt = "Let's chat about this page";
+            isPageAction = true;
+            break;
+          case 'explain-selection':
+            prompt = `Explain this text: "${pending.selectedText}"`;
+            break;
+          case 'rewrite-selection':
+            prompt = `Rewrite and improve this text: "${pending.selectedText}"`;
+            break;
+        }
+
+        // Only clear and proceed if we have a valid prompt
+        if (prompt) {
+          // Create new chat session
+          await chrome.storage.local.remove(['quickChatHistory']);
+          setMessages([]);
+          setStreamingContent('');
+          setAttachedPageContext(null);
+          setInput(prompt);
+          
+          if (isPageAction) {
+            // For page actions: get context then auto-send
+            handlePageAction();
+          } else {
+            // For text actions: just auto-send
+            setTimeout(() => sendMessage(), 1000);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check pending context action:', error);
+    }
+  };
+
+  const handlePageAction = async () => {
+    try {
+      // Try to get page context directly first
+      let context;
+      try {
+        context = await PageContextService.getCurrentPageContext();
+      } catch (error) {
+        // If failed, inject content script and retry
+        await chrome.runtime.sendMessage({ action: 'getPageContent' });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        context = await PageContextService.getCurrentPageContext();
+      }
+      
+      if (context) {
+        setAttachedPageContext(context);
+        // Auto-send after context is attached
+        setTimeout(() => sendMessage(), 500);
+      } else {
+        // Send without context if failed
+        setTimeout(() => sendMessage(), 500);
+      }
+    } catch (error) {
+      console.error('Page action failed:', error);
+      // Send without context if failed
+      setTimeout(() => sendMessage(), 500);
+    }
+  };
 
   const loadTrialStatus = async () => {
     try {
@@ -561,11 +662,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     }
   };
 
-  const getPageContext = async (format: 'detailed' | 'summary' | 'minimal' = 'detailed') => {
+  const getPageContext = async (format: 'detailed' | 'summary' | 'minimal' = 'detailed', retryCount = 0) => {
     setIsGettingPageContext(true);
     console.log('Getting page context with format:', format);
 
     try {
+      // Inject content script first to ensure connection
+      await chrome.runtime.sendMessage({ action: 'getPageContent' });
+      
+      // Small delay to ensure content script is ready
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       const context = await PageContextService.getCurrentPageContext();
       console.log('Page context result:', context);
 
@@ -580,6 +687,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       }
     } catch (error) {
       console.error('Failed to get page context:', error);
+      
+      // Retry once if connection failed
+      if (retryCount < 1 && error instanceof Error && error.message.includes('connection')) {
+        console.log('Retrying page context extraction...');
+        setTimeout(() => getPageContext(format, retryCount + 1), 500);
+        return;
+      }
+      
       setMessages(prev => [...prev, {
         role: 'error',
         content: `Failed to extract page content: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -1105,9 +1220,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
                 Loading conversation history...
               </p>
             )}
+
+            {/* Disclaimer */}
+            <div className="mt-2 text-center">
+              <button 
+                onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/accuracy/index.html') })}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 underline cursor-pointer"
+              >
+                Delight can make mistakes. Verify any facts provided.
+              </button>
+            </div>
           </div>
     </div>
   );
 };
 
-export default ChatPanel; 
+export default ChatPanel;

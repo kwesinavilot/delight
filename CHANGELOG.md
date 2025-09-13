@@ -2,7 +2,41 @@
 
 All notable changes to Delight will be documented in this file.
 
-## [1.3.4] - 2025-10-11
+## [1.4.0] - 2025-09-13
+
+### 🎯 Context Menu Integration
+- **NEW**: Right-click context menus for instant AI assistance
+- **NEW**: "Open Delight" - Quick access to extension
+- **NEW**: "Summarize with Delight" - Auto-summarize any webpage
+- **NEW**: "Chat about page with Delight" - Discuss page content with AI
+- **NEW**: "Explain with Delight" - Explain selected text
+- **NEW**: "Rewrite with Delight" - Improve selected text
+
+### 🚀 Smart Automation
+- **ENHANCED**: Auto-send functionality for all context menu actions
+- **ENHANCED**: Automatic page context attachment for page-level actions
+- **ENHANCED**: New chat creation for each context action
+- **ENHANCED**: Reliable content script injection with conflict prevention
+
+### 🛡️ AI Accuracy & Trust
+- **NEW**: AI accuracy disclaimer with educational content
+- **NEW**: Dedicated accuracy information page explaining AI limitations
+- **NEW**: Best practices guide for responsible AI usage
+- **NEW**: Clickable disclaimer linking to comprehensive AI safety information
+
+### 🔧 Technical Improvements
+- **FIXED**: Content script variable conflicts ($ identifier redeclaration)
+- **ENHANCED**: Improved error handling for page context extraction
+- **ENHANCED**: Better timing for auto-send functionality
+- **ENHANCED**: Optimized content script injection strategy
+
+### 🎨 User Experience
+- **ENHANCED**: Seamless workflow from right-click to AI response
+- **ENHANCED**: Context-aware prompts with automatic page attachment
+- **ENHANCED**: Preserved starter prompts when no context actions pending
+- **ENHANCED**: Clear visual feedback for all context menu interactions
+
+## [1.3.4] - 2025-09-11
 
 ### 🧠 Agent System Overhaul
 - **NEW**: Agent Memory System - Persistent context and conversation history across automation steps
@@ -27,7 +61,7 @@ All notable changes to Delight will be documented in this file.
 - Memory-driven context sharing between planning iterations
 - Tool-based approach prevents CSS selector guessing issues
 
-## [1.3.3] - 2025-10-10
+## [1.3.3] - 2025-09-10
 
 ### 🌐 Universal Automation System
 - **NEW**: Complete rebuild of automation system focusing on reliability over complexity
@@ -58,7 +92,7 @@ All notable changes to Delight will be documented in this file.
 - **NEW**: Seamless mode switching between sidepanel and fullscreen
 - **ENHANCED**: Non-blocking operations and optimized storage
 
-## [1.3.2] - 2025-10-10
+## [1.3.2] - 2025-09-10
 
 ### 🤖 Agent System Foundation
 - **NEW**: Multi-agent automation system with Planner, Navigator, and Monitor agents
@@ -77,7 +111,7 @@ All notable changes to Delight will be documented in this file.
 - **NEW**: Dynamic re-planning based on page analysis results
 - **ENHANCED**: Structured data extraction with performance caching
 
-## [1.3.1] - 2025-10-10
+## [1.3.1] - 2025-09-10
 
 ### 🌐 Multi-Provider Expansion
 - **NEW**: Added Groq provider for ultra-fast inference
@@ -97,7 +131,7 @@ All notable changes to Delight will be documented in this file.
 - **NEW**: Smart button timing (copy/retry appear after completion)
 - **ENHANCED**: Conversation continuity and restoration
 
-## [1.3.0] - 2025-10-09
+## [1.3.0] - 2025-09-09
 
 ### Added
 - **Enterprise Agent Automation**: Advanced Puppeteer CDP integration with anti-detection measures

@@ -2,11 +2,11 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.3.7 - Simplified Universal Automation**
+## 🎉 **Version 1.4.0 - Context Menu Integration & AI Safety**
 
-**NEW**: Complete rebuild of automation system focusing on reliability over complexity! Works on ANY page including chrome://, edge://, settings, and new tabs without restrictions.
+**NEW**: Right-click context menus for instant AI assistance! Summarize pages, explain text, and chat about content with just a right-click.
 
-**ENHANCED**: True planner-navigator-planner flow with smart re-planning, reliable visual highlighting, and streamlined actions that actually work consistently.
+**ENHANCED**: Smart auto-send functionality, automatic page context attachment, and comprehensive AI accuracy education for responsible usage.
 
 Now supporting **6 major AI providers** with **27+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
@@ -292,7 +292,12 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.3.8) - December 20, 2024
+### Current Version (1.4.0) - September 13, 2025
+- ✅ **🎯 Context Menu Integration**: Right-click menus for instant AI assistance
+- ✅ **🚀 Smart Auto-Send**: Automatic message sending for all context actions
+- ✅ **📎 Auto Page Context**: Automatic page attachment for page-level actions
+- ✅ **🛡️ AI Accuracy Education**: Comprehensive AI safety and limitation guidance
+- ✅ **🔄 New Chat Creation**: Fresh conversations for each context menu action
 - ✅ **🧠 Agent Memory System**: Persistent context and conversation history across automation steps
 - ✅ **📨 Agent Messaging**: Structured communication between agents with typed message schemas
 - ✅ **🔄 Iterative Execution**: Vercel AI SDK-inspired pattern - plan → execute → store → repeat

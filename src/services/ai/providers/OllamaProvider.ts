@@ -1,7 +1,7 @@
 import { BaseAIProvider } from '../BaseAIProvider';
 import { GenerationOptions, SummaryLength, AIConfiguration } from '../../../types/ai';
 
-export class GPTOSSOfflineProvider extends BaseAIProvider {
+export class OllamaProvider extends BaseAIProvider {
     private ollamaUrl: string = 'http://localhost:11434';
 
     constructor(config: AIConfiguration) {

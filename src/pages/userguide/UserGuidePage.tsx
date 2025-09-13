@@ -14,6 +14,7 @@ import {
   WrenchScrewdriverIcon,
   // PaperClipIcon
 } from '@heroicons/react/24/outline';
+import PageFooter from '@/components/ui/PageFooter';
 
 const UserGuidePage: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -575,21 +576,7 @@ const UserGuidePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.2.0 - AI-powered Chrome extension with GPT-OSS integration</p>
-          <div className="flex justify-center space-x-4 mt-2">
-            <button
-              onClick={() => window.close()}
-              className="hover:text-blue-500"
-            >
-              Close Guide
-            </button>
-            {/* <a href="https://github.com/kwesinavilot/delight" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500">
-              GitHub
-            </a> */}
-          </div>
-        </div>
+        <PageFooter />
       </div>
     </div>
   );

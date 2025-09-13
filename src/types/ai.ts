@@ -31,7 +31,6 @@ export interface AIConfiguration {
 export interface ExtensionSettings {
   ai: {
     currentProvider: string;
-    gptOssMode?: boolean;
     providers: {
       [key: string]: {
         apiKey: string;

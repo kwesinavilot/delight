@@ -7,6 +7,7 @@ import {
   KeyIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
+import PageFooter from '@/components/ui/PageFooter';
 
 const PrivacyPage: React.FC = () => {
   return (
@@ -231,21 +232,7 @@ const PrivacyPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Delight v1.1.2 - Privacy Policy</p>
-          <div className="flex justify-center space-x-4 mt-2">
-            <button
-              onClick={() => window.close()}
-              className="hover:text-blue-500"
-            >
-              Close
-            </button>
-            {/* <a href="https://github.com/kwesinavilot/delight" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500">
-              GitHub
-            </a> */}
-          </div>
-        </div>
+        <PageFooter />
       </div>
     </div>
   );
