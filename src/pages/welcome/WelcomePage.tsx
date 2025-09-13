@@ -122,14 +122,14 @@ const WelcomePage: React.FC = () => {
 
   const steps = [
     {
-      title: 'Welcome to Delight 1.2.0!',
-      subtitle: 'Agent Automation & GPT-OSS Integration',
+      title: 'Welcome to Delight 1.4.0!',
+      subtitle: 'Context Menu Options',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 1.2.0!
+              Welcome to Delight 1.4.0!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
               Revolutionary agent automation system with GPT-OSS integration! Multi-agent framework for complex web tasks, OpenAI's open reasoning models, enhanced AI tools and smart page attachment.

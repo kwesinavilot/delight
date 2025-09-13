@@ -620,7 +620,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v1.2.0</span>
+                <span className="font-medium">Delight v1.4.0</span>
               </div>
             </div>
           </div>
