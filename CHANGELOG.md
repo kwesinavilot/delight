@@ -231,9 +231,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2025-09-15
 
 ### Added
-- **GPT-OSS Integration**: OpenAI's open-weight reasoning models (gpt-oss-120b, gpt-oss-20b)
-- **Dual GPT-OSS Hosting**: Groq hosted + Ollama local options
-- **Complete Agent Automation**: Cross-browser automation with 25+ actions
 - **Multi-Agent System**: Planner, Navigator, Monitor coordination
 - **Natural Language Tasks**: Describe complex web automation in plain English
 - **Real-time Execution**: Visual progress monitoring and error recovery

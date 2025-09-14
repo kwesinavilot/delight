@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Delight Documentation Generator",
+  "description": "Analyzes code structure in the multi-agent automation system, AI provider architecture, and conversation management system to generate architectural diagrams, sequence diagrams, and technical documentation explaining system workflows and component interactions.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/services/agents/*.ts",
+      "src/services/ai/*.ts",
+      "src/services/chat/*.ts",
+      "src/services/agents/**/*.ts",
+      "src/services/ai/**/*.ts",
+      "src/services/chat/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Create comprehensive visual documentation for the Delight Chrome extension's complex systems by analyzing code structure, generating architectural diagrams, and producing clear technical documentation that explains how each system works and how components interact.\n\nPrimary Objectives:\n- Analyze System Architecture: Examine the codebase to understand component relationships, data flow, and interaction patterns\n- Generate Visual Diagrams: Create flowcharts, sequence diagrams, and architectural diagrams using Mermaid syntax\n- Document System Workflows: Write clear explanations of how each system operates\n- Create Integration Maps: Show how different systems connect and communicate\n\nTarget Systems (Priority Order):\n1. Multi-Agent Automation System (src/services/agents/)\n   - Agent interaction flow diagrams\n   - Memory sharing and persistence patterns\n   - Message passing between agents\n   - Decision trees for agent routing\n   - Error recovery workflows\n\n2. AI Provider Architecture (src/services/ai/)\n   - Provider switching decision flow\n   - Error recovery cascade diagrams\n   - Message format conversion pipeline\n   - Fallback provider selection logic\n\n3. Conversation Management System (src/services/chat/)\n   - Message lifecycle from input to storage\n   - Context optimization triggers\n   - Performance monitoring workflows\n   - Storage cleanup algorithms\n\nCreate documentation in docs/systems/ with architecture overviews, sequence diagrams, technical documentation, and developer guides for each system. Use Mermaid syntax for all diagrams and focus on explaining component interactions, data flow, and decision points."
+  }
+}
