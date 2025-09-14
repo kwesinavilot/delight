@@ -10,6 +10,19 @@ const PageFooter: React.FC = () => {
           onClick={(e) => {
             e.preventDefault();
             chrome.tabs.create({
+              url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+              active: true
+            });
+          }}
+          className="hover:text-blue-500"
+        >
+          About
+        </a>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            chrome.tabs.create({
               url: chrome.runtime.getURL('src/pages/updates/index.html'),
               active: true
             });

@@ -39,7 +39,13 @@ export abstract class BaseAIProvider implements AIProvider {
   }
 
   protected handleError(error: any, context: string): never {
-    if (error.status === 401) {
+    // Enhanced error detection and classification
+    const errorMessage = error?.message?.toLowerCase() || '';
+    const errorCode = error?.code || '';
+    const errorStatus = error?.status || error?.response?.status;
+    
+    // Authentication errors
+    if (errorStatus === 401 || errorMessage.includes('unauthorized') || errorMessage.includes('invalid api key')) {
       throw new AIError(
         AIErrorType.INVALID_API_KEY,
         'Invalid API key. Please check your configuration.',
@@ -48,7 +54,8 @@ export abstract class BaseAIProvider implements AIProvider {
       );
     }
     
-    if (error.status === 429) {
+    // Rate limiting errors
+    if (errorStatus === 429 || errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
       throw new AIError(
         AIErrorType.RATE_LIMIT_ERROR,
         'Rate limit exceeded. Please try again later.',
@@ -57,7 +64,17 @@ export abstract class BaseAIProvider implements AIProvider {
       );
     }
     
-    if (error.code === 'NETWORK_ERROR' || error.name === 'NetworkError') {
+    // Network connectivity errors
+    if (
+      errorCode === 'NETWORK_ERROR' || 
+      error.name === 'NetworkError' ||
+      errorMessage.includes('network error') ||
+      errorMessage.includes('connection') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('fetch') ||
+      errorStatus === 0 ||
+      errorStatus >= 500
+    ) {
       throw new AIError(
         AIErrorType.NETWORK_ERROR,
         'Network error occurred. Please check your connection.',
@@ -66,12 +83,54 @@ export abstract class BaseAIProvider implements AIProvider {
       );
     }
     
+    // Configuration errors
+    if (errorStatus === 400 || errorMessage.includes('bad request') || errorMessage.includes('invalid model')) {
+      throw new AIError(
+        AIErrorType.CONFIGURATION_ERROR,
+        `Configuration error: ${error.message || 'Invalid request parameters'}`,
+        this.name,
+        error
+      );
+    }
+    
+    // Default to API error
     throw new AIError(
       AIErrorType.API_ERROR,
       `${context}: ${error.message || 'Unknown error'}`,
       this.name,
       error
     );
+  }
+
+  // Network connectivity test
+  protected async testNetworkConnectivity(): Promise<boolean> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      await fetch('https://www.google.com/favicon.ico', {
+        method: 'HEAD',
+        mode: 'no-cors',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Enhanced error wrapper for async operations
+  protected async executeWithErrorHandling<T>(
+    operation: () => Promise<T>,
+    context: string
+  ): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      this.handleError(error, context);
+    }
   }
 
   // Deprecated: Use centralized functionality instead

@@ -2,6 +2,60 @@
 
 All notable changes to Delight will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.4.2] - 2025-09-13
+
+### Added
+- Automatic retry with exponential backoff for failed requests
+- Intelligent fallback provider switching when primary provider fails
+- Network connectivity monitoring and handling
+- Enhanced error classification (network, rate limit, authentication, configuration)
+- Real-time network connectivity detection
+- Provider connectivity testing with detailed status reporting
+- Smart error detection for temporary vs permanent failures
+- ErrorRecoveryService with sophisticated retry logic
+- Connectivity settings panel for monitoring provider status
+- Visual network status indicators in settings
+- Provider connectivity testing with one-click diagnostics
+
+### Enhanced
+- Robust error handling across all AI providers
+- BaseAIProvider with improved error detection and handling
+- AIService integration with automatic fallback capabilities
+- Better error messages and user feedback
+- Seamless experience during network issues or provider outages
+- Transparent fallback notifications when alternative providers are used
+
+### Changed
+- Simplified connectivity panel for regular users (technical settings commented out)
+- Updated tab name from "Network & Recovery" to "Connectivity"
+- Improved user-friendly language for connection status
+
+## [1.4.1] - 2025-09-13
+
+### Added
+- Right-click context menus for instant AI assistance
+- "Open Delight", "Summarize with Delight", "Chat about page", "Explain with Delight", "Rewrite with Delight" options
+- Smart auto-send functionality for all context menu actions
+- Automatic page context attachment for page-level actions
+- AI accuracy disclaimer with educational content
+- Dedicated accuracy information page explaining AI limitations
+- Best practices guide for responsible AI usage
+
+### Enhanced
+- Auto-send functionality for context menu actions
+- Automatic page context attachment for page-level commands
+- New chat creation for each context action
+- Reliable content script injection with conflict prevention
+
+### Fixed
+- Content script variable conflicts ($ identifier redeclaration)
+- Improved error handling for page context extraction
+- Better timing for auto-send functionality
+- Optimized content script injection strategy
+
 ## [1.4.0] - 2025-09-13
 
 ### 🎯 Context Menu Integration

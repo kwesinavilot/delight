@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.3.0",
+  "version": "1.4.2",
   "description": "Multi-agent AI assistant to boost your productivity. Access 25+ models, automate tasks and enhance writing with specialized tools.",
   "permissions": [
     "sidePanel",

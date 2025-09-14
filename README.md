@@ -2,21 +2,20 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.4.0 - Context Menu Integration & AI Safety**
+## 🎉 **Version 1.4.2 - Enhanced Error Recovery & Network Intelligence**
 
-**NEW**: Right-click context menus for instant AI assistance! Summarize pages, explain text, and chat about content with just a right-click.
+**NEW**: Automatic retry with exponential backoff, intelligent fallback provider switching, and real-time network monitoring for uninterrupted AI assistance!
 
-**ENHANCED**: Smart auto-send functionality, automatic page context attachment, and comprehensive AI accuracy education for responsible usage.
+**ENHANCED**: Robust error handling, network connectivity detection, and seamless provider failover ensure reliable performance even during outages.
 
-Now supporting **6 major AI providers** with **27+ models** for every use case:
+Now supporting **7 major AI providers, including Ollama** with **30+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
 - 🤖 **OpenAI** - GPT-4o, GPT-4 Turbo
 - 🧠 **Anthropic** - Claude 3.5 Sonnet, Opus
 - 🔍 **Google Gemini** - 2.5 Pro/Flash, Enhanced with structured output
 - 😄 **Grok (X.AI)** - Witty personality, real-time info
 - 🦙 **SambaNova** - Llama 3.1/3.2 (1B-405B)
-- 🏆 **GPT-OSS Online** - OpenAI's open models via Groq (hosted)
-- 💻 **GPT-OSS Offline** - OpenAI's open models via Ollama (local)
+- 💻 **Ollama** - Access local models via Ollama (local)
 
 ## 🌟 Features
 
@@ -30,6 +29,14 @@ Now supporting **6 major AI providers** with **27+ models** for every use case:
 - **Intelligent Chat**: Interactive AI conversations with streaming responses
 - **Smart Page Content Extraction**: Sophisticated system that can extract and analyze content from any webpage structure
 - **Enhanced Page Attachment**: Twitter-card style page previews with persistent context throughout conversations
+
+### 🔄 Enhanced Error Recovery & Network Intelligence
+- **Automatic Retry**: Exponential backoff retry system for failed requests with configurable settings
+- **Fallback Provider Switching**: Intelligent switching to alternative providers when primary fails
+- **Network Connectivity Monitoring**: Real-time network status detection and handling
+- **Smart Error Classification**: Distinguishes between temporary and permanent failures
+- **Provider Health Monitoring**: Real-time connectivity testing and status reporting
+- **Configurable Recovery Settings**: Customizable retry limits, delays, and backoff behavior
 
 ### ⚡ Performance & Memory Management
 - **Lazy Loading System**: Intelligent loading of conversation messages with configurable thresholds
@@ -86,11 +93,13 @@ Now supporting **6 major AI providers** with **27+ models** for every use case:
 - **Smart Conversation Management**: Contextual "New Conversation" button that appears only when needed
 - **Fullscreen Conversation Sidebar**: Complete conversation history navigation with rename/delete capabilities (Chrome only)
 - **Robust Sidepanel Management**: Enhanced tab validation, smart selection, and error recovery
+- **Network Status Monitoring**: Real-time connectivity indicators and provider health dashboard
+- **Seamless Error Recovery**: Transparent fallback handling with user notifications
 - **Fullscreen Mode**: Seamless switching between sidepanel and fullscreen experience (Chrome only)
 - **Browser Compatibility**: Automatic Edge detection with graceful feature degradation
 - **Comprehensive Documentation**: Interactive user guide with troubleshooting and FAQ
 - **Enhanced Onboarding**: Welcome flow opens directly in sidepanel mode for better UX
-- **Flexible Configuration**: Easy provider switching and API key management
+- **Flexible Configuration**: Easy provider switching and API key management with connectivity testing
 - **Modern UI**: Clean, responsive interface with dark mode support and improved layouts
 
 ### 🔒 Security & Privacy
@@ -292,7 +301,14 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.4.0) - September 13, 2025
+### Current Version (1.4.2) - September 14, 2025
+- ✅ **🔄 Enhanced Error Recovery**: Automatic retry with exponential backoff for failed requests
+- ✅ **🌐 Intelligent Fallback**: Smart provider switching when primary provider fails
+- ✅ **📶 Network Monitoring**: Real-time connectivity detection and handling
+- ✅ **🛠️ Provider Health**: Connectivity testing and status dashboard
+- ✅ **⚙️ Configurable Recovery**: Customizable retry settings and error handling behavior
+
+### Previous Version (1.4.0) - September 13, 2025
 - ✅ **🎯 Context Menu Integration**: Right-click menus for instant AI assistance
 - ✅ **🚀 Smart Auto-Send**: Automatic message sending for all context actions
 - ✅ **📎 Auto Page Context**: Automatic page attachment for page-level actions
@@ -322,11 +338,10 @@ npm run test:watch
 - 🔲 **Visual Validation**: Screenshot-based task verification
 - 🔲 **Specialized Agent Integration**: Bring FormHandler, DataExtractor back into main flow
 - 🔲 **Agent Templates**: Pre-built automation workflows for common tasks
-- 🔲 **Error Recovery Enhancement**: Intelligent failure handling and retry strategies
+- 🔲 **Export/Import Conversations**: Backup and restore chat history
+- 🔲 **Custom Prompt Templates**: User-defined prompt libraries
 - 🔲 Advanced summary customization
-- 🔲 Custom prompt templates
 - 🔲 Batch processing for multiple pages
-- 🔲 Export functionality for conversations
 - 🔲 Additional AI providers (Cohere, Mistral)
 - 🔲 Multi-language support
 

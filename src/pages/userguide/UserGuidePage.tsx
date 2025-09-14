@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { 
+import {
   BookOpenIcon,
   ChevronRightIcon,
   ChevronDownIcon,
@@ -45,7 +45,7 @@ const UserGuidePage: React.FC = () => {
               <li>Start chatting!</li>
             </ol>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Access Methods</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -97,37 +97,25 @@ const UserGuidePage: React.FC = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Llama models (1B-405B parameters)</p>
                 <a href="https://cloud.sambanova.ai/" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
               </div>
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              {/* <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                 <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Online</h5>
                 <p className="text-sm text-gray-600 dark:text-gray-400">OpenAI open models via Groq (hosted)</p>
                 <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
-              </div>
+              </div> */}
               <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Offline</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400">OpenAI open models via Ollama (local)</p>
+                <h5 className="font-medium text-gray-900 dark:text-white">Ollama</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Access your favorite local models</p>
                 <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Install Ollama →</a>
               </div>
             </div>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">GPT-OSS Models Setup</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Ollama Setup (Local, Privacy-First)</h4>
             <div className="space-y-3">
-              <div className="border border-orange-200 dark:border-orange-700 rounded-lg p-3 bg-orange-50 dark:bg-orange-900/20">
-                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Online (Recommended)</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Use OpenAI's open reasoning models via Groq's fast infrastructure:</p>
-                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                  <li>Get a free Groq API key from <a href="https://console.groq.com/keys" target="_blank" className="text-blue-600 hover:text-blue-800">console.groq.com</a></li>
-                  <li>Select "GPT-OSS Online" in Settings → AI Providers</li>
-                  <li>Enter your Groq API key</li>
-                  <li>Choose between gpt-oss-120b or gpt-oss-20b models</li>
-                  <li>Test connection and start using OpenAI's open reasoning models!</li>
-                </ol>
-              </div>
-              
               <div className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20">
-                <h5 className="font-medium text-gray-900 dark:text-white">GPT-OSS Offline (Privacy-First)</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Run OpenAI's open models completely locally with Ollama:</p>
+                <h5 className="font-medium text-gray-900 dark:text-white">Offline Setup</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Run open models completely locally with Ollama. Here's an example using OpenAI's GPT-OSS 20B model:</p>
                 <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
                   <li>Install Ollama from <a href="https://ollama.ai" target="_blank" className="text-blue-600 hover:text-blue-800">ollama.ai</a></li>
                   <li>Run: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">ollama pull gpt-oss-20b</code></li>
@@ -138,7 +126,7 @@ const UserGuidePage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">General Configuration Steps</h4>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
@@ -169,7 +157,7 @@ const UserGuidePage: React.FC = () => {
               Agent Automation is a revolutionary multi-agent system that can understand complex web tasks described in natural language and break them down into executable steps. Think of it as having AI assistants that can plan, execute, and monitor web automation tasks for you.
             </p>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">How to Use Agent Automation</h4>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
@@ -182,7 +170,7 @@ const UserGuidePage: React.FC = () => {
               <li>Review the results when the task completes</li>
             </ol>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Three-Agent System</h4>
             <div className="space-y-2">
@@ -200,7 +188,7 @@ const UserGuidePage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Example Tasks</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -211,7 +199,7 @@ const UserGuidePage: React.FC = () => {
               <li>"Navigate to my email and check for important messages"</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Current Capabilities (Phase 1)</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -254,7 +242,7 @@ const UserGuidePage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Attaching Page Content</h4>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
@@ -267,7 +255,7 @@ const UserGuidePage: React.FC = () => {
               <li>The AI will use the page content as context for its response</li>
             </ol>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Pro Tips</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -290,14 +278,14 @@ const UserGuidePage: React.FC = () => {
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">AI Chat</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              <li>Real-time streaming responses from 8 major AI providers</li>
-              <li>Support for 27+ different AI models</li>
+              <li>Real-time streaming responses from 7 major AI providers, including Ollama</li>
+              <li>Support for 30+ different AI models</li>
               <li>Persistent chat history within sessions</li>
               <li>Markdown formatting support</li>
               <li>Error handling with helpful messages</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">AI Tools System</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -308,7 +296,7 @@ const UserGuidePage: React.FC = () => {
               <li><strong>One-Click Selection:</strong> Choose a tool and it automatically modifies your prompt</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Smart Page Attachment</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -319,7 +307,7 @@ const UserGuidePage: React.FC = () => {
               <li><strong>Easy Removal:</strong> Click the × button to remove attached content anytime</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Page Summaries</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -329,7 +317,7 @@ const UserGuidePage: React.FC = () => {
               <li>Works with articles, blog posts, and documentation</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Interface Modes</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -356,7 +344,7 @@ const UserGuidePage: React.FC = () => {
               <li><strong>System Theme:</strong> Automatically matches your system preference</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Provider Settings</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -384,7 +372,7 @@ const UserGuidePage: React.FC = () => {
               <li>You can clear all data anytime through Chrome's extension settings</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Privacy</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -405,7 +393,7 @@ const UserGuidePage: React.FC = () => {
         <div className="space-y-4">
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Common Issues</h4>
-            
+
             <div className="space-y-3">
               <div className="border-l-4 border-yellow-400 pl-4">
                 <h5 className="font-medium text-gray-900 dark:text-white">API Key Errors</h5>
@@ -416,7 +404,7 @@ const UserGuidePage: React.FC = () => {
                   <li>Check if your API key has the necessary permissions</li>
                 </ul>
               </div>
-              
+
               <div className="border-l-4 border-red-400 pl-4">
                 <h5 className="font-medium text-gray-900 dark:text-white">Connection Issues</h5>
                 <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
@@ -426,7 +414,7 @@ const UserGuidePage: React.FC = () => {
                   <li>Clear extension data and reconfigure</li>
                 </ul>
               </div>
-              
+
               <div className="border-l-4 border-blue-400 pl-4">
                 <h5 className="font-medium text-gray-900 dark:text-white">Side Panel Issues</h5>
                 <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
@@ -436,7 +424,7 @@ const UserGuidePage: React.FC = () => {
                   <li>Refresh the page if the side panel doesn't appear</li>
                 </ul>
               </div>
-              
+
               <div className="border-l-4 border-purple-400 pl-4">
                 <h5 className="font-medium text-gray-900 dark:text-white">Browser Compatibility</h5>
                 <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
@@ -448,7 +436,7 @@ const UserGuidePage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Getting Help</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
@@ -471,47 +459,47 @@ const UserGuidePage: React.FC = () => {
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I need to pay for API access?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: After your 5 free trial requests, you'll need API keys from AI providers. Google Gemini offers a generous free tier (1,500 requests/day), making it perfect for most users. Other providers have their own pricing structures.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Can I use multiple providers at the same time?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: You can configure multiple providers and switch between them, but only one can be active at a time for conversations.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: How do AI tools work?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: AI tools automatically modify your prompt with specialized instructions. For example, selecting "Explain" adds "Please provide a detailed, simplified explanation of the following:" before your text.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Can I attach content from any website?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! Our intelligent content extraction works on any webpage structure - from simple blogs to complex web applications. It automatically filters out navigation, ads, and other noise.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Is my data secure?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes, all data is stored locally in your browser. We don't collect or transmit any personal information.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Which provider is fastest?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Groq typically offers the fastest inference speeds (800+ tokens/sec), while Gemini Flash is also very fast. Speed may vary based on model and current load.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I get free requests to try Delight?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! You get 5 free AI requests immediately after installation to try all features including AI tools and page attachment. After that, you'll need to add your own API key to continue.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Does this work on Microsoft Edge?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! Edge supports all core features including sidepanel mode and AI tools. Fullscreen mode is available but may occasionally have issues due to browser implementation differences. Chrome is recommended for the best experience.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: What are GPT-OSS models?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: GPT-OSS are OpenAI's open-weight reasoning models (gpt-oss-120b and gpt-oss-20b) that you can use either hosted via Groq or locally via Ollama. They offer advanced reasoning capabilities and are completely open-source.</p>
             </div>
-            
+
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Can I use this offline?</h5>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! With GPT-OSS Offline, you can run OpenAI's open models completely locally using Ollama. This provides full privacy and works without internet connection for AI inference.</p>
@@ -563,7 +551,7 @@ const UserGuidePage: React.FC = () => {
                     </div>
                   </div>
                 </button>
-                
+
                 {expandedSections[section.id] && (
                   <div className="px-6 pb-6">
                     <div className="pl-8">

@@ -3,6 +3,7 @@ import { ChatMessage } from '../../types/chat';
 import { ConfigManager } from '../config/ConfigManager';
 import { ContextProcessor } from '../chat/ContextProcessor';
 import { TrialService } from '../TrialService';
+import { ErrorRecoveryService } from './ErrorRecoveryService';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
@@ -16,12 +17,14 @@ export class AIService {
   private static instance: AIService;
   private configManager: ConfigManager;
   private contextProcessor: ContextProcessor;
+  private errorRecoveryService: ErrorRecoveryService;
   private providers: Map<string, AIProvider> = new Map();
   private currentProvider: AIProvider | null = null;
 
   private constructor() {
     this.configManager = ConfigManager.getInstance();
     this.contextProcessor = new ContextProcessor();
+    this.errorRecoveryService = ErrorRecoveryService.getInstance();
   }
 
   static getInstance(): AIService {
@@ -249,8 +252,15 @@ export class AIService {
       );
     }
 
-    try {
-      const providerName = this.currentProvider.name;
+    // Prepare fallback providers (exclude current provider)
+    const fallbackProviders = this.getConfiguredProviders()
+      .filter(name => name !== this.currentProvider?.name)
+      .map(name => this.providers.get(name)!)
+      .filter(provider => provider.isConfigured());
+
+    // Primary operation
+    const primaryOperation = async () => {
+      const providerName = this.currentProvider!.name;
       
       // Optimize context for the current provider
       const maxTokens = this.contextProcessor.getProviderTokenLimit(providerName);
@@ -268,9 +278,9 @@ export class AIService {
       }
 
       // Check if provider supports conversation history
-      if (typeof this.currentProvider.generateResponseWithHistory === 'function') {
+      if (typeof this.currentProvider!.generateResponseWithHistory === 'function') {
         // Use new conversation-aware method
-        const responseStream = await this.currentProvider.generateResponseWithHistory(providerMessages, {
+        const responseStream = await this.currentProvider!.generateResponseWithHistory(providerMessages, {
           stream: !!onChunk
         });
         
@@ -298,7 +308,7 @@ export class AIService {
           stream: !!onChunk
         };
 
-        const responseStream = await this.currentProvider.generateResponse(lastMessage.content, options);
+        const responseStream = await this.currentProvider!.generateResponse(lastMessage.content, options);
         let fullResponse = '';
 
         for await (const chunk of responseStream) {
@@ -310,6 +320,23 @@ export class AIService {
         
         return fullResponse;
       }
+    };
+
+    try {
+      // Use error recovery service with fallback
+      const result = await this.errorRecoveryService.executeWithFallback(
+        primaryOperation,
+        fallbackProviders,
+        'chat',
+        { messages: this.contextProcessor.formatForProvider(chatMessages, 'openai'), onChunk }
+      );
+
+      // If a fallback provider was used, optionally notify the user
+      if (result.usedProvider && result.usedProvider !== this.currentProvider.name) {
+        console.log(`Response generated using fallback provider: ${result.usedProvider}`);
+      }
+
+      return result.result;
     } catch (error) {
       console.error('Chat response generation failed:', error);
 
@@ -341,8 +368,32 @@ export class AIService {
       );
     }
 
+    // Prepare fallback providers (exclude current provider)
+    const fallbackProviders = this.getConfiguredProviders()
+      .filter(name => name !== this.currentProvider?.name)
+      .map(name => this.providers.get(name)!)
+      .filter(provider => provider.isConfigured());
+
+    // Primary operation
+    const primaryOperation = async () => {
+      return await this.currentProvider!.generateSummary(content, length);
+    };
+
     try {
-      return await this.currentProvider.generateSummary(content, length);
+      // Use error recovery service with fallback
+      const result = await this.errorRecoveryService.executeWithFallback(
+        primaryOperation,
+        fallbackProviders,
+        'summary',
+        { content, length }
+      );
+
+      // If a fallback provider was used, optionally notify the user
+      if (result.usedProvider && result.usedProvider !== this.currentProvider.name) {
+        console.log(`Summary generated using fallback provider: ${result.usedProvider}`);
+      }
+
+      return result.result;
     } catch (error) {
       console.error('Summary generation failed:', error);
 
@@ -614,5 +665,57 @@ export class AIService {
         warnings
       };
     }
+  }
+
+  // Error recovery and network status methods
+  async checkNetworkConnectivity(): Promise<boolean> {
+    return await this.errorRecoveryService.checkNetworkConnectivity();
+  }
+
+  getNetworkStatus(): { isOnline: boolean; lastCheck: number } {
+    const status = this.errorRecoveryService.getNetworkStatus();
+    return {
+      isOnline: status.isOnline,
+      lastCheck: status.lastCheck
+    };
+  }
+
+  getRetryConfiguration(): { maxRetries: number; baseDelay: number; maxDelay: number } {
+    const config = this.errorRecoveryService.getRetryConfig();
+    return {
+      maxRetries: config.maxRetries,
+      baseDelay: config.baseDelay,
+      maxDelay: config.maxDelay
+    };
+  }
+
+  updateRetryConfiguration(config: { maxRetries?: number; baseDelay?: number; maxDelay?: number }): void {
+    this.errorRecoveryService.updateRetryConfig(config);
+  }
+
+  // Test all configured providers and return their status
+  async testAllProviders(): Promise<Record<string, { configured: boolean; connected: boolean; error?: string }>> {
+    const results: Record<string, { configured: boolean; connected: boolean; error?: string }> = {};
+    
+    for (const [name, provider] of this.providers.entries()) {
+      const configured = provider.isConfigured();
+      let connected = false;
+      let error: string | undefined;
+      
+      if (configured) {
+        try {
+          connected = await this.errorRecoveryService.executeWithRetry(
+            () => this.testProvider(name),
+            `test provider ${name}`
+          );
+        } catch (e) {
+          error = e instanceof Error ? e.message : 'Unknown error';
+        }
+      }
+      
+      results[name] = { configured, connected, error };
+    }
+    
+    return results;
   }
 }

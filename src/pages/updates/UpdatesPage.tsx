@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   SparklesIcon,
   CheckCircleIcon,
   ArrowRightIcon,
@@ -9,6 +9,7 @@ import {
   RocketLaunchIcon
 } from '@heroicons/react/24/outline';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import PageFooter from '@/components/ui/PageFooter';
 
 interface UpdateInfo {
   previousVersion: string;
@@ -20,17 +21,85 @@ const UpdatesPage: React.FC = () => {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   useEffect(() => {
-    // Load update information
     chrome.storage.local.get(['updateInfo']).then((result) => {
       if (result.updateInfo) {
         setUpdateInfo(result.updateInfo);
+      } else {
+        // Fallback for manual visits
+        setUpdateInfo({
+          previousVersion: '1.4.1',
+          currentVersion: '1.4.2',
+          updateDate: new Date().toISOString()
+        });
       }
     });
   }, []);
 
+
   const getVersionChanges = (version: string) => {
     // Return changes based on version
     switch (version) {
+      case '1.4.2':
+        return {
+          title: 'Enhanced Error Recovery & Network Intelligence',
+          subtitle: 'Uninterrupted AI assistance with automatic retry and intelligent fallback',
+          features: [
+            {
+              icon: (
+                <svg className="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+              title: 'Automatic Retry with Exponential Backoff',
+              description: 'Failed requests are automatically retried with smart delays. No more interruptions from temporary network issues or provider hiccups.'
+            },
+            {
+              icon: (
+                <svg className="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                </svg>
+              ),
+              title: 'Intelligent Fallback Provider Switching',
+              description: 'When your primary AI provider fails, Delight automatically switches to backup providers. Seamless AI assistance even during outages.'
+            },
+            {
+              icon: (
+                <svg className="h-6 w-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z" />
+                </svg>
+              ),
+              title: 'Real-time Network & Provider Monitoring',
+              description: 'New Connectivity tab in Settings shows real-time network status and provider health. Test all your AI providers with one click.'
+            },
+            {
+              icon: <CheckCircleIcon className="h-6 w-6 text-purple-500" />,
+              title: 'Enhanced Reliability Features',
+              description: 'All reliability features work automatically in the background. Smart error classification, network detection, and transparent recovery notifications.'
+            }
+          ]
+        };
+      case '1.4.1':
+        return {
+          title: 'Context Menu Integration & AI Safety',
+          subtitle: 'Right-click AI assistance and comprehensive AI accuracy education',
+          features: [
+            {
+              icon: <SparklesIcon className="h-6 w-6 text-blue-500" />,
+              title: 'Right-click Context Menus',
+              description: 'Instant AI assistance with right-click menus: Open Delight, Summarize page, Chat about page, Explain selection, Rewrite selection'
+            },
+            {
+              icon: <RocketLaunchIcon className="h-6 w-6 text-green-500" />,
+              title: 'Smart Auto-send & Page Context',
+              description: 'Context menu actions automatically send messages and attach page content for seamless workflow'
+            },
+            {
+              icon: <DocumentTextIcon className="h-6 w-6 text-orange-500" />,
+              title: 'AI Accuracy Education',
+              description: 'Comprehensive AI disclaimer and best practices guide for responsible AI usage and understanding limitations'
+            }
+          ]
+        };
       case '1.1.2':
         return {
           title: 'Documentation & Architecture',
@@ -131,9 +200,9 @@ const UpdatesPage: React.FC = () => {
               Updated to v{updateInfo.currentVersion}
             </span>
           </div>
-          
+
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            What's New in {changes.title}
+            {changes.title}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {changes.subtitle}
@@ -182,23 +251,7 @@ const UpdatesPage: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Thank you for using Delight! Enjoy the new features.</p>
-          <div className="flex justify-center space-x-4 mt-2">
-            <button
-              onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/userguide/index.html') })}
-              className="hover:text-blue-500"
-            >
-              User Guide
-            </button>
-            <button
-              onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/privacy/index.html') })}
-              className="hover:text-blue-500"
-            >
-              Privacy Policy
-            </button>
-          </div>
-        </div>
+        <PageFooter />
       </div>
     </div>
   );

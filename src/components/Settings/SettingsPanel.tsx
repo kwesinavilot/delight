@@ -8,14 +8,17 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConfigManager } from '@/services/config/ConfigManager';
 import { TrialService } from '@/services/TrialService';
+import { AIService } from '@/services/ai/AIService';
 import { AIConfiguration } from '@/types/ai';
+import NetworkStatusPanel from './NetworkStatusPanel';
 
 interface SettingsPanelProps {
   onClose?: () => void;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
-  const [activeTab, setActiveTab] = useState<'appearance' | 'providers'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'providers' | 'network'>('appearance');
+  const [aiService] = useState(() => AIService.getInstance());
   const [providers, setProviders] = useState<Record<string, AIConfiguration>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
@@ -304,6 +307,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           >
             AI Providers
           </button>
+          <button
+            onClick={() => setActiveTab('network')}
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'network'
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+              }`}
+          >
+            Connectivity
+          </button>
         </div>
       </div>
 
@@ -541,6 +553,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             </div>
           </div>
         )}
+
+        {activeTab === 'network' && (
+          <NetworkStatusPanel aiService={aiService} />
+        )}
       </div>
 
       {/* Global Footer - Always visible */}
@@ -551,7 +567,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             <button
               onClick={() => {
                 chrome.tabs.create({
-                  url: chrome.runtime.getURL('src/pages/welcome/index.html'),
+                  url: chrome.runtime.getURL('src/pages/updates/index.html'),
                   active: true
                 });
               }}
@@ -620,7 +636,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v1.4.0</span>
+                <span className="font-medium">Delight v1.4.2</span>
               </div>
             </div>
           </div>
