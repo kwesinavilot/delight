@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Delight",
-  "version": "1.4.2",
-  "description": "Multi-agent AI assistant to boost your productivity. Access 25+ models, automate tasks and enhance writing with specialized tools.",
+  "name": "Delight: 30+ AI models & Agents For Productivity",
+  "version": "1.4.3",
+  "description": "Multi-agent AI assistant to boost your productivity. Access 30+ models, automate tasks, enhance writing and speed up work.",
   "permissions": [
     "sidePanel",
     "activeTab",
@@ -15,8 +15,12 @@
     "contextMenus"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "https://us.i.posthog.com/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com;"
+  },
   "action": {
     "default_icon": {
       "16": "icons/delight-icon.png",
@@ -63,6 +67,7 @@
         "src/pages/userguide/index.html",
         "src/pages/privacy/index.html",
         "src/pages/updates/index.html",
+        "src/pages/accuracy/index.html",
         "dom-analyzer.js",
         "advanced-dom-analyzer.js",
         "buildDomTree.js"

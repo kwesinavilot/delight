@@ -4,6 +4,7 @@ import { ConfigManager } from '../config/ConfigManager';
 import { ContextProcessor } from '../chat/ContextProcessor';
 import { TrialService } from '../TrialService';
 import { ErrorRecoveryService } from './ErrorRecoveryService';
+import PostHogService from '../PostHogService';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
@@ -163,6 +164,9 @@ export class AIService {
     const previousProvider = this.currentProvider?.name;
     this.currentProvider = provider;
     await this.configManager.setCurrentProvider(providerName);
+    
+    // Track provider selection
+    PostHogService.trackProviderSelected(providerName, this.currentProvider?.name || 'unknown');
 
     // Handle conversation context if ConversationManager is available
     if (options && (options.preserveContext !== undefined || options.clearContext)) {
@@ -334,7 +338,16 @@ export class AIService {
       // If a fallback provider was used, optionally notify the user
       if (result.usedProvider && result.usedProvider !== this.currentProvider.name) {
         console.log(`Response generated using fallback provider: ${result.usedProvider}`);
+        PostHogService.trackProviderFallback(this.currentProvider.name, result.usedProvider);
       }
+
+      // Track chat message
+      const lastMessage = chatMessages[chatMessages.length - 1];
+      PostHogService.trackChatMessage(
+        result.usedProvider || this.currentProvider.name,
+        lastMessage?.content?.length || 0,
+        chatMessages.some(msg => msg.content.includes('Page URL:') || msg.content.includes('Page Content:'))
+      );
 
       return result.result;
     } catch (error) {
@@ -391,7 +404,14 @@ export class AIService {
       // If a fallback provider was used, optionally notify the user
       if (result.usedProvider && result.usedProvider !== this.currentProvider.name) {
         console.log(`Summary generated using fallback provider: ${result.usedProvider}`);
+        PostHogService.trackProviderFallback(this.currentProvider.name, result.usedProvider);
       }
+
+      // Track page summary
+      PostHogService.trackPageSummary(
+        result.usedProvider || this.currentProvider.name,
+        length
+      );
 
       return result.result;
     } catch (error) {

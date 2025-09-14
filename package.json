@@ -39,6 +39,7 @@
     "ai": "^5.0.28",
     "jsdom": "^25.0.1",
     "playwright-core": "^1.48.0",
+    "posthog-js": "^1.265.1",
     "puppeteer-core": "^24.20.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

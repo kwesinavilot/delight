@@ -2,7 +2,7 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.4.2 - Enhanced Error Recovery & Network Intelligence**
+## 🎉 **Version 1.4.3 - Analytics Integration & Enhanced Error Recovery**
 
 **NEW**: Automatic retry with exponential backoff, intelligent fallback provider switching, and real-time network monitoring for uninterrupted AI assistance!
 
@@ -301,7 +301,7 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.4.2) - September 14, 2025
+### Current Version (1.4.3) - September 14, 2025
 - ✅ **🔄 Enhanced Error Recovery**: Automatic retry with exponential backoff for failed requests
 - ✅ **🌐 Intelligent Fallback**: Smart provider switching when primary provider fails
 - ✅ **📶 Network Monitoring**: Real-time connectivity detection and handling

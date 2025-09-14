@@ -2,6 +2,11 @@
 import { createRoot } from 'react-dom/client';
 import UserGuidePage from './UserGuidePage';
 import '../../styles/globals.css';
+import PostHogService from '../../services/PostHogService';
+
+// Initialize PostHog
+PostHogService.initialize();
+PostHogService.trackPage('user_guide');
 
 const container = document.getElementById('root');
 if (container) {

@@ -5,6 +5,25 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2025-09-14
+
+### Added
+- PostHog analytics integration for usage tracking and insights
+- Comprehensive event tracking across all extension features
+- User engagement analytics for provider usage, chat interactions, and feature adoption
+- Privacy-focused analytics with no personal data collection
+- Extension lifecycle tracking (installs, updates, feature usage)
+
+### Enhanced
+- Chrome extension Content Security Policy for analytics compatibility
+- Environment variable configuration for analytics services
+- Extension manifest permissions for analytics API connections
+
+### Technical
+- PostHog JavaScript SDK integration with Chrome extension optimization
+- Custom analytics service with extension-specific event tracking
+- Secure analytics configuration with encrypted API keys
+
 ## [1.4.2] - 2025-09-13
 
 ### Added
