@@ -176,11 +176,73 @@ export class ContentScriptAutomation {
         throw new Error('No results from highlight script');
       }
       
-      return results[0].result;
+      const result = results[0]?.result;
+      return result || {
+        elements: [],
+        count: 0,
+        url: `tab:${this.tabId}`,
+        title: ''
+      };
     } catch (error) {
       console.error('❌ [ContentScript] Highlight failed:', error);
       throw new Error(`Failed to highlight elements: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  async getState(): Promise<any> {
+    return this.highlightElements();
+  }
+
+  async getDropdownOptions(index: number): Promise<any[]> {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: this.tabId },
+      func: (idx) => Array.from(document.querySelectorAll(`[data-delight-index="${idx}"] option`)).map((option: any) => ({ text: option.textContent || '', value: option.value })),
+      args: [index]
+    });
+    return results[0]?.result || [];
+  }
+
+  async selectDropdownOption(index: number, option: string): Promise<void> {
+    await chrome.scripting.executeScript({
+      target: { tabId: this.tabId },
+      func: (idx: number, value: string) => {
+        const element = document.querySelector(`[data-delight-index="${idx}"]`) as HTMLSelectElement | null;
+        if (!element) throw new Error(`Element ${idx} not found`);
+        element.value = value;
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+      args: [index, String(option)]
+    });
+  }
+
+  async scrollToPercent(percent: number): Promise<void> {
+    await chrome.scripting.executeScript({
+      target: { tabId: this.tabId },
+      func: (value: number) => window.scrollTo({ top: document.body.scrollHeight * value / 100, behavior: 'smooth' }),
+      args: [percent]
+    });
+  }
+
+  async scrollToText(text: string, nth = 1): Promise<boolean> {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: this.tabId },
+      func: (needle: string, occurrence: number) => {
+        const matches = Array.from(document.querySelectorAll('body *')).filter(el => (el.textContent || '').toLowerCase().includes(needle.toLowerCase()));
+        const element = matches[occurrence - 1] as HTMLElement | undefined;
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return !!element;
+      },
+      args: [text, nth]
+    });
+    return !!results[0]?.result;
+  }
+
+  async sendKeys(keys: string): Promise<void> {
+    await chrome.scripting.executeScript({
+      target: { tabId: this.tabId },
+      func: value => { if (value === 'Alt+ArrowLeft') history.back(); },
+      args: [keys]
+    });
   }
 
   async clickByIndex(index: number): Promise<void> {

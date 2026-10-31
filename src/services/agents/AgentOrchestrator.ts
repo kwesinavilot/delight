@@ -102,8 +102,14 @@ export class AgentOrchestrator {
         previousResults: this.memory.recallByType('result')
       });
       
+      this.updateProgress({ stage: 'planning', message: 'Waiting for the AI planner…' });
       const plan = await this.planner.createPlan(userInput);
       console.log('📋 [AgentOrchestrator] Plan:', plan.steps.map(s => `${s.type}: ${s.description}`));
+      this.updateProgress({
+        stage: 'planned',
+        message: `Plan created with ${plan.steps.length} step${plan.steps.length === 1 ? '' : 's'}.`,
+        currentStep: plan.steps[0]?.description
+      });
       
       // Store plan in memory
       this.memory.remember('currentPlan', plan, 'plan');
@@ -159,6 +165,7 @@ export class AgentOrchestrator {
   }): Promise<any> {
     const maxIterations = 20;
     let iteration = 0;
+    let consecutiveFailures = 0;
     const results: any[] = [];
     
     while (iteration < maxIterations) {
@@ -171,6 +178,7 @@ export class AgentOrchestrator {
       console.log(`🔄 [AgentOrchestrator] Iteration ${iteration}: Planning next step...`);
       
       // Get next plan from Planner (using memory context)
+      this.updateProgress({ stage: 'planning', message: `Planning the next action (iteration ${iteration})…` });
       const plan = await this.planner.createPlan(userInput, {
         iteration,
         previousResults: results,
@@ -185,6 +193,11 @@ export class AgentOrchestrator {
       // Execute first step from plan
       const step = plan.steps[0];
       console.log(`⚡ [AgentOrchestrator] Iteration ${iteration}: ${step.description}`);
+      this.updateProgress({
+        stage: 'executing',
+        message: step.description,
+        currentStep: `${iteration}: ${step.type}`
+      });
       
       callbacks?.onStepStart?.(iteration - 1, step);
       
@@ -194,6 +207,7 @@ export class AgentOrchestrator {
         
         console.log(`✅ [AgentOrchestrator] Iteration ${iteration} completed`);
         results.push(result);
+        consecutiveFailures = 0;
         
         // Store result in shared memory
         this.memory.remember(`iteration_${iteration}_result`, result, 'result');
@@ -216,6 +230,11 @@ export class AgentOrchestrator {
         this.memory.addToConversation('orchestrator', `Error: ${errorMessage}`);
         
         callbacks?.onStepError?.(iteration - 1, step, errorMessage);
+
+        consecutiveFailures++;
+        if (consecutiveFailures >= 3) {
+          throw new Error(`Automation stopped after ${consecutiveFailures} consecutive failures. Last error: ${errorMessage}`);
+        }
         
         // Continue to next iteration - let Planner handle the error
       }

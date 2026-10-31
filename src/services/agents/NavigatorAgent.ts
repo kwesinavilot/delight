@@ -1,11 +1,11 @@
 import { TaskStep } from '../../types/agents';
-import { PuppeteerAutomation } from '../automation/PuppeteerAutomation';
+import { ContentScriptAutomation } from '../automation/ContentScriptAutomation';
 import { ActionRegistry, ActionContext } from '../automation/ActionRegistry';
 import { AgentMemory } from './AgentMemory';
 
 export class NavigatorAgent {
   private currentTabId: number | null = null;
-  private automation: PuppeteerAutomation | null = null;
+  private automation: ContentScriptAutomation | null = null;
   private actionRegistry: ActionRegistry;
   private memory: AgentMemory;
   private isConnected: boolean = false;
@@ -43,12 +43,12 @@ export class NavigatorAgent {
       }
       
       // Create automation connection
-      this.automation = new PuppeteerAutomation(this.currentTabId);
+      this.automation = new ContentScriptAutomation(this.currentTabId);
       await this.automation.connect();
       
       // Analyze current page elements
       const analysis = await this.automation.getState();
-      console.log(`✅ [NavigatorAgent] Ready! Found ${analysis.elementCount} interactive elements`);
+      console.log(`✅ [NavigatorAgent] Ready! Found ${analysis?.elementCount ?? analysis?.count ?? 0} interactive elements`);
       
       this.isConnected = true;
       
@@ -89,15 +89,28 @@ export class NavigatorAgent {
     this.memory.remember('currentStep', step, 'context');
     this.memory.addToConversation('navigator', `Executing: ${step.type} - ${step.description}`);
     
-    if (!this.isConnected) {
-      throw new Error('Navigator not initialized');
-    }
-    
     // Lazy initialize automation on first navigation if needed
     if (!this.automation && step.type === 'navigate') {
       console.log('🔄 [NavigatorAgent] Lazy initializing automation for navigation...');
-      this.automation = new PuppeteerAutomation(this.currentTabId!);
+      if (!this.currentTabId) {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.id) throw new Error('No active browser tab available');
+        this.currentTabId = tab.id;
+      }
+
+      // Navigation itself does not require an existing CDP page connection.
+      // This also recovers from starting Delight on chrome://newtab or another
+      // page where script injection is initially prohibited.
+      await chrome.tabs.update(this.currentTabId, { url: step.url });
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      this.automation = new ContentScriptAutomation(this.currentTabId);
       await this.automation.connect();
+      this.isConnected = true;
+    }
+
+    if (!this.isConnected || !this.automation) {
+      throw new Error('Navigator not connected to an accessible browser tab');
     }
     
     if (!this.automation) {

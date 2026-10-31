@@ -9,6 +9,8 @@ interface AgentModeProps {
 export const AgentMode: React.FC<AgentModeProps> = ({ onResult }) => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [progress, setProgress] = useState<any>(null);
+  const [plan, setPlan] = useState<any[]>([]);
+  const [showDetails, setShowDetails] = useState(false);
   const [input, setInput] = useState('');
 
   const orchestrator = AgentOrchestrator.getInstance();
@@ -18,12 +20,22 @@ export const AgentMode: React.FC<AgentModeProps> = ({ onResult }) => {
 
     setIsExecuting(true);
     setProgress(null);
-
-
+    setPlan([]);
+    setShowDetails(false);
 
     try {
-      await orchestrator.initialize();
-      const result = await orchestrator.executeTask(input);
+      orchestrator.setProgressCallback(setProgress);
+      const result = await orchestrator.executeTask(input, {
+        onPlanCreated: (steps) => {
+          setPlan(steps);
+          setShowDetails(true);
+        },
+        onStepStart: (stepIndex, step) => setProgress({
+          stage: 'executing',
+          message: step.description,
+          currentStep: `${stepIndex + 1}: ${step.type}`
+        })
+      });
       onResult(result);
     } catch (error) {
       onResult({
@@ -35,6 +47,7 @@ export const AgentMode: React.FC<AgentModeProps> = ({ onResult }) => {
     } finally {
       setIsExecuting(false);
       setProgress(null);
+      orchestrator.setProgressCallback(() => undefined);
     }
   };
 
@@ -82,6 +95,22 @@ export const AgentMode: React.FC<AgentModeProps> = ({ onResult }) => {
           <p className="text-sm text-gray-600 mt-1">{progress.message}</p>
           {progress.currentStep && (
             <p className="text-xs text-gray-500">Step: {progress.currentStep}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowDetails(value => !value)}
+            className="mt-3 text-xs text-blue-600 hover:underline"
+          >
+            {showDetails ? 'Hide details' : 'Show plan and details'}
+          </button>
+          {showDetails && plan.length > 0 && (
+            <ol className="mt-3 space-y-1 text-xs text-gray-700 list-decimal list-inside">
+              {plan.map((step, index) => (
+                <li key={step.id || index}>
+                  <span className="font-medium">{step.type}</span>: {step.description}
+                </li>
+              ))}
+            </ol>
           )}
         </div>
       )}

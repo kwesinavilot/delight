@@ -4,6 +4,7 @@ import { GeminiProvider } from '../ai/providers/GeminiProvider';
 import { AgentMemory } from './AgentMemory';
 
 export class PlannerAgent {
+  private static readonly PLANNER_TIMEOUT_MS = 30000;
   private aiService: AIService;
   private memory: AgentMemory;
 
@@ -15,6 +16,10 @@ export class PlannerAgent {
 
   async initialize(): Promise<void> {
     await this.aiService.initialize();
+    if (!this.aiService.isCurrentProviderConfigured()) {
+      const provider = this.aiService.getCurrentProviderName() || 'selected provider';
+      throw new Error(`Configure an API key for ${provider} before starting an agent task.`);
+    }
   }
 
   async createPlan(userInput: string, context?: any): Promise<TaskPlan> {
@@ -68,7 +73,10 @@ Create next step(s) as JSON:
         const structuredPrompt = `Break down this user request into executable browser automation steps: ${userInput}`;
         const schema = GeminiProvider.createTaskPlanSchema();
         
-        plan = await currentProvider.generateStructuredResponse(structuredPrompt, schema);
+        plan = await this.withTimeout(
+          currentProvider.generateStructuredResponse(structuredPrompt, schema),
+          'Structured planner request'
+        );
         console.log('✅ [PlannerAgent] Structured response received:', plan);
         
         // Store result in memory
@@ -76,7 +84,10 @@ Create next step(s) as JSON:
         this.memory.addToConversation('planner', JSON.stringify(plan));
       } else {
         console.log('💬 [PlannerAgent] Using fallback text parsing...');
-        const response = await this.aiService.generateChatResponse(prompt, undefined);
+        const response = await this.withTimeout(
+          this.aiService.generateChatResponse(prompt, undefined),
+          'Planner request'
+        );
         console.log('💬 [PlannerAgent] AI response received:', response.substring(0, 200) + '...');
         
         // Extract JSON from response (handle markdown code blocks and text)
@@ -125,6 +136,21 @@ Create next step(s) as JSON:
     } catch (error) {
       console.error('❌ [PlannerAgent] Planning failed:', error);
       throw new Error(`Planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async withTimeout<T>(promise: Promise<T>, operation: string): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(
+        `${operation} timed out after ${PlannerAgent.PLANNER_TIMEOUT_MS / 1000}s. Check the selected AI provider and API key.`
+      )), PlannerAgent.PLANNER_TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([promise, timeout]);
+    } finally {
+      clearTimeout(timeoutId!);
     }
   }
   

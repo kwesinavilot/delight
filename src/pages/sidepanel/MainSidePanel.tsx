@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
+import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare, Bot } from "lucide-react";
 import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
@@ -183,8 +183,10 @@ const MainSidePanel: React.FC = () => {
       const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const currentTab = currentTabs[0];
 
-      // Close sidepanel first if it exists
+      // Store the originating tab ID for later use
       if (currentTab?.id) {
+        await chrome.storage.local.set({ originatingTabId: currentTab.id });
+        
         try {
           await chrome.sidePanel.setOptions({
             tabId: currentTab.id,
@@ -201,7 +203,7 @@ const MainSidePanel: React.FC = () => {
         active: true
       });
 
-      console.log('Opened fullscreen tab and closed sidepanel');
+      console.log('Opened fullscreen tab and stored originating tab ID:', currentTab?.id);
     } catch (error) {
       console.error('Error maximizing to fullscreen:', error);
       if (isEdge) {
@@ -214,34 +216,51 @@ const MainSidePanel: React.FC = () => {
 
   const minimizeToSidePanel = async () => {
     if (isMinimizing) return;
-
     setIsMinimizing(true);
 
     try {
-      // Try to find existing valid tab first
-      const tabs = await chrome.tabs.query({});
-      let targetTab = tabs.find(async tab =>
-        tab.url &&
-        !tab.url.startsWith('chrome://') &&
-        !tab.url.startsWith('chrome-extension://') &&
-        tab.id !== (await chrome.tabs.getCurrent())?.id
-      );
+      // Get the stored originating tab ID
+      const storedTabInfo = await chrome.storage.local.get(['originatingTabId']);
+      let targetTabId = storedTabInfo.originatingTabId;
 
-      // If no valid tab exists, create a new one
-      if (!targetTab) {
-        targetTab = await chrome.tabs.create({ active: true });
-      } else {
-        await chrome.tabs.update(targetTab.id!, { active: true });
+      // If we have a stored tab ID, verify it still exists and is valid
+      if (targetTabId) {
+        try {
+          const tab = await chrome.tabs.get(targetTabId);
+          if (tab && tab.url && 
+              !tab.url.startsWith('chrome://') && 
+              !tab.url.startsWith('chrome-extension://')) {
+            // Tab is valid, use it
+            await chrome.tabs.update(targetTabId, { active: true });
+          } else {
+            targetTabId = null; // Tab is invalid
+          }
+        } catch {
+          targetTabId = null; // Tab doesn't exist anymore
+        }
       }
 
-      if (targetTab.id) {
-        await chrome.sidePanel.open({ tabId: targetTab.id });
+      // If no valid stored tab, create a new one
+      if (!targetTabId) {
+        const newTab = await chrome.tabs.create({ 
+          url: 'chrome://newtab/',
+          active: true 
+        });
+        targetTabId = newTab.id!;
+      }
+
+      // Open sidepanel on the target tab
+      if (targetTabId) {
+        await chrome.sidePanel.open({ tabId: targetTabId });
         await chrome.sidePanel.setOptions({
-          tabId: targetTab.id,
-          path: 'sidepanel.html',
+          tabId: targetTabId,
+          path: 'src/pages/sidepanel/index.html',
           enabled: true
         });
 
+        // Clean up stored tab info
+        await chrome.storage.local.remove(['originatingTabId']);
+        
         setIsFullscreen(false);
         window.close();
       }
@@ -417,7 +436,7 @@ const MainSidePanel: React.FC = () => {
             </Button>
 
             {/* Agent Automation button */}
-            {/* <Button
+            <Button
               id="agent-automation-btn"
               variant="ghost"
               size="sm"
@@ -427,7 +446,7 @@ const MainSidePanel: React.FC = () => {
             >
               <Bot className="h-4 w-4" />
               <span className="text-xs">Agent</span>
-            </Button> */}
+            </Button>
           </div>
         </div>
       )}

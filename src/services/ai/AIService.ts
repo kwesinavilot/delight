@@ -2,7 +2,6 @@ import { AIProvider, GenerationOptions, SummaryLength, AIError, AIErrorType } fr
 import { ChatMessage } from '../../types/chat';
 import { ConfigManager } from '../config/ConfigManager';
 import { ContextProcessor } from '../chat/ContextProcessor';
-import { TrialService } from '../TrialService';
 import { ErrorRecoveryService } from './ErrorRecoveryService';
 import PostHogService from '../PostHogService';
 import { OpenAIProvider } from './providers/OpenAIProvider';
@@ -53,29 +52,15 @@ export class AIService {
       // 'gpt-oss-online': GPTOSSOnlineProvider,
     };
 
-    // Check if we should use trial mode
-    const useTrialMode = await TrialService.shouldUseTrialMode();
-    
     for (const [providerName, ProviderClass] of Object.entries(providerClasses)) {
       try {
         let config;
         
-        if (useTrialMode && providerName === 'gemini') {
-          // Use trial configuration for Gemini
-          config = {
-            provider: 'gemini',
-            apiKey: TrialService.getTrialApiKey(),
-            model: 'gemini-2.5-flash-lite',
-            maxTokens: 1000,
-            temperature: 0.7
-          };
-        } else {
-          config = await this.configManager.getProviderConfig(providerName);
-        }
+        config = await this.configManager.getProviderConfig(providerName);
         
         const provider = new ProviderClass(config);
         this.providers.set(providerName, provider);
-        console.log(`Registered provider: ${providerName}${useTrialMode && providerName === 'gemini' ? ' (trial mode)' : ''}`);
+        console.log(`Registered provider: ${providerName}`);
       } catch (error) {
         console.warn(`Failed to register provider ${providerName}:`, error);
         // Continue with other providers instead of failing completely
@@ -92,19 +77,6 @@ export class AIService {
 
   private async setCurrentProvider(): Promise<void> {
     try {
-      // Check if we should use trial mode
-      const useTrialMode = await TrialService.shouldUseTrialMode();
-      
-      if (useTrialMode) {
-        // Force Gemini as current provider in trial mode
-        const geminiProvider = this.providers.get('gemini');
-        if (geminiProvider) {
-          this.currentProvider = geminiProvider;
-          console.log('Set current provider to Gemini (trial mode)');
-          return;
-        }
-      }
-      
       const currentProviderName = await this.configManager.getCurrentProvider();
       const provider = this.providers.get(currentProviderName);
 
@@ -227,20 +199,6 @@ export class AIService {
       }));
     }
     
-    // Check trial usage before processing
-    const useTrialMode = await TrialService.shouldUseTrialMode();
-    if (useTrialMode) {
-      const remaining = await TrialService.getRemainingTrialRequests();
-      if (remaining <= 0) {
-        throw new AIError(
-          AIErrorType.CONFIGURATION_ERROR,
-          'Trial limit reached (5/5 requests used). Please configure your own API key to continue chatting.'
-        );
-      }
-      
-      // Increment trial usage
-      await TrialService.incrementTrialUsage();
-    }
     
     if (!this.currentProvider) {
       throw new AIError(
@@ -455,12 +413,9 @@ export class AIService {
     remainingRequests: number;
     totalRequests: number;
   }> {
-    const isTrialMode = await TrialService.shouldUseTrialMode();
-    const remainingRequests = await TrialService.getRemainingTrialRequests();
-    
     return {
-      isTrialMode,
-      remainingRequests,
+      isTrialMode: false,
+      remainingRequests: 0,
       totalRequests: 5
     };
   }

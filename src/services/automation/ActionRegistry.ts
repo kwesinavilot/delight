@@ -1,4 +1,17 @@
-import { PuppeteerAutomation } from './PuppeteerAutomation';
+export interface BrowserAutomation {
+  page?: any;
+  navigate(url: string): Promise<void>;
+  getState(): Promise<any>;
+  clickByIndex(index: number): Promise<void>;
+  fillByIndex(index: number, value: string): Promise<void>;
+  extractByIndex(index: number): Promise<string>;
+  getDropdownOptions(index: number): Promise<any[]>;
+  selectDropdownOption(index: number, option: string): Promise<void>;
+  scrollToPercent(percent: number): Promise<void>;
+  scrollToText(text: string, nth?: number): Promise<boolean>;
+  sendKeys(keys: string): Promise<void>;
+  wait(ms: number): Promise<void>;
+}
 
 export interface ActionResult {
   success: boolean;
@@ -9,7 +22,7 @@ export interface ActionResult {
 }
 
 export interface ActionContext {
-  automation: PuppeteerAutomation;
+  automation: BrowserAutomation;
   maxRetries: number;
   retryDelay: number;
 }
@@ -406,7 +419,7 @@ export class CacheContentAction extends BaseAction {
     try {
       // Store in session storage for persistence
       if (context.automation.page) {
-        await context.automation.page.evaluate((key, content) => {
+        await context.automation.page.evaluate((key: string, content: string) => {
           sessionStorage.setItem(`delight_cache_${key}`, content);
         }, params.key, params.content);
       }

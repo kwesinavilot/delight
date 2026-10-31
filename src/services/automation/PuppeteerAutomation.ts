@@ -1,5 +1,6 @@
-import { connect, ExtensionTransport } from 'puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js';
+import { connect } from 'puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js';
 import type { Browser, Page } from 'puppeteer-core';
+import { ExtensionTransport } from './ExtensionTransport';
 
 // Extend Window interface for injected scripts
 declare global {
