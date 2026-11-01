@@ -29,7 +29,7 @@
       elements.push({ index, tag: el.tagName.toLowerCase(), role: el.getAttribute('role'),
         label: el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('placeholder') || '',
         text: (el.innerText || el.textContent || '').trim().slice(0, 180),
-        type: el.getAttribute('type'), disabled: !!el.disabled, href: el.getAttribute('href'),
+        type: el.getAttribute('type'), disabled: !!el.disabled, href: el.getAttribute('href'), target: el.getAttribute('target'),
         value: el.type === 'password' ? undefined : el.value });
     }
     return { revision, url: location.href, title: document.title, elementCount: elements.length, elements,

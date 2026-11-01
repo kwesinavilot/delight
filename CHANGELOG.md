@@ -5,9 +5,12 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.6]
+## [1.4.6] - 2026-11-01
 
 ### Added
+- Agent actions to open new tabs and switch between observed tabs in the task's browser window.
+- Automatic tracking of new tabs opened by clicked links, with fresh observations in the followed tab.
+- Current-tab identity and same-window tab summaries in planner observations, including recovery choices when a controlled tab closes.
 - Local agent history for the latest 20 tasks, including actions, activity, failures, cancellation, and final outcomes.
 - Task history selection and deletion controls in Agent mode.
 - Recovery of unfinished saved runs as interrupted after the assistant restarts.
@@ -17,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Storage failures show a history warning while retaining the current session's records.
 
 ### Verification
+- Added tab-management regressions for window boundaries, closed tabs, popup following, unrelated-tab filtering, and cancellation cleanup.
+- Added a Chromium popup test for the packaged page runtime.
 - Added history regression tests for reload recovery, cancellation races, retention limits, deletion, and failed writes.
 - Added a Chromium UI test covering saved results after remount, cancellation on exit, and clearing history with a mocked runtime.
 

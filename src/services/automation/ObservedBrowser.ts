@@ -1,15 +1,47 @@
 import { TaskStep } from '../../types/agents';
 
 export class ObservedBrowser {
+  private windowId?: number;
   constructor(private tabId: number, private signal: AbortSignal) {}
 
   private check() { this.signal.throwIfAborted(); }
 
+  private async tabs() {
+    if (this.windowId === undefined) {
+      this.windowId = (await chrome.tabs.get(this.tabId)).windowId;
+      this.check();
+      if (!Number.isInteger(this.windowId)) throw new Error('Could not determine the task browser window');
+    }
+    const tabs = await chrome.tabs.query({ windowId: this.windowId });
+    this.check();
+    return tabs;
+  }
+
+  private async waitForTab() {
+    for (let i = 0; i < 100; i++) {
+      await this.pause(200);
+      const tab = await chrome.tabs.get(this.tabId);
+      this.check();
+      if (tab.status === 'complete') return tab;
+    }
+    throw new Error('Tab loading timed out');
+  }
+
+  private url(value?: string) {
+    const url = new URL(value || '');
+    if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Navigation requires an HTTP or HTTPS URL');
+    return url.href;
+  }
+
   async observe(): Promise<any> {
     this.check();
-    const tab = await chrome.tabs.get(this.tabId);
+    const tabs = await this.tabs();
+    const tab = tabs.find(tab => tab.id === this.tabId);
     this.check();
-    if (!/^https?:/.test(tab.url || '')) return { url: tab.url, title: tab.title, elements: [], elementCount: 0, restricted: true };
+    const context = { tabId: this.tabId, windowId: this.windowId,
+      tabs: tabs.map(tab => ({ id: tab.id, title: tab.title?.slice(0, 120), url: tab.url, active: tab.active })) };
+    if (!tab) return { ...context, url: '', title: '', elements: [], elementCount: 0, restricted: true, closed: true };
+    if (!/^https?:/.test(tab.url || '')) return { ...context, url: tab.url, title: tab.title, elements: [], elementCount: 0, restricted: true };
     await chrome.scripting.executeScript({ target: { tabId: this.tabId }, files: ['automation-runtime.js'] });
     this.check();
     const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId },
@@ -19,21 +51,40 @@ export class ObservedBrowser {
     if (typeof raw !== 'string') throw new Error('Browser observation failed: no serialized page state');
     const state = JSON.parse(raw);
     if (!Array.isArray(state.elements) || !state.revision) throw new Error('Browser observation has invalid structure');
-    return state;
+    return { ...state, ...context };
   }
 
   async act(step: TaskStep, state: any): Promise<any> {
     this.check();
-    if (step.type === 'navigate') {
-      const url = new URL(step.url || '');
-      if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Navigation requires an HTTP or HTTPS URL');
-      if (url.href !== state.url) await chrome.tabs.update(this.tabId, { url: url.href });
-      for (let i = 0; i < 100; i++) {
-        await this.pause(200);
-        const tab = await chrome.tabs.get(this.tabId);
-        if (tab.status === 'complete') return 'Navigation completed';
+    if (step.type === 'newTab') {
+      const url = this.url(step.url);
+      await this.tabs();
+      this.check();
+      const tab = await chrome.tabs.create({ windowId: this.windowId, url, active: true });
+      this.check();
+      if (tab.id === undefined) throw new Error('New tab did not return a tab ID');
+      this.tabId = tab.id;
+      await this.waitForTab();
+      return { outcome: 'Opened new tab', tabId: this.tabId, url };
+    }
+    if (step.type === 'switchTab') {
+      if (!Number.isInteger(step.tabId) || !state.tabs?.some((tab: any) => tab.id === step.tabId)) {
+        throw new Error('Choose a tab ID listed in the current observation');
       }
-      throw new Error('Navigation timed out');
+      const tabs = await this.tabs();
+      if (!tabs.some(tab => tab.id === step.tabId)) throw new Error('That tab has closed or moved to another window');
+      this.check();
+      await chrome.tabs.update(step.tabId!, { active: true });
+      this.check();
+      this.tabId = step.tabId!;
+      await this.waitForTab();
+      return { outcome: 'Switched tab', tabId: this.tabId };
+    }
+    if (step.type === 'navigate') {
+      const url = this.url(step.url);
+      if (url !== state.url) await chrome.tabs.update(this.tabId, { url });
+      await this.waitForTab();
+      return 'Navigation completed';
     }
     if (step.type === 'wait') { await this.pause(Math.min(5000, Math.max(100, Number(step.data?.duration) || 1000))); return 'Wait completed'; }
     if (step.type === 'analyzePage') return 'Page observed';
@@ -46,20 +97,49 @@ export class ObservedBrowser {
     const element = state.elements.find((el: any) => el.index === step.elementIndex);
     if (!element) throw new Error('Action references an index absent from the current observation');
     this.check();
-    const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId },
-      func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
-      args: [step, state.revision] });
-    this.check();
+    const sourceTabId = this.tabId;
     if (step.type !== 'click') {
+      const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId },
+        func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
+        args: [step, state.revision] });
+      this.check();
       await this.pause(350);
       return results[0]?.result ?? 'Action dispatched; outcome requires observation';
     }
+    await this.tabs();
+    let linkUrl: string | undefined;
+    try { if (element.href) linkUrl = new URL(element.href, state.url).href; } catch { /* Not a navigable link. */ }
+    const opened = new Map<number, chrome.tabs.Tab>();
+    const onCreated = (tab: chrome.tabs.Tab) => {
+      if (tab.id !== undefined && tab.windowId === this.windowId) opened.set(tab.id, tab);
+    };
+    chrome.tabs.onCreated.addListener(onCreated);
+    try {
+    await chrome.scripting.executeScript({ target: { tabId: this.tabId },
+      func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
+      args: [step, state.revision] });
+    this.check();
     // Navigation and SPA transitions can outlive the click's execution context.
     // Poll real page state instead of treating a null return as success evidence.
     let previous = '', stable = 0;
     const expectsNavigation = !!element.href;
     for (let i = 0; i < 16; i++) {
       await this.pause(500);
+      if (opened.size) {
+        const candidates = (await this.tabs()).filter(tab => tab.id !== undefined && opened.has(tab.id) && (
+          tab.openerTabId === sourceTabId || opened.get(tab.id)?.openerTabId === sourceTabId ||
+          (element.target === '_blank' && !!linkUrl && (tab.url === linkUrl || tab.pendingUrl === linkUrl))
+        ));
+        const target = candidates.length === 1 ? candidates[0] : candidates.find(tab => tab.active);
+        if (target?.id !== undefined) {
+          this.check();
+          await chrome.tabs.update(target.id, { active: true });
+          this.check();
+          this.tabId = target.id;
+          await this.waitForTab();
+          return { outcome: 'Followed tab opened by clicked link', tabId: this.tabId, url: target.url };
+        }
+      }
       const tab = await chrome.tabs.get(this.tabId);
       this.check();
       if (tab.status === 'loading') continue;
@@ -80,6 +160,9 @@ export class ObservedBrowser {
       if (!expectsNavigation && stable >= 2) return { outcome: 'Page settled after click', url: next.url };
     }
     return { outcome: 'No navigation or playback verified after click; choose another control or wait', url: state.url };
+    } finally {
+      chrome.tabs.onCreated.removeListener(onCreated);
+    }
   }
 
   async pause(ms: number): Promise<void> {

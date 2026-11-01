@@ -25,6 +25,14 @@ test('retains an explicit nested description', async () => {
     action: { type: 'click', elementIndex: 2, description: 'Click Search' } });
   assert.equal(result.action.description, 'Click Search');
 });
+test('accepts new-tab and switch-tab actions without losing tab identity', async () => {
+  const opened = await decide({ description: 'Open research', done: false, action: { type: 'newTab', url: 'https://example.com' } });
+  assert.equal(opened.action.type, 'newTab');
+  const switched = await decide({ description: 'Switch back', done: false, action: { type: 'switchTab', tabId: 15 } },
+    { tabId: 10, tabs: [{ id: 15, title: 'Research', url: 'https://example.com' }] },
+    prompt => { assert.match(prompt, /"tabId":10/); assert.match(prompt, /"id":15/); });
+  assert.equal(switched.action.tabId, 15);
+});
 test('still rejects unsupported action types and invalid indexes', async () => {
   await assert.rejects(decide({ description: 'Bad', done: false, action: { type: 'executeScript' } }));
   await assert.rejects(decide({ description: 'Bad', done: false, action: { type: 'click', elementIndex: -1 } }));

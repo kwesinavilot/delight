@@ -10,7 +10,7 @@ new Function('require', 'module', 'exports', code)(require, moduleUnderTest, mod
 const { ObservedBrowser } = moduleUnderTest.exports;
 const before = { url: 'https://example.com/results', elements: [{ index: 1, href: '/watch' }] };
 function setup(states, controller = new AbortController()) {
-  global.chrome = { tabs: { get: async () => ({ status: 'complete' }) },
+  global.chrome = { tabs: { get: async () => ({ status: 'complete', windowId: 1 }), query: async () => [], onCreated: { addListener() {}, removeListener() {} } },
     scripting: { executeScript: async () => [{ result: null }] } };
   const browser = new ObservedBrowser(1, controller.signal);
   let reads = 0;

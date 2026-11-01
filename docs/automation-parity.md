@@ -7,7 +7,7 @@ browser context, and DOM service in chrome-extension/src/background.
 | --- | --- | --- |
 | Execution | Observe before each decision; one validated action; recent outcomes | Durable background execution across restarts |
 | Observation | Packaged isolated-world helper; labels, roles, viewport elements, open shadow roots, media | Cross-origin frame routing, closed shadow roots, screenshots |
-| Actions | Navigate, click, fill, select, extract, scroll, wait | Tabs, uploads/downloads, trusted keyboard input |
+| Actions | Navigate, open/switch same-window tabs, follow new-tab links, click, fill, select, extract, scroll, wait | Tab closing/reordering, uploads/downloads, trusted keyboard input |
 | Validation | Snapshot revision, live targets, obscured/disabled checks | Target identity changes during model latency |
 | Completion | Explicit evidence; YouTube playback check; limits fail rather than succeed | Broader deterministic outcome checks |
 | Cancellation | Per-run signal; interruptible waits; late decisions ignored | Abort underlying provider HTTP requests; cannot undo a dispatched click |
