@@ -44,7 +44,8 @@
     el.scrollIntoView({ block: 'center', inline: 'center' });
     const r = el.getBoundingClientRect();
     const root = el.getRootNode();
-    const top = (root.elementFromPoint || document.elementFromPoint).call(root, r.left + r.width / 2, r.top + r.height / 2);
+    const hitTest = root.elementFromPoint || document.elementFromPoint;
+    const top = hitTest?.call(root, r.left + r.width / 2, r.top + r.height / 2);
     if (top && top !== el && !el.contains(top) && !top.contains(el)) throw new Error('Element is obscured; dismiss the overlay first');
     return el;
   };

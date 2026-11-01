@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.4] - 2026-11-01
 
+### Automation runtime replacement
+- Leaving Agent mode cancels its run; late results cannot reset the UI of a newer task.
+- Added a packaged page runtime with semantic observations, open shadow-root traversal, media state, and snapshot revisions.
+- Replaced fixed-plan execution with observation before every validated single action and explicit completion evidence.
+- Added per-run cancellation, interruptible waits, failure/action limits, and repeated-action detection.
+- Added DOM regression tests and an implementation status comparison in `docs/automation-parity.md`.
+
 ### Added
 - Nanobrowser-style observe–act–observe agent execution loop.
 - Expandable agent execution details showing the current phase, plan, and action.

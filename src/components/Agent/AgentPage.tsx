@@ -27,9 +27,14 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const orchestratorRef = useRef<AgentOrchestrator | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const runSerial = useRef(0);
 
   useEffect(() => {
     orchestratorRef.current = AgentOrchestrator.getInstance();
+    return () => {
+      runSerial.current++;
+      void orchestratorRef.current?.stopCurrentTask();
+    };
   }, []);
 
   useEffect(() => {
@@ -66,6 +71,7 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
 
   const executeTask = async () => {
     if (!input.trim() || !orchestratorRef.current || isExecuting) return;
+    const serial = ++runSerial.current;
 
     setIsExecuting(true);
     setIsPlanning(true);
@@ -99,21 +105,26 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
         }
       });
 
+      if (serial !== runSerial.current) return;
       if (result.success) {
         addLog('success', 'System', 'Task completed successfully!', result);
       } else {
         addLog('error', 'System', `Task failed: ${result.error}`, result);
       }
     } catch (error) {
+      if (serial !== runSerial.current) return;
       addLog('error', 'System', `Execution error: ${error}`, error);
     } finally {
-      setIsExecuting(false);
-      setIsPlanning(false);
-      setCurrentStep(-1);
+      if (serial === runSerial.current) {
+        setIsExecuting(false);
+        setIsPlanning(false);
+        setCurrentStep(-1);
+      }
     }
   };
 
   const stopExecution = async () => {
+    runSerial.current++;
     await orchestratorRef.current?.stopCurrentTask();
     setIsPlanning(false);
     setIsExecuting(false);
