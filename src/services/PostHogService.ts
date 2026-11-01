@@ -31,6 +31,10 @@ class PostHogService {
       capture_pageleave: true,
       disable_session_recording: true,
       disable_surveys: true,
+      autocapture: false,
+      capture_dead_clicks: false,
+      disable_external_dependency_loading: true,
+      advanced_disable_flags: true,
       cross_subdomain_cookie: false,
       persistence: 'localStorage',
       loaded: (posthog) => {

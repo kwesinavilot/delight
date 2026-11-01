@@ -101,6 +101,10 @@ export class ContentScriptAutomation {
             elements.push({
               index: index,
               tag: el.tagName.toLowerCase(),
+              role: el.getAttribute('role'),
+              label: el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('placeholder') || '',
+              href: el.getAttribute('href'),
+              type: el.getAttribute('type'),
               text: (el.textContent || (el as any).value || '').trim().substring(0, 100),
               rect: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
             });
@@ -110,7 +114,7 @@ export class ContentScriptAutomation {
         });
         
         console.log('✨ Highlighted', index, 'elements');
-        return { elements, count: index, url: window.location.href, title: document.title };
+        return { elements, count: index, elementCount: index, url: window.location.href, title: document.title };
       },
       
       clickElement: (index: number) => {
@@ -120,7 +124,6 @@ export class ContentScriptAutomation {
         // Multiple click strategies like Nanobrowser
         (element as any).focus();
         (element as any).click();
-        element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         
         return `Clicked element ${index}`;
       },
@@ -168,7 +171,7 @@ export class ContentScriptAutomation {
           if (!(window as any).delightAutomation) {
             throw new Error('Automation script not loaded');
           }
-          return (window as any).delightAutomation.highlightElements();
+          return JSON.stringify((window as any).delightAutomation.highlightElements());
         }
       });
       
@@ -176,13 +179,12 @@ export class ContentScriptAutomation {
         throw new Error('No results from highlight script');
       }
       
-      const result = results[0]?.result;
-      return result || {
-        elements: [],
-        count: 0,
-        url: `tab:${this.tabId}`,
-        title: ''
-      };
+      const raw = results[0]?.result;
+      const result = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!result || !Array.isArray(result.elements) || !result.url) {
+        throw new Error('Page observation returned no valid data. Cannot safely choose browser actions.');
+      }
+      return { ...result, elementCount: result.elements.length };
     } catch (error) {
       console.error('❌ [ContentScript] Highlight failed:', error);
       throw new Error(`Failed to highlight elements: ${error instanceof Error ? error.message : String(error)}`);

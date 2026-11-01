@@ -65,7 +65,7 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
   };
 
   const executeTask = async () => {
-    if (!input.trim() || !orchestratorRef.current) return;
+    if (!input.trim() || !orchestratorRef.current || isExecuting) return;
 
     setIsExecuting(true);
     setIsPlanning(true);
@@ -113,8 +113,9 @@ const AgentPage: React.FC<AgentPageProps> = ({ onBack }) => {
     }
   };
 
-  const stopExecution = () => {
-    // TODO: Implement stop functionality in orchestrator
+  const stopExecution = async () => {
+    await orchestratorRef.current?.stopCurrentTask();
+    setIsPlanning(false);
     setIsExecuting(false);
     setCurrentStep(-1);
     addLog('info', 'System', 'Execution stopped by user');

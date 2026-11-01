@@ -5,6 +5,29 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2026-11-01
+
+### Added
+- Nanobrowser-style observe–act–observe agent execution loop.
+- Expandable agent execution details showing the current phase, plan, and action.
+- Content-script browser automation for navigation, page analysis, clicking, form filling, extraction, scrolling, and dropdowns.
+
+### Changed
+- Agent automation now uses the user-selected AI provider and requires the selected provider to be configured.
+- Removed the built-in Gemini trial mode and trial API key.
+- Replanning now uses the latest browser state and selects one next action instead of repeating a fixed plan.
+- Removed the unused `webNavigation` permission from the extension manifest.
+
+### Fixed
+- Connected the Agent page Stop button to orchestrator cancellation and prevented duplicate submissions from that page.
+- Reject missing page observations instead of reporting successful analysis with fabricated empty state; serialize observations explicitly across the scripting boundary.
+- Disabled PostHog remote script dependencies and automatic capture to respect extension CSP.
+- Corrected the browser automation transport mismatch and removed CDP/debugger attachment from the primary automation path.
+- Added planner and execution timeouts to prevent indefinite hangs.
+- Fixed stale singleton tasks, duplicate task submission, and Stop behavior after an action was already in flight.
+- Added failure limits to prevent repeated failed actions from looping indefinitely.
+- Normalized null page-analysis results so pages without detected controls do not crash the agent.
+
 ## [1.4.3] - 2025-09-14
 
 ### Added

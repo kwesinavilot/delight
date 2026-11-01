@@ -32,7 +32,8 @@ export class PlannerAgent {
     }
     
     const conversationHistory = this.memory.getConversationContext(5);
-    const previousResults = this.memory.recallByType('result');
+    const previousResults = context?.previousResults || this.memory.recallByType('result');
+    const latestResult = context?.lastResult;
     
     const prompt = `You are a web automation planner using available tools.
 
@@ -49,9 +50,14 @@ ${conversationHistory.map(h => `${h.role}: ${h.content}`).join('\n')}
 Previous Results:
 ${JSON.stringify(previousResults.slice(-3))}
 
+Latest browser result:
+${JSON.stringify(latestResult || null)}
+
 Task: ${userInput}
 
-Create next step(s) as JSON:
+Create the next best browser action as JSON. When a latest browser result is present, return exactly ONE step and use the current page state; do not repeat a navigation that already succeeded. Only navigate when the current URL is not the requested destination. Use the element indexes from the latest browser result, never guessed indexes.
+
+JSON format:
 {
   "description": "What we're doing",
   "steps": [
@@ -70,7 +76,7 @@ Create next step(s) as JSON:
       if (currentProvider instanceof GeminiProvider && currentProvider.supportsStructuredOutput()) {
         console.log('🎆 [PlannerAgent] Using Gemini structured output...');
         
-        const structuredPrompt = `Break down this user request into executable browser automation steps: ${userInput}`;
+        const structuredPrompt = `Choose the next single browser action for this request. Observe the latest browser result and do not repeat completed actions. Request: ${userInput}\n\nLatest context: ${JSON.stringify(latestResult || null)}\n\nReturn one executable step only.`;
         const schema = GeminiProvider.createTaskPlanSchema();
         
         plan = await this.withTimeout(

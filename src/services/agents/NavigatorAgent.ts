@@ -143,7 +143,7 @@ export class NavigatorAgent {
       const result = {
         result: actionResult.data || actionResult.extractedContent,
         success: true,
-        mode: 'puppeteer',
+        mode: 'content-script',
         extractedContent: actionResult.extractedContent,
         stepType: step.type,
         timestamp: Date.now()

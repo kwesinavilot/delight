@@ -29,6 +29,7 @@ export class AgentOrchestrator {
   private progressCallback?: (progress: any) => void;
   private isExecuting: boolean = false;
   private shouldStop: boolean = false;
+  private executionToken = 0;
 
   private constructor() {
     console.log('🤖 [AgentOrchestrator] Initializing...');
@@ -73,18 +74,20 @@ export class AgentOrchestrator {
   }): Promise<AutomationResult> {
     const taskId = `task_${Date.now()}`;
     console.log('🤖 [AgentOrchestrator] Starting task:', userInput);
+
+    // Reject duplicate submissions before mutating conversation/task state.
+    if (this.isExecuting) {
+      throw new Error('Another task is already executing. Stop it or wait for it to finish.');
+    }
     
     // Start conversation and store context
     this.messenger.startConversation(taskId);
     this.memory.remember('currentTask', userInput, 'context');
     this.memory.addToConversation('user', userInput);
     
-    if (this.isExecuting) {
-      throw new Error('Another task is already executing');
-    }
-    
     this.isExecuting = true;
     this.shouldStop = false;
+    const executionToken = ++this.executionToken;
     
     try {
       // Initialize agents
@@ -123,7 +126,7 @@ export class AgentOrchestrator {
       this.updateProgress({ stage: 'executing', message: 'Executing steps...' });
       callbacks?.onProgress?.('Executing steps...');
       
-      const results = await this.executeIteratively(userInput, callbacks);
+      const results = await this.executeIteratively(userInput, callbacks, executionToken);
 
       // Step 3: Validate
       console.log('🔍 [AgentOrchestrator] Validating...');
@@ -152,9 +155,11 @@ export class AgentOrchestrator {
         executionTime: Date.now() - parseInt(taskId.split('_')[1])
       };
     } finally {
-      this.isExecuting = false;
-      this.shouldStop = false;
-      this.currentTask = null;
+      if (this.executionToken === executionToken) {
+        this.isExecuting = false;
+        this.shouldStop = false;
+        this.currentTask = null;
+      }
     }
   }
 
@@ -162,16 +167,18 @@ export class AgentOrchestrator {
     onStepStart?: (stepIndex: number, step: TaskStep) => void;
     onStepComplete?: (stepIndex: number, step: TaskStep, result: any) => void;
     onStepError?: (stepIndex: number, step: TaskStep, error: string) => void;
-  }): Promise<any> {
+  }, executionToken?: number): Promise<any> {
     const maxIterations = 20;
     let iteration = 0;
     let consecutiveFailures = 0;
     const results: any[] = [];
+    const runIsActive = () => !this.shouldStop &&
+      (executionToken === undefined || executionToken === this.executionToken);
     
     while (iteration < maxIterations) {
       iteration++;
       
-      if (this.shouldStop) {
+      if (!runIsActive()) {
         throw new Error('Task stopped by user');
       }
       
@@ -179,15 +186,26 @@ export class AgentOrchestrator {
       
       // Get next plan from Planner (using memory context)
       this.updateProgress({ stage: 'planning', message: `Planning the next action (iteration ${iteration})…` });
-      const plan = await this.planner.createPlan(userInput, {
-        iteration,
-        previousResults: results,
-        conversationHistory: this.memory.getConversationContext()
-      });
+      const plan = iteration === 1 && this.currentTask
+        ? this.currentTask
+        : await this.planner.createPlan(userInput, {
+            iteration,
+            previousResults: results,
+            conversationHistory: this.memory.getConversationContext(),
+            lastResult: results[results.length - 1] || null
+          });
+
+      if (!runIsActive()) throw new Error('Task stopped by user');
       
       if (!plan.steps || plan.steps.length === 0) {
         console.log('🎉 [AgentOrchestrator] No more steps - task complete!');
         break;
+      }
+
+      // After the initial user-visible plan, the planner is responsible for
+      // selecting exactly one next action from fresh browser state.
+      if (iteration > 1 && plan.steps.length > 1) {
+        plan.steps = [plan.steps[0]];
       }
       
       // Execute first step from plan
@@ -204,6 +222,10 @@ export class AgentOrchestrator {
       try {
         // Simple execution - no complex routing
         const result = await this.navigator.executeStep(step);
+
+        // The action may have completed after Stop was pressed. Do not publish
+        // its result or allow the old run to plan another step.
+        if (!runIsActive()) throw new Error('Task stopped by user');
         
         console.log(`✅ [AgentOrchestrator] Iteration ${iteration} completed`);
         results.push(result);
@@ -223,6 +245,7 @@ export class AgentOrchestrator {
         
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        if (!runIsActive()) throw new Error('Task stopped by user');
         console.error(`❌ [AgentOrchestrator] Iteration ${iteration} failed:`, errorMessage);
         
         // Store error in memory for next planning
@@ -274,6 +297,10 @@ export class AgentOrchestrator {
   async stopCurrentTask(): Promise<void> {
     console.log('🛑 [AgentOrchestrator] Stopping task...');
     this.shouldStop = true;
+    // Invalidate the current run immediately. Any late AI response or browser
+    // action is ignored by the old run, and a new task can start safely.
+    this.executionToken++;
+    this.isExecuting = false;
     if (this.currentTask) {
       this.currentTask.status = 'failed';
     }
