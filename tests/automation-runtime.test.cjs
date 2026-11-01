@@ -3,6 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('public/automation-runtime.js', 'utf8');
+test('rejects semantic changes to a reused DOM control', () => {
+  const { dom, w, runtime } = setup('<button>Save draft</button>');
+  const state = runtime.observe();
+  w.document.querySelector('button').textContent = 'Delete draft';
+  assert.throws(() => runtime.act({ type: 'click', elementIndex: 0 }, state.revision), /changed/);
+  dom.window.close();
+});
 function setup(html) {
   const dom = new JSDOM(html, { url: 'https://example.com', runScripts: 'outside-only' });
   const w = dom.window;

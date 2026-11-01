@@ -1,5 +1,6 @@
 import { TaskStep } from '../../types/agents';
 import { combineFrameObservations } from './FrameObservation';
+import { trustedInput } from './TrustedInput';
 
 export class ObservedBrowser {
   private windowId?: number;
@@ -102,6 +103,16 @@ export class ObservedBrowser {
     }
     if (step.type === 'wait') { await this.pause(Math.min(5000, Math.max(100, Number(step.data?.duration) || 1000))); return 'Wait completed'; }
     if (step.type === 'analyzePage') return 'Page observed';
+    if (step.type === 'verify') {
+      const data = step.data || {};
+      const field = state.elements?.find((el: any) => el.index === data.elementIndex);
+      const verified = data.kind === 'text' ? typeof data.text === 'string' && !!data.text.trim() && String(state.text || '').includes(data.text)
+        : data.kind === 'url' ? typeof data.url === 'string' && state.url === data.url
+        : data.kind === 'field' ? typeof data.value === 'string' && field?.value === data.value
+        : data.kind === 'media' ? state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2) : false;
+      if (!verified) throw new Error('Requested outcome is not present in the current observation');
+      return { verified: true, kind: data.kind, outcome: 'Outcome observed' };
+    }
     if (step.type === 'scrollToPercent') {
       const frameId = step.data?.frameId ?? 0;
       if (!Number.isInteger(frameId) || !state.frames?.some((frame: any) => frame.frameId === frameId)) {
@@ -115,6 +126,8 @@ export class ObservedBrowser {
     if (state.tabId !== undefined && state.tabId !== this.tabId) throw new Error('Tab changed; observe it again before acting');
     const element = state.elements.find((el: any) => el.index === step.elementIndex);
     if (!element) throw new Error('Action references an index absent from the current observation');
+    const submitting = element.submitControl || (element.form && element.type === 'submit') ||
+      (step.type === 'sendKeys' && step.data?.keys === 'Enter' && element.form && element.tag !== 'textarea');
     this.check();
     const sourceTabId = this.tabId;
     const target: chrome.scripting.InjectionTarget = element.documentId
@@ -122,13 +135,27 @@ export class ObservedBrowser {
       : { tabId: this.tabId, frameIds: [element.frameId ?? 0] };
     const frameStep = { ...step, elementIndex: element.frameIndex ?? step.elementIndex };
     const revision = element.frameRevision ?? state.revision;
-    const dispatch = () => chrome.scripting.executeScript({ target,
+    const dispatch = async () => {
+      if (step.type === 'sendKeys' || step.type === 'trustedClick') {
+        if (step.type === 'sendKeys' && (typeof step.data?.keys !== 'string' || !step.data.keys)) throw new Error('sendKeys requires data.keys');
+        const prepared = await chrome.scripting.executeScript({ target,
+          func: (index: number, expected: string, url: string, pointer: boolean) => {
+            if (location.href !== url) throw new Error('Frame navigated; observe again');
+            return (globalThis as any).delightAutomation.prepare(index, expected, pointer);
+          }, args: [frameStep.elementIndex!, revision, element.frameUrl || state.url, step.type === 'trustedClick'] });
+        this.check();
+        if (!prepared[0]?.result) throw new Error('Native input target could not be prepared');
+        await trustedInput(this.tabId, this.signal, step.type === 'sendKeys' ? { keys: step.data.keys } : prepared[0].result);
+        return [];
+      }
+      return chrome.scripting.executeScript({ target,
       func: (action: TaskStep, expectedRevision: string, expectedUrl?: string) => {
         const runtime = (globalThis as any).delightAutomation;
         if (!runtime || (expectedUrl && location.href !== expectedUrl)) throw new Error('Frame changed or navigated; observe again before acting');
         return runtime.act(action, expectedRevision);
       }, args: [frameStep, revision, element.frameUrl || state.url] });
-    if (step.type !== 'click') {
+    };
+    if (!['click', 'trustedClick', 'sendKeys'].includes(step.type)) {
       const results = await dispatch();
       this.check();
       await this.pause(350);
@@ -163,7 +190,8 @@ export class ObservedBrowser {
           this.check();
           this.tabId = target.id;
           await this.waitForTab();
-          return { outcome: 'Followed tab opened by clicked link', tabId: this.tabId, url: target.url };
+          return { outcome: 'Followed tab opened by clicked link', tabId: this.tabId, url: target.url,
+            ...(submitting ? { submission: 'navigation-observed' } : {}) };
         }
       }
       const tab = await chrome.tabs.get(this.tabId);
@@ -174,6 +202,15 @@ export class ObservedBrowser {
       catch (error) {
         this.check();
         if (i === 15) throw error;
+        continue;
+      }
+      if (submitting) {
+        const invalid = next.elements?.filter((el: any) => el.frameId === element.frameId && el.invalid);
+        if (invalid?.length) return { outcome: 'Submission blocked by field validation; correct the fields before retrying', submission: 'validation-error', errors: invalid.map((el: any) => ({ index: el.index, message: el.validationMessage })) };
+        const confirmation = next.statuses?.find((text: string) => !state.statuses?.includes(text));
+        if (confirmation) return { outcome: 'New status observed after submission; inspect it before declaring success', submission: 'status-observed', evidence: confirmation };
+        if (next.url !== state.url) return { outcome: 'Navigation observed after submission', submission: 'navigation-observed', url: next.url };
+        if (i === 15) return { outcome: 'Submission outcome unverified. Do not repeat automatically; ask the user or inspect confirmation.', submission: 'unverified' };
         continue;
       }
       if (next.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2)) {

@@ -22,6 +22,7 @@ export function combineFrameObservations(results: chrome.scripting.InjectionResu
     }
   }
   return { ...main, elements, elementCount: elements.length,
+    statuses: frames.flatMap(frame => frame.statuses || []),
     frames: frames.map(frame => ({ frameId: frame.frameId, url: frame.url, title: frame.title,
       elementCount: frame.elements.length, text: String(frame.text || '').slice(0, 500) })),
     media: frames.flatMap(frame => (frame.media || []).map((media: any) => ({ ...media, frameId: frame.frameId }))),

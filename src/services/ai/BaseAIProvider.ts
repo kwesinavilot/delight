@@ -42,7 +42,7 @@ export abstract class BaseAIProvider implements AIProvider {
     // Enhanced error detection and classification
     const errorMessage = error?.message?.toLowerCase() || '';
     const errorCode = error?.code || '';
-    const errorStatus = error?.status || error?.response?.status;
+    const errorStatus = error?.statusCode || error?.status || error?.response?.status;
     
     // Authentication errors
     if (errorStatus === 401 || errorMessage.includes('unauthorized') || errorMessage.includes('invalid api key')) {

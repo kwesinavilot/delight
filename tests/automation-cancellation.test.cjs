@@ -5,7 +5,7 @@ const ts = require('typescript');
 const compiled = ts.transpileModule(fs.readFileSync('src/services/agents/AgentOrchestrator.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
-function setup(decide, act = async () => 'ok') {
+function setup(decide, act = async () => 'ok', pause = async () => {}) {
   const historyModule = { exports: {} };
   const historyCode = ts.transpileModule(fs.readFileSync('src/services/agents/AgentHistory.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
@@ -15,6 +15,8 @@ function setup(decide, act = async () => 'ok') {
   let observations = 0;
   class Planner { async initialize() {} decide(...args) { return decide(...args); } }
   class Browser {
+    constructor(_tabId, signal) { this.signal = signal; }
+    async pause(ms) { return pause(ms, this.signal); }
     async observe() { return { url: 'https://example.com', elements: [], revision: `observation-${++observations}` }; }
     async act(step) { actions.push(step); return act(step); }
   }
@@ -65,12 +67,59 @@ test('provider rate limits show a clear status and do not replay browser actions
   const progress = [];
   const result = await agent.executeTask('play a song', { onProgress: message => progress.push(message) });
   assert.equal(result.success, false);
-  assert.match(result.error, /provider rate limit reached/i);
-  assert.ok(progress.some(message => /rate-limiting requests/.test(message)));
+  assert.match(result.error, /provider rate limit persists/i);
+  assert.equal(progress.filter(message => /Provider cooldown/.test(message)).length, 2);
   assert.equal(actions.length, 0);
   assert.equal(agent.isTaskExecuting(), false);
 });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+test('a temporary provider cooldown recovers from a fresh observation', async () => {
+  let calls = 0;
+  const ctx = setup(async () => {
+    if (++calls === 1) throw new Error('429 retry in 1s');
+    return { done: true, success: true, evidence: 'Fresh destination verified' };
+  });
+  assert.equal((await ctx.agent.executeTask('inspect')).success, true);
+  assert.equal(ctx.observations(), 2);
+  assert.equal(ctx.actions.length, 0);
+});
+test('Stop aborts a provider cooldown without another request or browser action', async () => {
+  const entered = deferred();
+  let calls = 0;
+  const ctx = setup(async () => { calls++; throw new Error('429 retry in 60s'); }, undefined,
+    async (_ms, signal) => { entered.resolve(); await new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('Stopped')), { once: true })); });
+  const running = ctx.agent.executeTask('inspect');
+  await entered.promise;
+  await ctx.agent.stopCurrentTask();
+  assert.equal((await running).success, false);
+  assert.equal(calls, 1);
+  assert.equal(ctx.actions.length, 0);
+});
+test('Pause during a cooldown gates provider retry until Resume', async () => {
+  const entered = deferred(), release = deferred();
+  let calls = 0;
+  const ctx = setup(async () => {
+    if (++calls === 1) throw new Error('429 retry in 1s');
+    return { done: true, success: true, evidence: 'Observed' };
+  }, undefined, async () => { entered.resolve(); await release.promise; });
+  const running = ctx.agent.executeTask('inspect');
+  await entered.promise;
+  await ctx.agent.pauseCurrentTask();
+  release.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(calls, 1);
+  await ctx.agent.resumeCurrentTask();
+  assert.equal((await running).success, true);
+  assert.equal(calls, 2);
+});
+test('an uncertain submission is never automatically clicked again', async () => {
+  const ctx = setup(async () => ({ done: false, action: { type: 'click', description: 'Submit', elementIndex: 0 } }),
+    async () => ({ submission: 'unverified' }));
+  const result = await ctx.agent.executeTask('submit form');
+  assert.equal(result.success, false);
+  assert.match(result.error, /uncertain outcome/);
+  assert.equal(ctx.actions.length, 1);
+});
 test('pause interrupts planning; resume observes again and retains the original task', async () => {
   const entered = deferred();
   const revisions = [];

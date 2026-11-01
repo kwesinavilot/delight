@@ -5,6 +5,26 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Native Enter, keyboard shortcuts, and opt-in trusted pointer clicks using the existing debugger permission.
+- Explicit text, URL, field-value, and playback verification actions; visible form validation and status observations.
+- Bounded provider cooldown retries with visible progress and interruptible waits, followed by fresh page observation.
+
+### Fixed
+- Reject controls whose identity changed after observation and re-plan from the latest layout.
+- Distinguish submission dispatch from confirmation, surface validation failures, and block input replay after uncertain submissions.
+- Recognize SDK HTTP status codes for provider error classification and support snapshot IDs on non-secure HTTP pages.
+
+### Verification
+- Added regressions for bounded cooldown recovery, Pause/Stop during cooldowns, uncertain-submission replay protection, explicit outcome checks, and changed control identities.
+- Added a live Chromium/CDP fixture for native Enter, required-field validation, Ctrl+A, trusted-only clicks, and debugger cleanup (extension APIs are adapted, not tested inside a loaded extension).
+
+### Limitations
+- Native input requires exclusive debugger access to the tab; native pointer targeting across cross-origin frame boundaries is not supported (keyboard interaction remains available).
+- Submission verification observes page evidence, not server-side delivery guarantees.
+
 ## [1.4.7] - 2026-11-02
 
 ### Added

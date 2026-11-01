@@ -104,7 +104,7 @@ export class AgentOrchestrator {
       if (!tab?.id) throw new Error('No active browser tab');
       const browser = new ObservedBrowser(tab.id, signal);
       const history: any[] = [];
-      let failures = 0, repeated = 0, previousFingerprint = '';
+      let failures = 0, repeated = 0, previousFingerprint = '', cooldowns = 0, plannerRecoveries = 0;
       for (let i = 0; i < 30;) {
         await this.checkpoint(run);
         progress('observing', 'Inspecting the current page...');
@@ -125,8 +125,23 @@ export class AgentOrchestrator {
           const message = error instanceof Error ? error.message : String(error);
           const cause = error as any;
           if (cause?.type === 'rate_limit_error' || /429|quota|rate.?limit|too many requests/i.test(message)) {
-            progress('rate-limited', 'The selected provider is rate-limiting requests. Browser actions are paused; wait for quota to recover before retrying.');
-            throw new Error('Selected provider rate limit reached. Wait for quota to recover, then retry the task.');
+            if (++cooldowns > 2) throw new Error('Selected provider rate limit persists after two cooldowns. Wait for quota to recover, then retry.');
+            const original = cause?.originalError || cause?.cause || cause;
+            const headers = original?.responseHeaders || original?.headers;
+            const hint = typeof headers?.get === 'function' ? headers.get('retry-after') : headers?.['retry-after'];
+            const seconds = hint ? (Number.isFinite(Number(hint)) ? Number(hint) : (Date.parse(hint) - Date.now()) / 1000)
+              : Number(message.match(/retry\s+(?:in|after)\s+(\d+(?:\.\d+)?)\s*s/i)?.[1]) || 15;
+            if (seconds > 120) throw new Error('Provider requested a cooldown longer than two minutes. Retry later; no browser action was replayed.');
+            const delay = Math.max(1000, Math.ceil((Number.isFinite(seconds) ? seconds : 15) * 1000));
+            progress('rate-limited', `Provider cooldown: waiting ${Math.ceil(delay / 1000)} seconds (retry ${cooldowns}/2). Pause and Stop remain available.`);
+            await browser.pause(delay);
+            await this.checkpoint(run);
+            continue;
+          }
+          if (++plannerRecoveries <= 2 && /JSON|invalid_type|timed out|network|fetch|503|502/i.test(message)) {
+            progress('recovering', 'Planner response unavailable or invalid. Inspecting the page again before retrying.');
+            await browser.pause(1000);
+            continue;
           }
           throw error;
         } finally {
@@ -137,6 +152,10 @@ export class AgentOrchestrator {
         if (planning.signal.aborted || await this.checkpoint(run)) continue;
         if (decision.done) {
           if (decision.success !== true) throw new Error(decision.evidence || decision.description);
+          const lastSubmission = history.findLastIndex(h => h.result?.submission);
+          if (lastSubmission >= 0 && !history.slice(lastSubmission + 1).some(h => h.result?.verified === true && h.result.kind === 'text')) {
+            throw new Error('Submission was not confirmed. Inspect the page and resolve validation or confirm the outcome before retrying.');
+          }
           if (/\b(play|playing)\b/i.test(input) && /youtube\.com/.test(state.url) &&
               !state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2)) throw new Error('Playback was not verified');
           task.status = 'completed';
@@ -144,6 +163,10 @@ export class AgentOrchestrator {
           return { taskId, success: true, data: { evidence: decision.evidence, history }, executionTime: Date.now() - started };
         }
         const step: TaskStep = { ...decision.action!, id: `${taskId}_${i}`, status: 'pending' };
+        const confirmedAt = history.findLastIndex(h => h.result?.verified && h.result.kind === 'text');
+        if (['click', 'trustedClick', 'sendKeys'].includes(step.type) && history.slice(confirmedAt + 1).some(h => h.result?.submission === 'unverified')) {
+          throw new Error('Previous submission has an uncertain outcome. Automatic input replay is blocked; confirm the outcome manually.');
+        }
         const fingerprint = JSON.stringify([state.tabId, state.url, state.elements.map(({ frameRevision: _revision, ...element }: any) => element), step.type, step.url, step.tabId, step.elementIndex, step.data]);
         repeated = fingerprint === previousFingerprint ? repeated + 1 : 0;
         previousFingerprint = fingerprint;
@@ -160,7 +183,9 @@ export class AgentOrchestrator {
           signal.throwIfAborted();
           step.status = 'completed';
           agentHistory.steps(taskId, steps);
-          agentHistory.event(taskId, `Completed: ${step.description}`, 'success');
+          agentHistory.event(taskId, result?.submission
+            ? `Submission outcome (${result.submission}): ${result.outcome}. Confirmation is required.`
+            : `Completed: ${step.description}`, result?.submission ? 'info' : 'success');
           failures = 0;
           history.push({ action: step.type, description: step.description, result });
           callbacks.onStepComplete?.(i, step, { success: true, result });
@@ -170,8 +195,14 @@ export class AgentOrchestrator {
           step.status = 'failed';
           agentHistory.steps(taskId, steps);
           agentHistory.event(taskId, message, 'error');
-          history.push({ action: step.type, error: message });
+          const target = state.elements.find((el: any) => el.index === step.elementIndex);
+          const submission = ['click', 'trustedClick'].includes(step.type) && (target?.submitControl || target?.form && target.type === 'submit') ||
+            step.type === 'sendKeys' && step.data?.keys === 'Enter' && target?.form && target.tag !== 'textarea';
+          history.push({ action: step.type, error: message, ...(submission ? { result: { submission: 'unverified' } } : {}) });
           callbacks.onStepError?.(i, step, message);
+          if (/stale|changed|detached|obscured|navigated|index absent/i.test(message)) {
+            progress('recovering', 'The page layout changed or a control is unavailable. Re-observing before choosing a fresh target.');
+          }
           if (++failures >= 3) throw new Error(`Three actions failed: ${message}`);
         }
         i++;

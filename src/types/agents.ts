@@ -12,7 +12,7 @@ export type ActionType =
   // Core Navigation
   | 'navigate' | 'goBack' | 'forward' | 'refresh' | 'newTab' | 'closeTab' | 'switchTab'
   // Element Interaction  
-  | 'click' | 'clickElement' | 'doubleClick' | 'rightClick' | 'hover' | 'drag' | 'focus'
+  | 'click' | 'trustedClick' | 'clickElement' | 'doubleClick' | 'rightClick' | 'hover' | 'drag' | 'focus'
   // Form & Input
   | 'fill' | 'inputText' | 'clear' | 'select' | 'selectDropdownOption' | 'getDropdownOptions'
   | 'check' | 'uncheck' | 'radio' | 'upload' | 'submit'
