@@ -5,7 +5,26 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.6]
+
+### Added
+- Local agent history for the latest 20 tasks, including actions, activity, failures, cancellation, and final outcomes.
+- Task history selection and deletion controls in Agent mode.
+- Recovery of unfinished saved runs as interrupted after the assistant restarts.
+
+### Fixed
+- Runtime-owned history preserves outcomes after leaving Agent mode and ignores late updates to cancelled tasks.
+- Storage failures show a history warning while retaining the current session's records.
+
+### Verification
+- Added history regression tests for reload recovery, cancellation races, retention limits, deletion, and failed writes.
+- Added a Chromium UI test covering saved results after remount, cancellation on exit, and clearing history with a mocked runtime.
+
 ## [1.4.5] - 2026-11-01
+
+### Verification
+- Added a Chromium onboarding test covering all four steps, a quota failure, a successful model test, local-only credential saving, and Get Started using a mocked provider.
+- Verified 18 setup and automation regression tests plus the Chromium page-action test; production build passes.
 
 ### Provider setup and privacy
 - Added a required fourth onboarding step to enter a provider key, choose a model, and test before saving and starting.

@@ -6,6 +6,11 @@ const compiled = ts.transpileModule(fs.readFileSync('src/services/agents/AgentOr
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
 function setup(decide) {
+  const historyModule = { exports: {} };
+  const historyCode = ts.transpileModule(fs.readFileSync('src/services/agents/AgentHistory.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
+  }).outputText;
+  new Function('require', 'module', 'exports', historyCode)(require, historyModule, historyModule.exports);
   const actions = [];
   class Planner { async initialize() {} decide(...args) { return decide(...args); } }
   class Browser {
@@ -16,9 +21,10 @@ function setup(decide) {
   new Function('require', 'module', 'exports', compiled)(name => {
     if (name.includes('PlannerAgent')) return { PlannerAgent: Planner };
     if (name.includes('ObservedBrowser')) return { ObservedBrowser: Browser };
+    if (name.includes('AgentHistory')) return historyModule.exports;
     throw new Error(`Unexpected import ${name}`);
   }, module, module.exports);
-  global.chrome = { tabs: { query: async () => [{ id: 1 }] } };
+  global.chrome = { tabs: { query: async () => [{ id: 1 }] }, storage: { local: { get: async () => ({}), set: async () => {} } } };
   return { agent: module.exports.AgentOrchestrator.getInstance(), actions };
 }
 test('stop during planning rejects a late action and does not lock the next run', async () => {

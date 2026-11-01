@@ -11,7 +11,7 @@ browser context, and DOM service in chrome-extension/src/background.
 | Validation | Snapshot revision, live targets, obscured/disabled checks | Target identity changes during model latency |
 | Completion | Explicit evidence; YouTube playback check; limits fail rather than succeed | Broader deterministic outcome checks |
 | Cancellation | Per-run signal; interruptible waits; late decisions ignored | Abort underlying provider HTTP requests; cannot undo a dispatched click |
-| UI | Plan updates with actual actions; leaving Agent mode cancels the run; stopped run cannot overwrite a new run | Restore history on remount; durable pause/resume |
+| UI | Local history of the latest 20 tasks restores on remount; leaving Agent mode cancels the run; terminal records ignore late updates | Durable pause/resume and background execution |
 | Providers | Planner captures selected provider without cross-provider fallback | Audit other app AI paths and legacy trial UI |
 | Tests | DOM regressions for shadow roots, inputs, stale targets, overlays | Real Chrome extension flow and live-site validation |
 
