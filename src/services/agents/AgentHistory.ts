@@ -1,6 +1,6 @@
 import { TaskStep } from '../../types/agents';
 
-export type RunStatus = 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted';
+export type RunStatus = 'running' | 'paused' | 'completed' | 'failed' | 'cancelled' | 'interrupted';
 export interface HistoryEvent { id: string; timestamp: number; message: string; kind: 'info' | 'success' | 'error'; }
 export interface TaskHistory {
   id: string; input: string; startedAt: number; endedAt?: number; status: RunStatus;
@@ -37,9 +37,9 @@ export class AgentHistory {
         const tasks: TaskHistory[] = Array.isArray(data) ? data.filter(task =>
           task && typeof task.id === 'string' && typeof task.input === 'string' &&
           Array.isArray(task.steps) && Array.isArray(task.events) &&
-          ['running', 'completed', 'failed', 'cancelled', 'interrupted'].includes(task.status)) : [];
+          ['running', 'paused', 'completed', 'failed', 'cancelled', 'interrupted'].includes(task.status)) : [];
         this.snapshot = { ...this.snapshot, loaded: true };
-        this.publish(tasks.map(task => task.status === 'running' ? {
+        this.publish(tasks.map(task => task.status === 'running' || task.status === 'paused' ? {
           ...task, status: 'interrupted', endedAt: Date.now(),
           result: 'The assistant closed before this task finished. Start a new task to continue.',
           steps: task.steps.map(step => step.status === 'running' ? { ...step, status: 'failed' } : step)
@@ -55,7 +55,7 @@ export class AgentHistory {
     this.publish([{ id, input, status: 'running', startedAt: Date.now(), steps: [], events: [] }, ...this.snapshot.tasks]);
   }
   private update(id: string, change: (task: TaskHistory) => TaskHistory) {
-    this.publish(this.snapshot.tasks.map(task => task.id === id && task.status === 'running' ? change(task) : task));
+    this.publish(this.snapshot.tasks.map(task => task.id === id && (task.status === 'running' || task.status === 'paused') ? change(task) : task));
   }
   event(id: string, message: string, kind: HistoryEvent['kind'] = 'info') {
     this.update(id, task => ({ ...task, events: [...task.events, {
@@ -69,19 +69,27 @@ export class AgentHistory {
       id: step.id, type: step.type, description: step.description, status: step.status
     })) }));
   }
-  async finish(id: string, status: Exclude<RunStatus, 'running'>, result: string) {
+  async pause(id: string) {
+    this.update(id, task => ({ ...task, status: 'paused', result: 'Task paused. An action already in progress may finish. Resume will inspect the page again.' }));
+    await this.flush();
+  }
+  async resume(id: string) {
+    this.update(id, task => ({ ...task, status: 'running', result: undefined }));
+    await this.flush();
+  }
+  async finish(id: string, status: Exclude<RunStatus, 'running' | 'paused'>, result: string) {
     this.update(id, task => ({ ...task, status, endedAt: Date.now(), result: result.slice(0, 5000),
       steps: task.steps.map(step => step.status === 'running' ? { ...step, status: 'failed' } : step) }));
     await this.flush();
   }
   async remove(id: string) {
     await this.initialize();
-    this.publish(this.snapshot.tasks.filter(task => task.id !== id || task.status === 'running'));
+    this.publish(this.snapshot.tasks.filter(task => task.id !== id || task.status === 'running' || task.status === 'paused'));
     await this.flush();
   }
   async clear() {
     await this.initialize();
-    this.publish(this.snapshot.tasks.filter(task => task.status === 'running'));
+    this.publish(this.snapshot.tasks.filter(task => task.status === 'running' || task.status === 'paused'));
     await this.flush();
   }
   flush() { return this.writes; }

@@ -55,7 +55,7 @@ export interface TaskPlan {
   description: string;
   steps: TaskStep[];
   estimatedDuration: number;
-  status: 'planning' | 'executing' | 'completed' | 'failed';
+  status: 'planning' | 'executing' | 'paused' | 'completed' | 'failed';
 }
 
 export interface AgentConfig {

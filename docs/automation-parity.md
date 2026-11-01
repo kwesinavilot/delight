@@ -11,7 +11,7 @@ browser context, and DOM service in chrome-extension/src/background.
 | Validation | Snapshot revision, live targets, obscured/disabled checks | Target identity changes during model latency |
 | Completion | Explicit evidence; YouTube playback check; limits fail rather than succeed | Broader deterministic outcome checks |
 | Cancellation | Per-run signal; interruptible waits; late decisions ignored | Abort underlying provider HTTP requests; cannot undo a dispatched click |
-| UI | Local history of the latest 20 tasks restores on remount; leaving Agent mode cancels the run; terminal records ignore late updates | Durable pause/resume and background execution |
+| UI | Local history restores on remount; leaving Agent mode pauses the run; Resume re-observes; terminal records ignore late updates | Resume across a full runtime restart and background execution |
 | Providers | Planner captures selected provider without cross-provider fallback | Audit other app AI paths and legacy trial UI |
 | Tests | DOM regressions for shadow roots, inputs, stale targets, overlays | Real Chrome extension flow and live-site validation |
 
@@ -28,6 +28,15 @@ remain limitations.
 This is a replacement core inspired by Nanobrowser's architecture, not a full
 Nanobrowser port. No Nanobrowser source is copied into the new runtime.
 A passing build or DOM test is not live-site verification.
+
+Pause/resume is supported while the assistant runtime remains loaded: navigating
+from Agent mode to Chat pauses the same task, and returning exposes Resume.
+Planning requests are interrupted and their decisions discarded. A browser action
+already dispatched may finish, but no next action starts until resume. Resume
+retains action history and the controlled tab and observes it again; Stop cancels
+paused or running tasks. Closing/reloading the assistant runtime or restarting the
+extension still marks unfinished tasks interrupted; it does not resume stored
+tasks automatically.
 
 Post-click handling now polls for navigation, page settling, or active media for
 up to eight seconds. An unchanged link is explicitly unverified. Planner prompts

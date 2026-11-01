@@ -5,17 +5,18 @@ const ts = require('typescript');
 const compiled = ts.transpileModule(fs.readFileSync('src/services/agents/AgentOrchestrator.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
-function setup(decide) {
+function setup(decide, act = async () => 'ok') {
   const historyModule = { exports: {} };
   const historyCode = ts.transpileModule(fs.readFileSync('src/services/agents/AgentHistory.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
   }).outputText;
   new Function('require', 'module', 'exports', historyCode)(require, historyModule, historyModule.exports);
   const actions = [];
+  let observations = 0;
   class Planner { async initialize() {} decide(...args) { return decide(...args); } }
   class Browser {
-    async observe() { return { url: 'https://example.com', elements: [], revision: 'test' }; }
-    async act(step) { actions.push(step); return 'ok'; }
+    async observe() { return { url: 'https://example.com', elements: [], revision: `observation-${++observations}` }; }
+    async act(step) { actions.push(step); return act(step); }
   }
   const module = { exports: {} };
   new Function('require', 'module', 'exports', compiled)(name => {
@@ -25,7 +26,7 @@ function setup(decide) {
     throw new Error(`Unexpected import ${name}`);
   }, module, module.exports);
   global.chrome = { tabs: { query: async () => [{ id: 1 }] }, storage: { local: { get: async () => ({}), set: async () => {} } } };
-  return { agent: module.exports.AgentOrchestrator.getInstance(), actions };
+  return { agent: module.exports.AgentOrchestrator.getInstance(), actions, history: historyModule.exports.agentHistory, observations: () => observations };
 }
 test('stop during planning rejects a late action and does not lock the next run', async () => {
   let release, entered;
@@ -68,4 +69,83 @@ test('provider rate limits show a clear status and do not replay browser actions
   assert.ok(progress.some(message => /rate-limiting requests/.test(message)));
   assert.equal(actions.length, 0);
   assert.equal(agent.isTaskExecuting(), false);
+});
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+test('pause interrupts planning; resume observes again and retains the original task', async () => {
+  const entered = deferred();
+  const revisions = [];
+  let calls = 0;
+  const ctx = setup(async (_task, state, _history, signal) => {
+    revisions.push(state.revision);
+    if (++calls === 1) {
+      entered.resolve();
+      return new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('planning aborted')), { once: true }));
+    }
+    if (calls === 2) return { done: false, action: { type: 'wait', description: 'Continue from fresh state' } };
+    return { done: true, success: true, evidence: 'Verified after resume' };
+  });
+  const running = ctx.agent.executeTask('Continue this task');
+  await entered.promise;
+  await ctx.agent.pauseCurrentTask();
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'paused');
+  assert.equal(ctx.actions.length, 0);
+  assert.equal(ctx.observations(), 1);
+  await assert.rejects(ctx.agent.executeTask('duplicate'), /paused/);
+  await ctx.agent.resumeCurrentTask();
+  assert.equal((await running).success, true);
+  assert.deepEqual(revisions, ['observation-1', 'observation-2', 'observation-3']);
+  assert.equal(ctx.actions.length, 1);
+  assert.equal(ctx.history.getSnapshot().tasks.length, 1);
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'completed');
+});
+test('an action in flight finishes while paused and is not replayed on resume', async () => {
+  const entered = deferred(), release = deferred(), completed = deferred();
+  let calls = 0;
+  const ctx = setup(async () => ++calls === 1
+    ? { done: false, action: { type: 'click', description: 'Click once' } }
+    : { done: true, success: true, evidence: 'Observed completed action' },
+  async () => { entered.resolve(); await release.promise; return 'Clicked'; });
+  const running = ctx.agent.executeTask('Click once', { onStepComplete: () => completed.resolve() });
+  await entered.promise;
+  await ctx.agent.pauseCurrentTask();
+  release.resolve();
+  await completed.promise;
+  assert.equal(calls, 1);
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'paused');
+  assert.equal(ctx.history.getSnapshot().tasks[0].steps[0].status, 'completed');
+  await ctx.agent.resumeCurrentTask();
+  assert.equal((await running).success, true);
+  assert.equal(ctx.actions.length, 1);
+});
+test('Stop cancels a paused run and releases the lock for a new task', async () => {
+  const entered = deferred();
+  let calls = 0;
+  const ctx = setup(async (_task, _state, _history, signal) => {
+    if (++calls === 1) { entered.resolve(); return new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true })); }
+    return { done: true, success: true, evidence: 'New task completed' };
+  });
+  const running = ctx.agent.executeTask('Old');
+  await entered.promise;
+  await ctx.agent.pauseCurrentTask();
+  await ctx.agent.stopCurrentTask();
+  assert.equal((await running).success, false);
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'cancelled');
+  assert.equal((await ctx.agent.executeTask('New')).success, true);
+  assert.equal(ctx.actions.length, 0);
+});
+test('a late planner result after Resume is discarded rather than acting on an old observation', async () => {
+  const entered = deferred(), late = deferred();
+  let calls = 0;
+  const ctx = setup(async () => {
+    if (++calls === 1) { entered.resolve(); return late.promise; }
+    return { done: true, success: true, evidence: 'Fresh state already satisfies task' };
+  });
+  const running = ctx.agent.executeTask('Inspect page');
+  await entered.promise;
+  await ctx.agent.pauseCurrentTask();
+  await ctx.agent.resumeCurrentTask();
+  late.resolve({ done: false, action: { type: 'click', description: 'Stale click' } });
+  assert.equal((await running).success, true);
+  assert.equal(ctx.actions.length, 0);
+  assert.equal(ctx.observations(), 2);
 });

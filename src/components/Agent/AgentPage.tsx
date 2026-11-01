@@ -13,7 +13,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
   const runSerial = useRef(0);
   const bottom = useRef<HTMLDivElement>(null);
   const orchestrator = AgentOrchestrator.getInstance();
-  const active = snapshot.tasks.find(task => task.status === 'running');
+  const active = snapshot.tasks.find(task => task.status === 'running' || task.status === 'paused');
   const selected = snapshot.tasks.find(task => task.id === selectedId) || snapshot.tasks[0];
   const busy = !!active || submitting;
 
@@ -23,7 +23,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
     return () => {
       mounted.current = false;
       runSerial.current++;
-      void orchestrator.stopCurrentTask();
+      void orchestrator.pauseCurrentTask();
     };
   }, [orchestrator]);
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }); }, [selected?.events.length]);
@@ -58,12 +58,12 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
         </select>
       </label>
       <div className="flex gap-3 text-xs">
-        <button type="button" className="underline disabled:opacity-40" disabled={!selected || selected.status === 'running'}
+        <button type="button" className="underline disabled:opacity-40" disabled={!selected || selected.status === 'running' || selected.status === 'paused'}
           onClick={() => { if (selected) void agentHistory.remove(selected.id); }}>Delete selected task</button>
-        <button type="button" className="underline disabled:opacity-40" disabled={!snapshot.tasks.some(task => task.status !== 'running')}
+        <button type="button" className="underline disabled:opacity-40" disabled={!snapshot.tasks.some(task => task.status !== 'running' && task.status !== 'paused')}
           onClick={() => { void agentHistory.clear(); }}>Clear saved history</button>
       </div>
-      <p className="text-xs text-gray-500">Last 20 tasks are saved on this machine. Leaving Agent mode cancels the active task.</p>
+      <p className="text-xs text-gray-500">Last 20 tasks are saved on this machine. Leaving Agent mode pauses the task. Return here and resume to continue.</p>
       {snapshot.storageError && <p role="alert" className="text-sm text-red-600">{snapshot.storageError}</p>}
     </div>
     <main className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -103,7 +103,12 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
           onChange={event => setInput(event.target.value)} onKeyDown={event => {
             if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) { event.preventDefault(); void execute(); }
           }} />
-        {busy ? <Button variant="destructive" onClick={() => { runSerial.current++; setSubmitting(false); void orchestrator.stopCurrentTask(); }}>Stop</Button>
+        {busy ? <>
+          {active?.status === 'paused'
+            ? <Button onClick={() => { void orchestrator.resumeCurrentTask(); }}>Resume</Button>
+            : <Button disabled={!active} onClick={() => { void orchestrator.pauseCurrentTask(); }}>Pause</Button>}
+          <Button variant="destructive" onClick={() => { runSerial.current++; setSubmitting(false); void orchestrator.stopCurrentTask(); }}>Stop</Button>
+        </>
           : <Button disabled={!input.trim() || !snapshot.loaded} onClick={() => { void execute(); }}>Run</Button>}
       </div>
     </div>

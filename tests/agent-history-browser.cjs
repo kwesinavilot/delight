@@ -23,6 +23,8 @@ const assert = require('node:assert/strict');
             agentHistory.event(active, 'Clicked Music', 'success');
             if (input !== 'keep running') { await agentHistory.finish(active, 'completed', 'Playback verified'); active = undefined; }
           },
+          async pauseCurrentTask() { if (active) await agentHistory.pause(active); },
+          async resumeCurrentTask() { if (active) { const id = active; await agentHistory.resume(id); agentHistory.event(id, 'Re-observed page after resume'); await agentHistory.finish(id, 'completed', 'Resumed task completed'); active = undefined; } },
           async stopCurrentTask() { if (active) { const id = active; active = undefined; await agentHistory.finish(id, 'cancelled', 'Task cancelled.'); } }
         };
         export const AgentOrchestrator = { getInstance: () => instance };`, loader: 'js', resolveDir: process.cwd() }));
@@ -50,9 +52,13 @@ const assert = require('node:assert/strict');
     await page.getByRole('button', { name: 'Stop', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Open Agent' }).click();
-    await page.getByText('Task cancelled.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Delete selected task' }).isDisabled(), true);
+    await page.getByRole('button', { name: 'Resume', exact: true }).click();
+    await page.getByText('Resumed task completed', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('option').count(), 2);
     await page.getByRole('button', { name: 'Clear saved history', exact: true }).click();
     await page.getByRole('option', { name: 'No saved tasks' }).waitFor({ state: 'attached' });
-    console.log('PASS: Agent history survives remount, leaving cancels active runs, saved history clears (mock runtime)');
+    console.log('PASS: Agent history survives remount, leaving pauses active runs, Resume retains task identity, saved history clears (mock runtime)');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

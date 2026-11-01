@@ -73,3 +73,24 @@ test('storage failures surface a warning and retain the session history', async 
   assert.equal(store.getSnapshot().tasks[0].status, 'failed');
   assert.match(store.getSnapshot().storageError, /could not be saved/);
 });
+test('paused history is retained, cannot be cleared while active, and resumes with its actions', async () => {
+  const { store } = setup();
+  await store.start('one', 'Task');
+  store.steps('one', [{ id: 's', type: 'click', description: 'Done action', status: 'completed' }]);
+  await store.pause('one');
+  await store.remove('one');
+  await store.clear();
+  assert.equal(store.getSnapshot().tasks[0].status, 'paused');
+  await store.resume('one');
+  assert.equal(store.getSnapshot().tasks[0].status, 'running');
+  assert.equal(store.getSnapshot().tasks[0].steps[0].status, 'completed');
+  assert.equal(store.getSnapshot().tasks[0].result, undefined);
+});
+test('a full runtime restart marks paused work interrupted rather than offering an invalid resume', async () => {
+  const { store } = setup();
+  await store.start('one', 'Task');
+  await store.pause('one');
+  const restored = new AgentHistory();
+  await restored.initialize();
+  assert.equal(restored.getSnapshot().tasks[0].status, 'interrupted');
+});

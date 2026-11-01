@@ -8,18 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.7] - 2026-11-02
 
 ### Added
+- Pause and Resume controls for active agent tasks; leaving Agent mode pauses instead of cancelling the run.
+- Resume retains the original task, completed actions, and browser tab, and re-observes the page before choosing another action.
 - Observations across accessible iframe documents, including cross-origin and nested frames, using existing scripting permissions.
 - Globally unique element indexes with automatic frame/document routing for clicks, field filling, selection, and extraction.
 - Frame-specific scrolling and explicit warnings when embedded content cannot be accessed.
 
 ### Fixed
+- Discard in-flight planner decisions on pause so they cannot dispatch stale actions after resume.
+- Keep paused tasks protected from history deletion; Stop still cancels and releases the task lock.
 - Reject actions on replaced iframe documents instead of dispatching them to a different frame or the main page.
 - Resolve links opened from an iframe relative to that frame's URL.
 - Exclude changing frame snapshot tokens from page-settling and repeated-action comparisons.
 
 ### Verification
+- Added pause/resume regressions for planning cancellation, in-flight browser actions, late decisions, stopping paused work, and restart behavior.
 - Added frame-observation and routing regressions and a Chromium fixture for same-origin, cross-origin, nested, and replaced frames.
-- All 39 regression tests pass; the Chromium frame fixture passes with a mocked scripting API adapter.
+- All 45 regression tests pass; the Chromium frame fixture passes with a mocked scripting API adapter, and the history UI fixture verifies pause/resume after leaving Agent mode.
 
 ## [1.4.6] - 2026-11-01
 
