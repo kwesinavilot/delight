@@ -5,6 +5,22 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.7] - 2026-11-02
+
+### Added
+- Observations across accessible iframe documents, including cross-origin and nested frames, using existing scripting permissions.
+- Globally unique element indexes with automatic frame/document routing for clicks, field filling, selection, and extraction.
+- Frame-specific scrolling and explicit warnings when embedded content cannot be accessed.
+
+### Fixed
+- Reject actions on replaced iframe documents instead of dispatching them to a different frame or the main page.
+- Resolve links opened from an iframe relative to that frame's URL.
+- Exclude changing frame snapshot tokens from page-settling and repeated-action comparisons.
+
+### Verification
+- Added frame-observation and routing regressions and a Chromium fixture for same-origin, cross-origin, nested, and replaced frames.
+- All 39 regression tests pass; the Chromium frame fixture passes with a mocked scripting API adapter.
+
 ## [1.4.6] - 2026-11-01
 
 ### Added

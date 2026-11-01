@@ -1,4 +1,5 @@
 import { TaskStep } from '../../types/agents';
+import { combineFrameObservations } from './FrameObservation';
 
 export class ObservedBrowser {
   private windowId?: number;
@@ -42,15 +43,28 @@ export class ObservedBrowser {
       tabs: tabs.map(tab => ({ id: tab.id, title: tab.title?.slice(0, 120), url: tab.url, active: tab.active })) };
     if (!tab) return { ...context, url: '', title: '', elements: [], elementCount: 0, restricted: true, closed: true };
     if (!/^https?:/.test(tab.url || '')) return { ...context, url: tab.url, title: tab.title, elements: [], elementCount: 0, restricted: true };
-    await chrome.scripting.executeScript({ target: { tabId: this.tabId }, files: ['automation-runtime.js'] });
+    const warnings: string[] = [];
+    let allFrames = true;
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: this.tabId, allFrames: true }, files: ['automation-runtime.js'] });
+    } catch {
+      this.check();
+      allFrames = false;
+      warnings.push('Some embedded frames could not be accessed. Only the main page was observed.');
+      await chrome.scripting.executeScript({ target: { tabId: this.tabId }, files: ['automation-runtime.js'] });
+    }
     this.check();
-    const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId },
-      func: () => JSON.stringify((globalThis as any).delightAutomation.observe()) });
+    const read = (includeFrames: boolean) => chrome.scripting.executeScript({ target: { tabId: this.tabId, allFrames: includeFrames },
+      func: () => JSON.stringify((globalThis as any).delightAutomation?.observe() || null) });
+    let results;
+    try { results = await read(allFrames); }
+    catch {
+      this.check();
+      warnings.push('An embedded frame changed or became inaccessible during observation.');
+      results = await read(false);
+    }
     this.check();
-    const raw = results[0]?.result;
-    if (typeof raw !== 'string') throw new Error('Browser observation failed: no serialized page state');
-    const state = JSON.parse(raw);
-    if (!Array.isArray(state.elements) || !state.revision) throw new Error('Browser observation has invalid structure');
+    const state = combineFrameObservations(results, warnings);
     return { ...state, ...context };
   }
 
@@ -89,35 +103,47 @@ export class ObservedBrowser {
     if (step.type === 'wait') { await this.pause(Math.min(5000, Math.max(100, Number(step.data?.duration) || 1000))); return 'Wait completed'; }
     if (step.type === 'analyzePage') return 'Page observed';
     if (step.type === 'scrollToPercent') {
-      await chrome.scripting.executeScript({ target: { tabId: this.tabId },
+      const frameId = step.data?.frameId ?? 0;
+      if (!Number.isInteger(frameId) || !state.frames?.some((frame: any) => frame.frameId === frameId)) {
+        throw new Error('Choose a frame ID listed in the current observation');
+      }
+      await chrome.scripting.executeScript({ target: { tabId: this.tabId, frameIds: [frameId] },
         func: (percent: number) => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * percent / 100),
         args: [Math.max(0, Math.min(100, Number(step.data?.percent) || 0))] });
       return 'Scrolled';
     }
+    if (state.tabId !== undefined && state.tabId !== this.tabId) throw new Error('Tab changed; observe it again before acting');
     const element = state.elements.find((el: any) => el.index === step.elementIndex);
     if (!element) throw new Error('Action references an index absent from the current observation');
     this.check();
     const sourceTabId = this.tabId;
+    const target: chrome.scripting.InjectionTarget = element.documentId
+      ? { tabId: this.tabId, documentIds: [element.documentId] }
+      : { tabId: this.tabId, frameIds: [element.frameId ?? 0] };
+    const frameStep = { ...step, elementIndex: element.frameIndex ?? step.elementIndex };
+    const revision = element.frameRevision ?? state.revision;
+    const dispatch = () => chrome.scripting.executeScript({ target,
+      func: (action: TaskStep, expectedRevision: string, expectedUrl?: string) => {
+        const runtime = (globalThis as any).delightAutomation;
+        if (!runtime || (expectedUrl && location.href !== expectedUrl)) throw new Error('Frame changed or navigated; observe again before acting');
+        return runtime.act(action, expectedRevision);
+      }, args: [frameStep, revision, element.frameUrl || state.url] });
     if (step.type !== 'click') {
-      const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId },
-        func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
-        args: [step, state.revision] });
+      const results = await dispatch();
       this.check();
       await this.pause(350);
       return results[0]?.result ?? 'Action dispatched; outcome requires observation';
     }
     await this.tabs();
     let linkUrl: string | undefined;
-    try { if (element.href) linkUrl = new URL(element.href, state.url).href; } catch { /* Not a navigable link. */ }
+    try { if (element.href) linkUrl = new URL(element.href, element.frameUrl || state.url).href; } catch { /* Not a navigable link. */ }
     const opened = new Map<number, chrome.tabs.Tab>();
     const onCreated = (tab: chrome.tabs.Tab) => {
       if (tab.id !== undefined && tab.windowId === this.windowId) opened.set(tab.id, tab);
     };
     chrome.tabs.onCreated.addListener(onCreated);
     try {
-    await chrome.scripting.executeScript({ target: { tabId: this.tabId },
-      func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
-      args: [step, state.revision] });
+    await dispatch();
     this.check();
     // Navigation and SPA transitions can outlive the click's execution context.
     // Poll real page state instead of treating a null return as success evidence.
@@ -153,7 +179,7 @@ export class ObservedBrowser {
       if (next.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2)) {
         return { outcome: 'Playback observed', url: next.url, playing: true };
       }
-      const fingerprint = JSON.stringify([next.url, next.elements, next.text]);
+      const fingerprint = JSON.stringify([next.url, next.elements.map(({ frameRevision: _revision, ...element }: any) => element), next.text]);
       stable = fingerprint === previous ? stable + 1 : 0;
       previous = fingerprint;
       if (next.url !== state.url && stable >= 1) return { outcome: 'Navigation observed', url: next.url };

@@ -6,7 +6,7 @@ const code = ts.transpileModule(fs.readFileSync('src/services/automation/Observe
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
 const moduleUnderTest = { exports: {} };
-new Function('require', 'module', 'exports', code)(require, moduleUnderTest, moduleUnderTest.exports);
+new Function('require', 'module', 'exports', code)(name => name === './FrameObservation' ? require('./load-typescript.cjs')('src/services/automation/FrameObservation.ts') : require(name), moduleUnderTest, moduleUnderTest.exports);
 const { ObservedBrowser } = moduleUnderTest.exports;
 function setup() {
   const tabs = new Map([

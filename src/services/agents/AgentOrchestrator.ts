@@ -82,7 +82,7 @@ export class AgentOrchestrator {
           return { taskId, success: true, data: { evidence: decision.evidence, history }, executionTime: Date.now() - started };
         }
         const step: TaskStep = { ...decision.action!, id: `${taskId}_${i}`, status: 'pending' };
-        const fingerprint = JSON.stringify([state.tabId, state.url, state.elements, step.type, step.url, step.tabId, step.elementIndex, step.data]);
+        const fingerprint = JSON.stringify([state.tabId, state.url, state.elements.map(({ frameRevision: _revision, ...element }: any) => element), step.type, step.url, step.tabId, step.elementIndex, step.data]);
         repeated = fingerprint === previousFingerprint ? repeated + 1 : 0;
         previousFingerprint = fingerprint;
         if (repeated >= 2) throw new Error('The same action made no observable progress three times');

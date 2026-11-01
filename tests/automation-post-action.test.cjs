@@ -6,7 +6,7 @@ const code = ts.transpileModule(fs.readFileSync('src/services/automation/Observe
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
 const moduleUnderTest = { exports: {} };
-new Function('require', 'module', 'exports', code)(require, moduleUnderTest, moduleUnderTest.exports);
+new Function('require', 'module', 'exports', code)(name => name === './FrameObservation' ? require('./load-typescript.cjs')('src/services/automation/FrameObservation.ts') : require(name), moduleUnderTest, moduleUnderTest.exports);
 const { ObservedBrowser } = moduleUnderTest.exports;
 const before = { url: 'https://example.com/results', elements: [{ index: 1, href: '/watch' }] };
 function setup(states, controller = new AbortController()) {
@@ -38,4 +38,12 @@ test('Stop interrupts post-click waiting', async () => {
   const { browser } = setup([before], controller);
   browser.pause = async () => { controller.abort(); controller.signal.throwIfAborted(); };
   await assert.rejects(browser.act({ type: 'click', elementIndex: 1 }, before));
+});
+test('new frame snapshot revisions do not prevent a settled page from being detected', async () => {
+  const { browser } = setup([]);
+  let reads = 0;
+  browser.observe = async () => ({ url: before.url, text: 'Settled', elements: [{ index: 1, frameId: 2, frameRevision: String(++reads), label: 'Done' }], media: [] });
+  const result = await browser.act({ type: 'click', elementIndex: 1 }, { ...before, elements: [{ index: 1 }] });
+  assert.equal(result.outcome, 'Page settled after click');
+  assert.equal(reads, 3);
 });
