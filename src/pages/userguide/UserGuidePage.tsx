@@ -366,7 +366,7 @@ const UserGuidePage: React.FC = () => {
           <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Data Security</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              <li>API keys are stored locally in your browser using Chrome's secure storage</li>
+              <li>API keys are stored locally in your browser using local extension storage on this machine</li>
               <li>No data is sent to our servers - all communication is direct with AI providers</li>
               <li>Chat history is stored locally and never transmitted</li>
               <li>You can clear all data anytime through Chrome's extension settings</li>
@@ -457,7 +457,7 @@ const UserGuidePage: React.FC = () => {
           <div className="space-y-3">
             <div>
               <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I need to pay for API access?</h5>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: After your 5 free trial requests, you'll need API keys from AI providers. Google Gemini offers a generous free tier (1,500 requests/day), making it perfect for most users. Other providers have their own pricing structures.</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Connect your own AI provider and model before using Delight. Provider pricing and quotas depend on your account; local Ollama models do not require an API key.</p>
             </div>
 
             <div>
@@ -486,8 +486,8 @@ const UserGuidePage: React.FC = () => {
             </div>
 
             <div>
-              <h5 className="font-medium text-gray-900 dark:text-white">Q: Do I get free requests to try Delight?</h5>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Yes! You get 5 free AI requests immediately after installation to try all features including AI tools and page attachment. After that, you'll need to add your own API key to continue.</p>
+              <h5 className="font-medium text-gray-900 dark:text-white">Q: What do I need before using Delight?</h5>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">A: Add your own provider key, choose a model, and test the connection during setup. For Ollama, install a local model and test it instead.</p>
             </div>
 
             <div>

@@ -7,7 +7,7 @@ import { AIError, AIErrorType } from '@/types/ai';
 
 import { AIService } from '@/services/ai/AIService';
 import { PageContextService } from '@/services/PageContextService';
-// import { TrialService } from '@/services/TrialService';
+
 import { AI_TOOLS, AITool, TOOL_CATEGORIES } from '@/types/tools';
 import WelcomeHint from './WelcomeHint';
 
@@ -47,17 +47,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
   const [showAttachDropdown, setShowAttachDropdown] = useState(false);
   const [attachedPageContext, setAttachedPageContext] = useState<any>(null);
-  const [trialStatus, setTrialStatus] = useState<{
-    isTrialMode: boolean;
-    remainingRequests: number;
-    totalRequests: number;
-  }>({ isTrialMode: false, remainingRequests: 0, totalRequests: 5 });
+
 
 
   useEffect(() => {
     initializeServices();
     checkForPendingSummarization();
-    loadTrialStatus();
+
   }, []);
 
   // Separate effect to check for context actions after services are ready
@@ -307,16 +303,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
     }
   };
 
-  const loadTrialStatus = async () => {
-    try {
-      const aiService = AIService.getInstance();
-      const status = await aiService.getTrialStatus();
-      setTrialStatus(status);
-    } catch (error) {
-      console.error('Failed to load trial status:', error);
-    }
-  };
-
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (!showScrollButton) {
@@ -467,8 +453,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       saveToQuickHistory(updatedMessages);
       saveToSession(updatedMessages);
 
-      // Refresh trial status after successful request
-      await loadTrialStatus();
+
 
     } catch (error) {
       console.error('Error getting AI response:', error);
@@ -1191,28 +1176,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 Configure an AI provider in Settings to start chatting
               </p>
-            )}
-
-            {trialStatus.isTrialMode && (
-              <div className="mt-2 text-center">
-                <p className="text-xs font-medium">
-                  {trialStatus.remainingRequests <= 0 ? (
-                    <span className="text-red-600 dark:text-red-400">☹️ Trial mode: You've used up all your trial requests</span>
-                  ) : (
-                    <span className={trialStatus.remainingRequests <= 2 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
-                      🎁 Trial mode: {trialStatus.remainingRequests}/{trialStatus.totalRequests} trial requests remaining
-                    </span>
-                  )}
-                </p>
-                {trialStatus.remainingRequests <= 2 && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    <span className="font-medium">To continue using Delight, please set up your own API key in Settings.</span><br />
-                    <a className="underline" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
-                      Google Gemini has a free tier of up to 1,500 requests per day.
-                    </a>
-                  </p>
-                )}
-              </div>
             )}
 
             {isLoadingHistory && (

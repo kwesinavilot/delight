@@ -1,6 +1,8 @@
 export type SummaryLength = 'short' | 'medium' | 'detailed';
 
 export interface GenerationOptions {
+  abortSignal?: AbortSignal;
+  maxRetries?: number;
   systemPrompt?: string;
   maxTokens?: number;
   temperature?: number;

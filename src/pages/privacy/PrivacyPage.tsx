@@ -94,7 +94,7 @@ const PrivacyPage: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">API Keys</h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Encrypted and stored locally in Chrome's secure storage. Never transmitted to our servers.
+                    Stored in this browser profile on this machine, without browser sync. Never stored on Delight servers. Sent directly to your selected provider to authenticate requests.
                   </p>
                 </div>
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">

@@ -408,18 +408,6 @@ export class AIService {
     }
   }
 
-  async getTrialStatus(): Promise<{
-    isTrialMode: boolean;
-    remainingRequests: number;
-    totalRequests: number;
-  }> {
-    return {
-      isTrialMode: false,
-      remainingRequests: 0,
-      totalRequests: 5
-    };
-  }
-
   getAvailableProviders(): string[] {
     return Array.from(this.providers.keys());
   }
@@ -476,7 +464,7 @@ export class AIService {
   }
 
   // Method for testing provider connectivity with specific configuration
-  async testProviderConnection(providerName: string, config: any): Promise<boolean> {
+  async testProviderConnection(providerName: string, config: any, reportErrors = false): Promise<boolean> {
     try {
       // Create a temporary provider instance with the given config
       let tempProvider: AIProvider;
@@ -507,27 +495,29 @@ export class AIService {
           tempProvider = new OllamaProvider(config);
           break;
         default:
-          return false;
+          throw new Error('This provider is not supported.');
       }
 
       if (!tempProvider.isConfigured()) {
-        return false;
+        throw new Error('Enter an API key and select a model before testing.');
       }
 
       // Test with a simple message
       const testStream = await tempProvider.generateResponse('Hello', {
         systemPrompt: 'Respond with just "OK"',
-        stream: false
+        stream: false,
+        maxRetries: 0,
+        abortSignal: AbortSignal.timeout(20000)
       });
 
       // Consume the stream to test connectivity
-      for await (const _ of testStream) {
-        // Just consume the response
-      }
+      let receivedText = false;
+      for await (const chunk of testStream) receivedText ||= !!chunk.trim();
+      if (!receivedText) throw new Error('The selected model returned no text for the connection test.');
 
       return true;
     } catch (error) {
-      console.error(`Failed to test ${providerName} connection:`, error);
+      if (reportErrors) throw error;
       return false;
     }
   }

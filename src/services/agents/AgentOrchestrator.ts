@@ -53,7 +53,19 @@ export class AgentOrchestrator {
         progress('observing', 'Inspecting the current page...');
         const state = await browser.observe();
         progress('planning', 'Choosing the next action from the current page...');
-        const decision = await planner.decide(input, state, history, signal);
+        let decision;
+        try {
+          decision = await planner.decide(input, state, history, signal);
+        } catch (error) {
+          signal.throwIfAborted();
+          const message = error instanceof Error ? error.message : String(error);
+          const cause = error as any;
+          if (cause?.type === 'rate_limit_error' || /429|quota|rate.?limit|too many requests/i.test(message)) {
+            progress('rate-limited', 'The selected provider is rate-limiting requests. Browser actions are paused; wait for quota to recover before retrying.');
+            throw new Error('Selected provider rate limit reached. Wait for quota to recover, then retry the task.');
+          }
+          throw error;
+        }
         signal.throwIfAborted();
         if (decision.done) {
           if (decision.success !== true) throw new Error(decision.evidence || decision.description);

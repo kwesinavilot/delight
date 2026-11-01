@@ -5,9 +5,23 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] - 2026-11-01
+
+### Provider setup and privacy
+- Added a required fourth onboarding step to enter a provider key, choose a model, and test before saving and starting.
+- Moved provider settings and keys from browser sync to local extension storage, migrating existing settings before removing synced copies.
+- Removed trial messaging, counters, and the unused built-in trial credential service.
+- Added clearer connection-test errors distinguishing quota, permissions, unavailable models, and network issues.
+- Added Gemini model discovery using the user's key and single-attempt, cancellable Gemini connection tests.
+- Corrected key-storage privacy copy to describe local-only storage and direct provider authentication.
+
 ## [1.4.4] - 2026-11-01
 
 ### Automation runtime replacement
+- Wait for navigation, page settling, or verified media playback after clicks; report unchanged link clicks as unverified.
+- Reduced planner observation text and history payloads while retaining all available element indexes.
+- Surface provider rate limits in agent progress; disable hidden Groq retries for agent decisions and pass cancellation to Groq requests.
+- Accept model actions that omit the redundant nested description by using the top-level action summary.
 - Leaving Agent mode cancels its run; late results cannot reset the UI of a newer task.
 - Added a packaged page runtime with semantic observations, open shadow-root traversal, media state, and snapshot revisions.
 - Replaced fixed-plan execution with observation before every validated single action and explicit completion evidence.

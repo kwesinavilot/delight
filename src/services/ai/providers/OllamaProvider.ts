@@ -9,7 +9,7 @@ export class OllamaProvider extends BaseAIProvider {
     }
 
     get name(): string {
-        return 'gpt-oss-offline';
+        return 'ollama';
     }
 
     isConfigured(): boolean {

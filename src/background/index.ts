@@ -122,7 +122,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     // Show welcome page on first install
     if (details.reason === 'install') {
         try {
-            const result = await chrome.storage.sync.get(['welcomeCompleted']);
+            const result = await chrome.storage.local.get(['welcomeCompleted']);
             
             if (!result.welcomeCompleted) {
                 await chrome.tabs.create({

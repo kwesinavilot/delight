@@ -49,3 +49,17 @@ test('repeated identical actions fail rather than falsely report task success', 
   assert.match(result.error, /no observable progress/);
   assert.equal(actions.length, 2);
 });
+test('provider rate limits show a clear status and do not replay browser actions', async () => {
+  const { agent, actions } = setup(async () => {
+    const error = new Error('Rate limit exceeded');
+    error.type = 'rate_limit_error';
+    throw error;
+  });
+  const progress = [];
+  const result = await agent.executeTask('play a song', { onProgress: message => progress.push(message) });
+  assert.equal(result.success, false);
+  assert.match(result.error, /provider rate limit reached/i);
+  assert.ok(progress.some(message => /rate-limiting requests/.test(message)));
+  assert.equal(actions.length, 0);
+  assert.equal(agent.isTaskExecuting(), false);
+});

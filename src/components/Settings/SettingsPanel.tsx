@@ -7,7 +7,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { ConfigManager } from '@/services/config/ConfigManager';
-import { TrialService } from '@/services/TrialService';
+import { listGeminiModels, testProviderConfiguration } from '@/services/config/ProviderSetup';
 import { AIService } from '@/services/ai/AIService';
 import { AIConfiguration } from '@/types/ai';
 import NetworkStatusPanel from './NetworkStatusPanel';
@@ -22,14 +22,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   const [providers, setProviders] = useState<Record<string, AIConfiguration>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
+  const [geminiModels, setGeminiModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [connectionErrors, setConnectionErrors] = useState<Record<string, string>>({});
   const [connectionStatus, setConnectionStatus] = useState<Record<string, 'success' | 'error' | null>>({});
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-  const [trialStatus, setTrialStatus] = useState<{
-    isTrialMode: boolean;
-    remainingRequests: number;
-    totalRequests: number;
-  }>({ isTrialMode: false, remainingRequests: 0, totalRequests: 5 });
   const [ollamaStatus, setOllamaStatus] = useState<{
     isRunning: boolean;
     hasModels: boolean;
@@ -108,7 +106,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
 
   useEffect(() => {
     loadSettings();
-    loadTrialStatus();
+
   }, []);
 
   useEffect(() => {
@@ -116,21 +114,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       checkOllamaStatus();
     }
   }, [selectedProvider]);
-
-  const loadTrialStatus = async () => {
-    try {
-      const isTrialMode = await TrialService.shouldUseTrialMode();
-      const remainingRequests = await TrialService.getRemainingTrialRequests();
-
-      setTrialStatus({
-        isTrialMode,
-        remainingRequests,
-        totalRequests: 5
-      });
-    } catch (error) {
-      console.error('Failed to load trial status:', error);
-    }
-  };
 
   const loadSettings = async () => {
     try {
@@ -149,12 +132,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   };
 
   const handleProviderConfigChange = async (providerId: string, field: string, value: string) => {
-    // If user is entering their own key, clear trial data
-    if (field === 'apiKey' && value.trim() !== '' && trialStatus.isTrialMode) {
-      await TrialService.clearTrialData();
-      await loadTrialStatus();
-    }
-
     const updatedProviders = {
       ...providers,
       [providerId]: {
@@ -169,6 +146,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     try {
       const configManager = ConfigManager.getInstance();
       await configManager.setConfiguration(providerId, updatedProviders[providerId]);
+      await aiService.refreshProviderConfiguration();
     } catch (error) {
       console.error('Failed to save configuration:', error);
     }
@@ -179,6 +157,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     try {
       const configManager = ConfigManager.getInstance();
       await configManager.setCurrentProvider(providerId);
+      await aiService.refreshProviderConfiguration();
       setSelectedProvider(providerId);
       console.log(`Selected provider: ${providerId}`);
     } catch (error) {
@@ -190,17 +169,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
 
   const testConnection = async (providerId: string) => {
     setTestingConnection(providerId);
+    setConnectionErrors(prev => ({ ...prev, [providerId]: '' }));
     setConnectionStatus({ ...connectionStatus, [providerId]: null });
 
     try {
       const configManager = ConfigManager.getInstance();
-      const success = await configManager.testConnection(providerId);
+      await testProviderConfiguration(await configManager.getProviderConfig(providerId));
+      const success = true;
 
       setConnectionStatus({
         ...connectionStatus,
         [providerId]: success ? 'success' : 'error'
       });
     } catch (error) {
+      setConnectionErrors(prev => ({ ...prev, [providerId]: error instanceof Error ? error.message : 'Connection failed.' }));
       setConnectionStatus({
         ...connectionStatus,
         [providerId]: 'error'
@@ -208,6 +190,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     } finally {
       setTestingConnection(null);
     }
+  };
+
+  const loadGeminiModels = async () => {
+    setLoadingModels(true);
+    try {
+      setGeminiModels(await listGeminiModels(providers.gemini?.apiKey || ''));
+      setConnectionErrors(prev => ({ ...prev, gemini: '' }));
+    } catch (error) {
+      setConnectionErrors(prev => ({ ...prev, gemini: error instanceof Error ? error.message : 'Model listing failed.' }));
+    } finally { setLoadingModels(false); }
   };
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
@@ -368,6 +360,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                   </div>
 
                   <div className="space-y-3">
+                    {connectionErrors[providerId] && <p role="alert" className="text-sm text-red-600">{connectionErrors[providerId]}</p>}
                     {/* API Key */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -379,7 +372,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                             type={showApiKey[providerId] ? 'text' : 'password'}
                             value={config.apiKey || ''}
                             onChange={(e) => handleProviderConfigChange(providerId, 'apiKey', e.target.value)}
-                            placeholder={trialStatus.isTrialMode && providerId === 'gemini' && !config.apiKey ? `Enter your Gemini API key (${trialStatus.remainingRequests}/5 trial requests left)` : providerInfo.apiKeyPlaceholder}
+                            placeholder={providerInfo.apiKeyPlaceholder}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                           />
                           <button
@@ -396,7 +389,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                         </div>
                         <button
                           onClick={() => testConnection(providerId)}
-                          disabled={(!config.apiKey && !(trialStatus.isTrialMode && providerId === 'gemini')) || testingConnection === providerId}
+                          disabled={(providerId !== 'ollama' && !config.apiKey?.trim()) || testingConnection === providerId}
                           className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                           {testingConnection === providerId ? 'Testing...' : 'Test'}
@@ -419,17 +412,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Model
                       </label>
-                      <select
+                      <input
+                        list={`models-${providerId}`}
+                        aria-label={`${providerInfo.name} model ID`}
                         value={config.model || providerInfo.defaultModel}
                         onChange={(e) => handleProviderConfigChange(providerId, 'model', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      >
-                        {providerInfo.models.map((model) => (
-                          <option key={model} value={model}>
-                            {model}
-                          </option>
-                        ))}
-                      </select>
+                        className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800"
+                      />
+                      <datalist id={`models-${providerId}`}>
+                        {Array.from(new Set([...providerInfo.models, ...(providerId === 'gemini' ? geminiModels : [])])).map(model => <option key={model} value={model} />)}
+                      </datalist>
+                      {providerId === 'gemini' && <div className="mt-2 text-sm">
+                        <button type="button" onClick={loadGeminiModels} disabled={loadingModels || !config.apiKey?.trim()} className="text-blue-600 underline disabled:opacity-50">
+                          {loadingModels ? 'Loading models...' : 'Load models for this key'}
+                        </button>
+                        <p>Use a model available to your project. Free-tier quotas vary; a quota error does not mean your key is invalid.</p>
+                      </div>}
                     </div>
                   </div>
                 </div>
@@ -495,28 +493,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               </div>
             )}
 
-            {/* Trial Status Display */}
-            {trialStatus.isTrialMode && (
-              <div className="mt-2 text-center">
-                <p className="text-xs font-medium">
-                  {trialStatus.remainingRequests <= 0 ? (
-                    <span className="text-red-600 dark:text-red-400">☹️ Trial mode: You've used up all your trial requests</span>
-                  ) : (
-                    <span className={trialStatus.remainingRequests <= 2 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
-                      🎁 Trial mode: {trialStatus.remainingRequests}/{trialStatus.totalRequests} trial requests remaining
-                    </span>
-                  )}
-                </p>
-                {trialStatus.remainingRequests <= 2 && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    <span className="font-medium">To continue using Delight, please set up your own API key in Settings.</span><br />
-                    <a className="underline" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
-                      Google Gemini has a free tier of up to 1,500 requests per day.
-                    </a>
-                  </p>
-                )}
-              </div>
-            )}
+            <p className="text-sm text-gray-600 dark:text-gray-300">API keys stay in this browser profile on this machine. They are not synced or stored on Delight servers, and are sent directly to your selected provider for authentication.</p>
           </div>
         )}
 

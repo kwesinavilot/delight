@@ -136,6 +136,8 @@ No explanations, no markdown, just the JSON object.`;
         // Streaming response
         const result = streamText({
           model,
+          abortSignal: options?.abortSignal,
+          maxRetries: options?.maxRetries,
           system: systemPrompt,
           messages: geminiMessages,
           temperature: preparedOptions.temperature,
@@ -146,6 +148,8 @@ No explanations, no markdown, just the JSON object.`;
         // Non-streaming response
         const result = await generateText({
           model,
+          abortSignal: options?.abortSignal,
+          maxRetries: options?.maxRetries,
           system: systemPrompt,
           messages: geminiMessages,
           temperature: preparedOptions.temperature,

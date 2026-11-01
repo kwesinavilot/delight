@@ -19,11 +19,16 @@ export class ConfigManager {
 
   private async loadSettings(): Promise<void> {
     try {
-      const result = await chrome.storage.sync.get(['aiSettings']);
-      this.settings = result.aiSettings || this.getDefaultSettings();
+      const result = await chrome.storage.local.get(['aiSettings']);
+      const legacy = await chrome.storage.sync.get(['aiSettings']);
+      this.settings = result.aiSettings || legacy.aiSettings || this.getDefaultSettings();
+      // Write locally before removing the synced copy so a failed migration
+      // never discards the user's credentials.
+      if (!result.aiSettings) await chrome.storage.local.set({ aiSettings: this.settings });
+      if (legacy.aiSettings) await chrome.storage.sync.remove(['aiSettings']);
     } catch (error) {
-      console.error('Failed to load settings:', error);
-      this.settings = this.getDefaultSettings();
+      this.settings = null;
+      throw new Error('Could not load local provider settings. Please try again.');
     }
   }
 
@@ -167,8 +172,8 @@ export class ConfigManager {
 
     const providerSettings = this.settings!.ai.providers[provider];
 
-    if (config.apiKey !== undefined) providerSettings.apiKey = config.apiKey;
-    if (config.model !== undefined) providerSettings.model = config.model;
+    if (config.apiKey !== undefined) providerSettings.apiKey = config.apiKey.trim();
+    if (config.model !== undefined) providerSettings.model = config.model.trim();
     if (config.maxTokens !== undefined) providerSettings.maxTokens = config.maxTokens;
     if (config.temperature !== undefined) providerSettings.temperature = config.temperature;
 
@@ -183,7 +188,7 @@ export class ConfigManager {
   async isProviderConfigured(provider: string): Promise<boolean> {
     try {
       const config = await this.getProviderConfig(provider);
-      return !!(config.apiKey && config.apiKey.trim());
+      return !!config.model?.trim() && (provider === 'ollama' || !!config.apiKey?.trim());
     } catch {
       return false;
     }
@@ -202,7 +207,7 @@ export class ConfigManager {
     if (!this.settings) return;
 
     try {
-      await chrome.storage.sync.set({ aiSettings: this.settings });
+      await chrome.storage.local.set({ aiSettings: this.settings });
     } catch (error) {
       console.error('Failed to save settings:', error);
       throw new Error('Failed to save configuration');
@@ -211,6 +216,7 @@ export class ConfigManager {
 
   async clearAllSettings(): Promise<void> {
     try {
+      await chrome.storage.local.remove(['aiSettings']);
       await chrome.storage.sync.remove(['aiSettings']);
       this.settings = this.getDefaultSettings();
     } catch (error) {

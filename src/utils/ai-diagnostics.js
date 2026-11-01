@@ -12,8 +12,8 @@
   try {
     // Check Chrome storage
     console.log('\n📦 Checking Chrome Storage...');
-    const storageResult = await chrome.storage.sync.get(['aiSettings']);
-    console.log('Raw storage data:', storageResult);
+    const storageResult = await chrome.storage.local.get(['aiSettings']);
+    console.log('Local provider settings present:', !!storageResult.aiSettings);
 
     if (storageResult.aiSettings) {
       console.log('✅ AI settings found in storage');

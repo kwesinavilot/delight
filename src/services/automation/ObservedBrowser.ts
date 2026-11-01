@@ -50,8 +50,36 @@ export class ObservedBrowser {
       func: (action: TaskStep, revision: string) => (globalThis as any).delightAutomation.act(action, revision),
       args: [step, state.revision] });
     this.check();
-    await this.pause(350);
-    return results[0]?.result;
+    if (step.type !== 'click') {
+      await this.pause(350);
+      return results[0]?.result ?? 'Action dispatched; outcome requires observation';
+    }
+    // Navigation and SPA transitions can outlive the click's execution context.
+    // Poll real page state instead of treating a null return as success evidence.
+    let previous = '', stable = 0;
+    const expectsNavigation = !!element.href;
+    for (let i = 0; i < 16; i++) {
+      await this.pause(500);
+      const tab = await chrome.tabs.get(this.tabId);
+      this.check();
+      if (tab.status === 'loading') continue;
+      let next;
+      try { next = await this.observe(); }
+      catch (error) {
+        this.check();
+        if (i === 15) throw error;
+        continue;
+      }
+      if (next.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2)) {
+        return { outcome: 'Playback observed', url: next.url, playing: true };
+      }
+      const fingerprint = JSON.stringify([next.url, next.elements, next.text]);
+      stable = fingerprint === previous ? stable + 1 : 0;
+      previous = fingerprint;
+      if (next.url !== state.url && stable >= 1) return { outcome: 'Navigation observed', url: next.url };
+      if (!expectsNavigation && stable >= 2) return { outcome: 'Page settled after click', url: next.url };
+    }
+    return { outcome: 'No navigation or playback verified after click; choose another control or wait', url: state.url };
   }
 
   async pause(ms: number): Promise<void> {

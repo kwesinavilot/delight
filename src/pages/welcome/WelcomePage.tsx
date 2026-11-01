@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SparklesIcon,
   RocketLaunchIcon,
@@ -10,9 +10,15 @@ import {
 } from '@heroicons/react/24/outline';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageFooter from '@/components/ui/PageFooter';
+import ProviderSetupForm from '@/components/Settings/ProviderSetupForm';
 
 const WelcomePage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [providerReady, setProviderReady] = useState(false);
+  const appVersion = chrome.runtime.getManifest().version;
+  const [windowId, setWindowId] = useState<number>();
+  const [finishError, setFinishError] = useState('');
+  useEffect(() => { void chrome.windows.getCurrent().then(window => setWindowId(window.id)); }, []);
 
   const providers = [
     {
@@ -137,7 +143,7 @@ const WelcomePage: React.FC = () => {
         </svg>
       ),
       title: 'Local Storage',
-      description: 'All data stored locally with encryption'
+      description: 'Provider keys stay in this browser profile'
     },
     {
       icon: (
@@ -146,7 +152,7 @@ const WelcomePage: React.FC = () => {
         </svg>
       ),
       title: 'No Data Collection',
-      description: 'Complete privacy - no tracking or data transmission'
+      description: 'Requests go directly to your chosen AI provider'
     },
     {
       icon: (
@@ -155,30 +161,25 @@ const WelcomePage: React.FC = () => {
         </svg>
       ),
       title: 'Secure API Keys',
-      description: 'Encrypted credential storage for maximum security'
+      description: 'Keys are stored on this machine and are not synced'
     }
   ];
 
   const steps = [
     {
-      title: 'Welcome to Delight 1.4.2!',
+      title: 'Welcome to Delight!',
       subtitle: 'Enhanced Error Recovery & Network Intelligence',
       content: (
         <div className="text-center">
           <div className="mb-8">
             <SparklesIcon className="h-24 w-24 text-blue-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Delight 1.4.2!
+              Welcome to Delight!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
               Enhanced error recovery with automatic retry, intelligent fallback provider switching, and real-time network monitoring! 
               Uninterrupted AI assistance even during network issues or provider outages.
             </p>
-            {/* <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 max-w-2xl mx-auto">
-              <p className="text-green-800 dark:text-green-200 font-medium text-center">
-                🎁 <strong>Start instantly!</strong> You have 5 free AI requests to try all features. After that, get your own free Gemini API key in just 2 minutes.
-              </p>
-            </div> */}
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
@@ -255,70 +256,19 @@ const WelcomePage: React.FC = () => {
       )
     },
     {
-      title: 'Quick Setup',
-      subtitle: 'Get started in just a few steps',
+      title: 'How to use Delight',
+      subtitle: 'Your model powers chat, page tools, and browser automation',
       content: (
-        <div className="max-w-2xl mx-auto">
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-                1
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Try It Now (5 Trial Requests)
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Start chatting immediately with our built-in trial. No setup required! Works with all AI tools and page attachment.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-                2
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Choose Your AI Provider
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Go to Settings → AI Providers and select from 7 major providers (including Ollama) with 30+ models. Set up multiple providers for automatic fallback protection.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-                3
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Add Your API Key
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Securely store your API key from your chosen provider. We encrypt and store it locally.<br />
-                  You can get a free API key from Google Gemini in just 2 minutes and get up to 1,500 requests/day!
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-                4
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Explore All Features!
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Use sidepanel or keyboard shortcut (Ctrl+Shift+Q). Check the new Connectivity tab to monitor provider health and network status. Enjoy reliable AI assistance!
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-2xl mx-auto space-y-4">
+          <p>Open Delight from the toolbar or with Ctrl+Shift+Q. Chat about a page, use the writing tools, or open Agent mode to perform browser tasks.</p>
+          <p>Next, connect your own AI provider and test a model. You can change your provider, key, or model later in Settings.</p>
         </div>
       )
+    },
+    {
+      title: 'Connect your AI provider',
+      subtitle: 'Step 4: add your key, select a model, and verify the connection',
+      content: <ProviderSetupForm onReady={setProviderReady} />
     }
   ];
 
@@ -335,41 +285,17 @@ const WelcomePage: React.FC = () => {
   };
 
   const handleGetStarted = async () => {
-    // Mark welcome as completed and open in sidepanel mode
-    chrome.storage.sync.set({ welcomeCompleted: true });
-
-    // Try to find existing valid tab first
-    const tabs = await chrome.tabs.query({});
-    let targetTab = tabs.find(tab =>
-      tab.url &&
-      !tab.url.startsWith('chrome://') &&
-      !tab.url.startsWith('chrome-extension://')
-    );
-
-    // If no valid tab exists, create a new blank one
-    if (!targetTab) {
-      targetTab = await chrome.tabs.create({ active: true });
-    } else {
-      await chrome.tabs.update(targetTab.id!, { active: true });
+    if (!providerReady || windowId === undefined) return;
+    setFinishError('');
+    try {
+      // Invoke synchronously from the click handler to preserve Chrome's user gesture.
+      const opening = chrome.sidePanel.open({ windowId });
+      await opening;
+      await chrome.storage.local.set({ welcomeCompleted: true });
+      window.close();
+    } catch {
+      setFinishError('Your provider is ready. Click the Delight toolbar icon to open the assistant.');
     }
-
-    if (targetTab.id) {
-      // Open sidepanel on the target tab
-      await chrome.sidePanel.open({ tabId: targetTab.id });
-      await chrome.sidePanel.setOptions({
-        tabId: targetTab.id,
-        path: 'sidepanel.html',
-        enabled: true
-      });
-    }
-
-    window.close();
-  };
-
-  const handleSkip = () => {
-    // Mark welcome as completed
-    chrome.storage.sync.set({ welcomeCompleted: true });
-    window.close();
   };
 
   return (
@@ -385,7 +311,7 @@ const WelcomePage: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delight</h1>
-            <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v1.4.2</span>
+            <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">v{appVersion}</span>
           </div>
 
           {/* Progress indicator */}
@@ -421,14 +347,10 @@ const WelcomePage: React.FC = () => {
             </div>
           </div>
 
+          <p role="status" className="text-sm text-center">{finishError}</p>
           {/* Navigation */}
           <div className="flex justify-between items-center">
-            <button
-              onClick={handleSkip}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium"
-            >
-              Skip for now
-            </button>
+            <span className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}</span>
 
             <div className="flex space-x-4">
               {currentStep > 0 && (
@@ -451,6 +373,7 @@ const WelcomePage: React.FC = () => {
               ) : (
                 <button
                   onClick={handleGetStarted}
+                  disabled={!providerReady || windowId === undefined}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium flex items-center space-x-2"
                 >
                   <CheckCircleIcon className="h-4 w-4" />

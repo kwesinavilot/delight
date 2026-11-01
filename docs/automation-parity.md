@@ -19,6 +19,13 @@ This is a replacement core inspired by Nanobrowser's architecture, not a full
 Nanobrowser port. No Nanobrowser source is copied into the new runtime.
 A passing build or DOM test is not live-site verification.
 
+Post-click handling now polls for navigation, page settling, or active media for
+up to eight seconds. An unchanged link is explicitly unverified. Planner prompts
+bound body text and history excerpts, preserve all observed indexes, and omit
+internal revisions. Groq agent decisions disable SDK retries and receive an
+abort signal; rate-limit errors produce an explicit progress message and end the
+run without replaying browser actions. Other providers may still retry internally.
+
 Verification on 2026-11-01: five DOM/execution regressions pass, including
 cancellation during planning and restarting without a stale lock. Production
 build passes. The isolated branded Chrome extension test timed out waiting for

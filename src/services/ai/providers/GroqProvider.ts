@@ -100,6 +100,8 @@ export class GroqProvider extends BaseAIProvider {
             // Non-streaming response (default for problematic models or fallback)
             const result = await generateText({
                 model,
+                abortSignal: options?.abortSignal,
+                maxRetries: options?.maxRetries,
                 system: preparedOptions.systemPrompt,
                 messages: groqMessages,
                 temperature: preparedOptions.temperature,
