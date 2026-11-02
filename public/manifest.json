@@ -1,24 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.4.6",
+  "version": "1.4.9",
   "description": "Multi-agent AI assistant to boost your productivity. Access 30+ models, automate tasks, enhance writing and speed up work.",
   "permissions": [
     "sidePanel",
     "activeTab",
     "scripting",
     "storage",
-    "unlimitedStorage",
     "tabs",
     "debugger",
     "contextMenus"
   ],
   "host_permissions": [
-    "<all_urls>",
-    "https://us.i.posthog.com/*"
+    "http://*/*",
+    "https://*/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai https://localhost:11434;"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai http://localhost:11434 http://127.0.0.1:11434;"
   },
   "action": {
     "default_icon": {
@@ -37,7 +36,8 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "http://*/*",
+        "https://*/*"
       ],
       "js": [
         "content.js"
@@ -57,21 +57,5 @@
       },
       "description": "Open Delight"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "src/pages/welcome/index.html",
-        "src/pages/sidepanel/index.html",
-        "src/pages/userguide/index.html",
-        "src/pages/privacy/index.html",
-        "src/pages/updates/index.html",
-        "src/pages/accuracy/index.html",
-        "dom-analyzer.js",
-        "advanced-dom-analyzer.js",
-        "buildDomTree.js"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }

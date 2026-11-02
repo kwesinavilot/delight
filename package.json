@@ -7,7 +7,7 @@
     "email": "andrewsankomahene@gmail.com"
   },
   "private": true,
-  "version": "1.4.6",
+  "version": "1.4.9",
   "description": "Multi-agent AI assistant to boost your productivity. Access 25+ premium models from 6 providers, automate web tasks, use webpages as context, and enhance writing with specialized tools - all without changing your workflow or shuttling through multiple tools.",
   "type": "module",
   "license": "MIT",
@@ -22,6 +22,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "audit:release": "node scripts/audit-release.cjs",
+    "package:release": "npm run build && npm run audit:release && node scripts/package-release.cjs",
     "preview": "vite preview",
     "clean": "rimraf dist"
   },

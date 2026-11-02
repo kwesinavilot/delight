@@ -5,7 +5,7 @@ const ts = require('typescript');
 const compiled = ts.transpileModule(fs.readFileSync('src/services/agents/AgentOrchestrator.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
-function setup(decide, act = async () => 'ok', pause = async () => {}) {
+function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}) {
   const historyModule = { exports: {} };
   const historyCode = ts.transpileModule(fs.readFileSync('src/services/agents/AgentHistory.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
@@ -15,6 +15,7 @@ function setup(decide, act = async () => 'ok', pause = async () => {}) {
   let observations = 0;
   class Planner { async initialize() {} decide(...args) { return decide(...args); } }
   class Browser {
+    getTabId() { return 1; }
     constructor(_tabId, signal) { this.signal = signal; }
     async pause(ms) { return pause(ms, this.signal); }
     async observe() { return { url: 'https://example.com', elements: [], revision: `observation-${++observations}` }; }
@@ -27,9 +28,54 @@ function setup(decide, act = async () => 'ok', pause = async () => {}) {
     if (name.includes('AgentHistory')) return historyModule.exports;
     throw new Error(`Unexpected import ${name}`);
   }, module, module.exports);
-  global.chrome = { tabs: { query: async () => [{ id: 1 }] }, storage: { local: { get: async () => ({}), set: async () => {} } } };
-  return { agent: module.exports.AgentOrchestrator.getInstance(), actions, history: historyModule.exports.agentHistory, observations: () => observations };
+  global.chrome = { tabs: { query: async () => [{ id: 1, url: 'https://example.com' }], get: async () => ({ id: 1, windowId: 1, url: 'https://example.com' }) }, storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } } };
+  return { agent: module.exports.AgentOrchestrator.getInstance(), actions, history: historyModule.exports.agentHistory, observations: () => observations, disk };
 }
+const recoverable = pending => ({ agentTaskHistoryV1: [{ id: 'saved', input: 'Original task', status: 'paused', startedAt: 1,
+  steps: [{ id: 'old', type: 'click', description: 'Prior action', status: pending ? 'running' : 'completed' }], events: [],
+  checkpoint: { version: 1, tabId: 99, windowId: 99, url: 'https://example.com', pending, uncertain: false } }] });
+test('full runtime recovery is explicit and retains summaries without replaying completed actions', async () => {
+  let decisions = 0;
+  const ctx = setup(async (_input, _state, history) => {
+    decisions++;
+    assert.match(history[0].result, /Before restart: completed/);
+    return { done: true, success: true, evidence: 'Current page confirms completion' };
+  }, undefined, undefined, recoverable(false));
+  await ctx.history.initialize();
+  assert.equal(decisions, 0);
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'interrupted');
+  const result = await ctx.agent.resumeSavedTask('saved');
+  assert.equal(result.success, true);
+  assert.equal(result.taskId, 'saved');
+  assert.equal(ctx.actions.length, 0);
+  assert.equal(ctx.history.getSnapshot().tasks[0].steps.length, 1);
+});
+test('recovery cannot click again when the previous dispatch was still pending', async () => {
+  const ctx = setup(async () => ({ done: false, action: { type: 'trustedClick', elementIndex: 0, description: 'Replay' } }), undefined, undefined, recoverable(true));
+  const result = await ctx.agent.resumeSavedTask('saved');
+  assert.equal(result.success, false);
+  assert.match(result.error, /uncertain outcome/);
+  assert.equal(ctx.actions.length, 0);
+});
+test('missing recovery tabs remain recoverable and reused tab IDs are not trusted', async () => {
+  const ctx = setup(async () => ({ done: true, success: true, evidence: 'Matched page' }), undefined, undefined, recoverable(false));
+  chrome.tabs.query = async () => [{ id: 99, url: 'https://unrelated.com' }];
+  assert.equal((await ctx.agent.resumeSavedTask('saved')).success, false);
+  assert.equal(ctx.history.getSnapshot().tasks[0].status, 'interrupted');
+  chrome.tabs.query = async () => [{ id: 1, url: 'https://example.com' }];
+  assert.equal((await ctx.agent.resumeSavedTask('saved')).success, true);
+});
+test('write-ahead checkpoint is durable before dispatch and cleared only afterwards', async () => {
+  let calls = 0;
+  const ctx = setup(async () => ++calls === 1 ? { done: false, action: { type: 'click', description: 'Click once' } }
+    : { done: true, success: true, evidence: 'Observed' }, async () => {
+      assert.equal(ctx.disk.agentTaskHistoryV1[0].checkpoint.pending, true);
+      assert.equal(ctx.disk.agentTaskHistoryV1[0].steps[0].status, 'running');
+      return 'Clicked';
+    });
+  assert.equal((await ctx.agent.executeTask('Click once')).success, true);
+  assert.equal(ctx.disk.agentTaskHistoryV1[0].checkpoint.pending, false);
+});
 test('stop during planning rejects a late action and does not lock the next run', async () => {
   let release, entered;
   const planning = new Promise(resolve => { entered = resolve; });

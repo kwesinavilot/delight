@@ -11,6 +11,7 @@ import { listGeminiModels, testProviderConfiguration } from '@/services/config/P
 import { AIService } from '@/services/ai/AIService';
 import { AIConfiguration } from '@/types/ai';
 import NetworkStatusPanel from './NetworkStatusPanel';
+import PostHogService from '@/services/PostHogService';
 
 interface SettingsPanelProps {
   onClose?: () => void;
@@ -28,6 +29,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   const [connectionErrors, setConnectionErrors] = useState<Record<string, string>>({});
   const [connectionStatus, setConnectionStatus] = useState<Record<string, 'success' | 'error' | null>>({});
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [analyticsOptIn, setAnalyticsOptIn] = useState(false);
+  const [analyticsSaving, setAnalyticsSaving] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState('');
   const [ollamaStatus, setOllamaStatus] = useState<{
     isRunning: boolean;
     hasModels: boolean;
@@ -126,6 +130,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       // Load theme from storage
       const result = await chrome.storage.sync.get(['theme']);
       setTheme(result.theme || 'system');
+      const local = await chrome.storage.local.get(['analyticsOptIn']);
+      setAnalyticsOptIn(local.analyticsOptIn === true);
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -500,6 +506,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
         {activeTab === 'appearance' && (
           <div className="space-y-6">
             <div>
+              <label className="flex items-start gap-3">
+                <input type="checkbox" checked={analyticsOptIn} disabled={analyticsSaving}
+                  onChange={async event => {
+                    const enabled = event.target.checked;
+                    setAnalyticsSaving(true); setAnalyticsError('');
+                    try { await PostHogService.setEnabled(enabled); setAnalyticsOptIn(enabled); }
+                    catch { setAnalyticsError('Could not save the analytics preference.'); }
+                    finally { setAnalyticsSaving(false); }
+                  }} />
+                <span>Optional usage analytics (off by default)
+                  <span className="block text-sm text-gray-500">Send feature names, provider/model choices, extension version, a pseudonymous identifier, and basic browser/device metadata to PostHog. No prompts, page contents, API keys, or task text. You can turn this off at any time.</span>
+                </span>
+              </label>
+              {analyticsError && <p role="alert">{analyticsError}</p>}
+            </div>
+            <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Theme</h3>
               <div className="space-y-3">
                 {[
@@ -613,7 +635,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 space-y-0">
             <div className="flex items-center space-x-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Delight v1.4.3</span>
+                <span className="font-medium">Delight v{chrome.runtime.getManifest().version}</span>
               </div>
             </div>
           </div>

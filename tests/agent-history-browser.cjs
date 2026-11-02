@@ -24,6 +24,7 @@ const assert = require('node:assert/strict');
             if (input !== 'keep running') { await agentHistory.finish(active, 'completed', 'Playback verified'); active = undefined; }
           },
           async pauseCurrentTask() { if (active) await agentHistory.pause(active); },
+          async resumeSavedTask(id) { await agentHistory.reopen(id); agentHistory.event(id, 'Recovered from saved checkpoint'); await agentHistory.finish(id, 'completed', 'Restarted task completed'); },
           async resumeCurrentTask() { if (active) { const id = active; await agentHistory.resume(id); agentHistory.event(id, 'Re-observed page after resume'); await agentHistory.finish(id, 'completed', 'Resumed task completed'); active = undefined; } },
           async stopCurrentTask() { if (active) { const id = active; active = undefined; await agentHistory.finish(id, 'cancelled', 'Task cancelled.'); } }
         };
@@ -59,6 +60,16 @@ const assert = require('node:assert/strict');
     assert.equal(await page.getByRole('option').count(), 2);
     await page.getByRole('button', { name: 'Clear saved history', exact: true }).click();
     await page.getByRole('option', { name: 'No saved tasks' }).waitFor({ state: 'attached' });
+    // Simulate a fresh runtime loading an interrupted checkpoint, not an active in-memory run.
+    await page.reload();
+    await page.evaluate(() => {
+      const disk = { agentTaskHistoryV1: [{ id: 'recover', input: 'Saved task', status: 'paused', startedAt: Date.now(), steps: [], events: [],
+        checkpoint: { version: 1, tabId: 1, url: 'https://example.com', pending: false, uncertain: false } }] };
+      window.chrome = { storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } } };
+    });
+    await page.addScriptTag({ content: output.outputFiles[0].text });
+    await page.getByRole('button', { name: 'Resume saved task', exact: true }).click();
+    await page.getByText('Restarted task completed', { exact: true }).waitFor();
     console.log('PASS: Agent history survives remount, leaving pauses active runs, Resume retains task identity, saved history clears (mock runtime)');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

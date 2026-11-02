@@ -2,11 +2,11 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## 🎉 **Version 1.4.3 - Analytics Integration & Enhanced Error Recovery**
+## Version 1.4.9 — Safer automation and restart recovery
 
-**NEW**: Automatic retry with exponential backoff, intelligent fallback provider switching, and real-time network monitoring for uninterrupted AI assistance!
+Native keyboard/pointer interaction across accessible frames, explicit outcome checks, bounded provider cooldowns, and opt-in recovery of interrupted tasks. Automation uses your selected provider; it does not silently switch providers.
 
-**ENHANCED**: Robust error handling, network connectivity detection, and seamless provider failover ensure reliable performance even during outages.
+Provide your own provider configuration. Keys and checkpoints stay in this browser profile; relevant page observations and task outcomes go directly to your selected AI provider. Usage analytics is off unless explicitly enabled. See [release audit](docs/release-audit.md) and [automation limitations](docs/automation-parity.md).
 
 Now supporting **7 major AI providers, including Ollama** with **30+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
@@ -20,7 +20,7 @@ Now supporting **7 major AI providers, including Ollama** with **30+ models** fo
 ## 🌟 Features
 
 ### 🚀 Core AI Features
-- **Multi-Provider AI Support**: Choose between 8 major AI providers - OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, SambaNova, and GPT-OSS (Online/Offline)
+- **Multi-Provider AI Support**: Choose between 7 providers: OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, SambaNova, and Ollama. GPT-OSS models are available through compatible hosts rather than a separate provider.
 - **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models with dual hosting options (Groq hosted + Ollama local)
 - **🤖 Iterative Agent System**: Memory-driven multi-agent framework inspired by Vercel AI SDK patterns for reliable web automation
 - **🧠 Agent Memory & Messaging**: Persistent context and structured communication between agents for better decision making
@@ -32,7 +32,7 @@ Now supporting **7 major AI providers, including Ollama** with **30+ models** fo
 
 ### 🔄 Enhanced Error Recovery & Network Intelligence
 - **Automatic Retry**: Exponential backoff retry system for failed requests with configurable settings
-- **Fallback Provider Switching**: Intelligent switching to alternative providers when primary fails
+- **Selected Provider**: Agent decisions stay on the configured provider; cooldowns do not silently switch to another provider.
 - **Network Connectivity Monitoring**: Real-time network status detection and handling
 - **Smart Error Classification**: Distinguishes between temporary and permanent failures
 - **Provider Health Monitoring**: Real-time connectivity testing and status reporting
@@ -301,7 +301,7 @@ npm run test:watch
 
 ## 📋 Roadmap
 
-### Current Version (1.4.3) - September 14, 2025
+### Historical Release (1.4.3) - September 14, 2025
 - ✅ **🔄 Enhanced Error Recovery**: Automatic retry with exponential backoff for failed requests
 - ✅ **🌐 Intelligent Fallback**: Smart provider switching when primary provider fails
 - ✅ **📶 Network Monitoring**: Real-time connectivity detection and handling

@@ -1,5 +1,5 @@
 (() => {
-  if (globalThis.delightAutomation?.version === 3) return;
+  if (globalThis.delightAutomation?.version === 4) return;
   let targets = new Map();
   let signatures = new Map();
   const signature = el => JSON.stringify([el.tagName, ...['aria-label', 'href', 'type', 'role', 'title', 'placeholder', 'formaction'].map(name => el.getAttribute(name)), (el.textContent || '').slice(0, 180)]);
@@ -24,7 +24,7 @@
     const elements = [];
     for (const el of collect(document)) {
       if (elements.length >= 250) break;
-      if (!el.matches('a[href],button,input:not([type=hidden]),textarea,select,[contenteditable=true],[role=button],[role=link],[role=tab],[role=textbox],[role=checkbox]') || !visible(el)) continue;
+      if (!el.matches('a[href],button,input:not([type=hidden]),textarea,select,[contenteditable=true],[role=button],[role=link],[role=tab],[role=textbox],[role=checkbox],[role=combobox],[role=switch],[role=radio],[role=option],[role=slider],[role=spinbutton],[role=menuitem],[role=menuitemcheckbox],[role=treeitem]') || !visible(el)) continue;
       const r = el.getBoundingClientRect();
       if (r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
       const index = elements.length;
@@ -37,19 +37,23 @@
         submitControl: !!el.form && el.type === 'submit' || el.matches('button,[role=button],input[type=submit]') && /^(send|submit|save|publish|confirm|place order)\b/i.test((el.getAttribute('aria-label') || el.innerText || el.textContent || el.value || '').trim()),
         invalid: !!el.validity && !el.validity.valid,
         validationMessage: el.type === 'password' ? undefined : el.validationMessage,
-        disabled: !!el.disabled, href: el.getAttribute('href'), target: el.getAttribute('target'),
+        disabled: !!el.disabled || el.getAttribute('aria-disabled') === 'true', href: el.getAttribute('href'), target: el.getAttribute('target'),
+        checked: 'checked' in el ? el.checked : el.getAttribute('aria-checked'),
+        expanded: el.getAttribute('aria-expanded'), selected: el.getAttribute('aria-selected'),
+        valueNow: el.getAttribute('aria-valuenow'), valueMin: el.getAttribute('aria-valuemin'), valueMax: el.getAttribute('aria-valuemax'),
         value: el.type === 'password' ? undefined : el.value });
     }
     return { revision, url: location.href, title: document.title, elementCount: elements.length, elements,
       statuses: collect(document).filter(el => visible(el) && el.matches('[role=status],[role=alert],[aria-live=polite],[aria-live=assertive]')).map(el => (el.innerText || el.textContent || '').trim().slice(0, 300)).filter(Boolean).slice(0, 20),
       text: (document.body?.innerText || '').slice(0, 6000), scrollY,
       scrollHeight: document.documentElement.scrollHeight, visualViewportHeight: innerHeight,
+      adShowing: !!document.querySelector('.ad-showing'),
       media: Array.from(document.querySelectorAll('video,audio')).map(el => ({ paused: el.paused, ended: el.ended, currentTime: el.currentTime, readyState: el.readyState })) };
   };
   const target = (index, expectedRevision) => {
     if (expectedRevision !== revision) throw new Error('Stale observation; inspect the page again');
     const el = targets.get(index);
-    if (!el?.isConnected || !visible(el) || el.disabled) throw new Error('Element is detached, hidden, or disabled');
+    if (!el?.isConnected || !visible(el) || el.disabled || el.getAttribute('aria-disabled') === 'true') throw new Error('Element is detached, hidden, or disabled');
     if (signature(el) !== signatures.get(index)) throw new Error('Element changed since observation; inspect the page again');
     el.scrollIntoView({ block: 'center', inline: 'center' });
     const r = el.getBoundingClientRect();
@@ -60,7 +64,7 @@
     return el;
   };
   globalThis.delightAutomation = {
-    version: 3, observe,
+    version: 4, observe,
     prepare(index, expectedRevision, pointer) {
       const el = target(index, expectedRevision);
       if (el.type === 'password') throw new Error('Please enter credentials manually');

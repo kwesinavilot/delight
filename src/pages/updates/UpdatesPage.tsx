@@ -27,8 +27,8 @@ const UpdatesPage: React.FC = () => {
       } else {
         // Fallback for manual visits
         setUpdateInfo({
-          previousVersion: '1.4.1',
-          currentVersion: '1.4.2',
+          previousVersion: '1.4.8',
+          currentVersion: chrome.runtime.getManifest().version,
           updateDate: new Date().toISOString()
         });
       }
@@ -39,6 +39,17 @@ const UpdatesPage: React.FC = () => {
   const getVersionChanges = (version: string) => {
     // Return changes based on version
     switch (version) {
+      case '1.4.9':
+        return {
+          title: 'Safer Automation & Restart Recovery',
+          subtitle: 'Native frame interactions, site-specific confirmation, and explicit task recovery',
+          features: [
+            { icon: <SparklesIcon className="h-6 w-6 text-blue-500" />, title: 'Broader browser interactions', description: 'Native pointer clicks across accessible nested frames, custom control states, and keyboard interaction.' },
+            { icon: <CheckCircleIcon className="h-6 w-6 text-green-500" />, title: 'Stronger confirmation', description: 'Rendered Google results, matching Gmail Sent threads, and advancing non-ad YouTube playback.' },
+            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Resume after a restart', description: 'Explicitly resume saved tasks. Checkpoints and fresh observations protect against repeating uncertain actions.' },
+            { icon: <DocumentTextIcon className="h-6 w-6 text-blue-500" />, title: 'Clearer data controls', description: 'Updated AI data-sharing disclosures and optional usage analytics, off by default.' }
+          ]
+        };
       case '1.4.2':
         return {
           title: 'Enhanced Error Recovery & Network Intelligence',

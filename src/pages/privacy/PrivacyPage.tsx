@@ -36,7 +36,7 @@ const PrivacyPage: React.FC = () => {
                 <div>
                   <h3 className="font-semibold text-green-800 dark:text-green-200">Privacy-First Design</h3>
                   <p className="text-green-700 dark:text-green-300 text-sm mt-1">
-                    Delight is designed with privacy as a core principle. We don't collect, store, or transmit any personal data to our servers.
+                    API keys and saved history are stored in this browser profile. AI requests go directly to the provider you select. Optional usage analytics is off unless you enable it in Settings.
                   </p>
                 </div>
               </div>
@@ -47,16 +47,16 @@ const PrivacyPage: React.FC = () => {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
               <EyeSlashIcon className="h-6 w-6 text-blue-500 mr-2" />
-              What We DON'T Collect
+              Data Handling
             </h2>
             <ul className="space-y-3 text-gray-700 dark:text-gray-300">
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Personal Information:</strong> We don't collect names, emails, phone numbers, or any personal identifiers</span>
+                <span><strong>Personal Information:</strong> Messages, selected text, page context, and task instructions may contain personal information. Only send information you are comfortable sharing with your chosen AI provider.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Browsing History:</strong> We don't track which websites you visit or your browsing patterns</span>
+                <span><strong>Browser Context:</strong> Agent requests include URLs, tab titles, visible page text, accessible embedded-frame controls, and recent action outcomes to choose the next action.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -64,15 +64,15 @@ const PrivacyPage: React.FC = () => {
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Agent Automation Data:</strong> Task plans, execution logs, and automation results stay local</span>
+                <span><strong>Agent History:</strong> The latest 20 tasks, summaries, events, outcomes, and recovery checkpoints are saved locally. Relevant instructions and recent outcomes are also sent to the selected AI provider.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Usage Analytics:</strong> We don't track how you use the extension or collect usage statistics</span>
+                <span><strong>Optional Usage Analytics:</strong> Disabled by default. If enabled in Settings, PostHog receives feature events, provider/model choices, extension version, a pseudonymous identifier, and basic browser/device metadata, but not prompts, page contents, task text, or API keys. Disable it at any time.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Device Information:</strong> We don't collect device IDs, IP addresses, or system information</span>
+                <span><strong>Third-party Connections:</strong> Your selected AI provider, and PostHog if enabled, receive network requests and may observe your IP address. Their retention policies apply; disabling analytics does not delete previously received events.</span>
               </li>
             </ul>
           </div>
@@ -85,7 +85,7 @@ const PrivacyPage: React.FC = () => {
             </h2>
             <div className="space-y-4">
               <p className="text-gray-700 dark:text-gray-300">
-                All your data is stored locally in your browser using Chrome's secure storage system:
+                Saved extension data is kept in browser storage. Chrome does not provide an application-managed encrypted vault here; protect access to your browser profile. Theme preferences may use browser sync.
               </p>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -103,7 +103,7 @@ const PrivacyPage: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">Settings</h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your preferences (theme, provider selection) stored locally for convenience.
+                    Provider settings and analytics consent stay local; theme preferences may sync with your browser account.
                   </p>
                 </div>
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -114,7 +114,7 @@ const PrivacyPage: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">Agent Tasks</h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Task plans and execution logs stored locally. No automation data sent to our servers.
+                    Up to 20 tasks, event summaries, outcomes, and recovery checkpoints (tab URL/identity and uncertainty flags) are stored locally. Typed field payloads and full DOM snapshots are not checkpointed. Task text and generated summaries may still contain sensitive information. Delete saved tasks in Agent mode.
                   </p>
                 </div>
               </div>
@@ -126,12 +126,12 @@ const PrivacyPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Provider Communication</h2>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
               <p className="text-blue-800 dark:text-blue-200 text-sm">
-                <strong>Direct Communication:</strong> When you chat with AI or use agent automation, your messages go directly from your browser to the AI provider (OpenAI, Anthropic, etc.). Delight acts as a secure bridge but never stores or processes this data.
+                <strong>Direct Communication:</strong> Messages and requested page context go directly from your browser to your selected AI provider, using your key for authentication. Delight processes this data locally and may save chat/task history on this machine; it does not route AI requests through a Delight server.
               </p>
             </div>
             <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
               <p className="text-orange-800 dark:text-orange-200 text-sm">
-                <strong>Agent Automation:</strong> When you use the agent automation system, task descriptions are sent to AI providers for planning purposes only. No actual browser automation data is transmitted - all execution happens locally.
+                <strong>Agent Automation:</strong> The selected provider receives task instructions, current tab/frame observations, visible text and control values (excluding password fields), and recent outcomes. These can include private information on signed-in pages. Actions execute locally through Chrome scripting and, for native input, the debugger API. Only start automation on pages you intend to share with that provider. Restart recovery is explicit, never automatic background execution.
               </p>
             </div>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -199,7 +199,7 @@ const PrivacyPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Policy Updates</h2>
             <p className="text-gray-700 dark:text-gray-300">
               If we make changes to this privacy policy, we'll update this page and notify users through the extension. 
-              The current version is effective as of <strong>September 3, 2025</strong>.
+              The current in-extension version is effective as of <strong>November 1, 2026</strong>.
             </p>
           </div>
 
@@ -217,7 +217,7 @@ const PrivacyPage: React.FC = () => {
             
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <p className="text-blue-800 dark:text-blue-200 text-sm">
-                <strong>Full Privacy Policy:</strong> You can view the complete, updated version of our privacy policy at{' '}
+                <strong>Public Policy Copy:</strong> A separately maintained copy is available at{' '}
                 <a 
                   href="https://docs.google.com/document/d/1KxhmeV9Fjuf7FGxhn6EipfnxGRUiVKM4v4Rz37_rdMQ/edit?usp=sharing" 
                   target="_blank" 
@@ -226,7 +226,7 @@ const PrivacyPage: React.FC = () => {
                 >
                   this Google Doc
                 </a>
-                .
+                . This bundled policy describes the current implementation; the public copy must be kept consistent before a store submission.
               </p>
             </div>
           </div>

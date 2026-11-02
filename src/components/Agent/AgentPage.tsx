@@ -28,14 +28,15 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
   }, [orchestrator]);
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }); }, [selected?.events.length]);
 
-  const execute = async () => {
-    if (!input.trim() || busy || !snapshot.loaded) return;
+  const execute = async (recoverId?: string) => {
+    if ((!recoverId && !input.trim()) || busy || !snapshot.loaded) return;
     const serial = ++runSerial.current;
-    setSubmitting(true); setError(''); setSelectedId(undefined);
+    setSubmitting(true); setError(''); setSelectedId(recoverId);
     try {
       // History updates come from the runtime, so completion and cancellation
       // are retained even if this component unmounts while awaiting a provider.
-      await orchestrator.executeTask(input.trim());
+      if (recoverId) await orchestrator.resumeSavedTask(recoverId);
+      else await orchestrator.executeTask(input.trim());
     } catch (cause) {
       if (mounted.current && serial === runSerial.current) setError(cause instanceof Error ? cause.message : 'Could not start task.');
     } finally {
@@ -63,7 +64,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
         <button type="button" className="underline disabled:opacity-40" disabled={!snapshot.tasks.some(task => task.status !== 'running' && task.status !== 'paused')}
           onClick={() => { void agentHistory.clear(); }}>Clear saved history</button>
       </div>
-      <p className="text-xs text-gray-500">Last 20 tasks are saved on this machine. Leaving Agent mode pauses the task. Return here and resume to continue.</p>
+      <p className="text-xs text-gray-500">Last 20 tasks and recovery checkpoints are saved on this machine. Leaving Agent mode pauses. After a restart, explicitly resume a saved task; uncertain actions are inspected, not automatically repeated.</p>
       {snapshot.storageError && <p role="alert" className="text-sm text-red-600">{snapshot.storageError}</p>}
     </div>
     <main className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -96,6 +97,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
       <div ref={bottom} />
     </main>
     <div className="p-4 border-t dark:border-gray-700 space-y-2">
+      <p className="text-xs text-gray-500">Starting or resuming sends task instructions, tab URLs/titles, visible page/frame content and control values, and recent outcomes directly to your selected AI provider. Avoid sensitive pages unless you intend to share them. Saved task text and checkpoints stay in this browser profile.</p>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
         <textarea aria-label="Browser task" className="flex-1 rounded border p-2 bg-transparent dark:border-gray-700" rows={2}
@@ -109,7 +111,10 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
             : <Button disabled={!active} onClick={() => { void orchestrator.pauseCurrentTask(); }}>Pause</Button>}
           <Button variant="destructive" onClick={() => { runSerial.current++; setSubmitting(false); void orchestrator.stopCurrentTask(); }}>Stop</Button>
         </>
-          : <Button disabled={!input.trim() || !snapshot.loaded} onClick={() => { void execute(); }}>Run</Button>}
+          : <>
+            {selected?.status === 'interrupted' && selected.checkpoint?.version === 1 && <Button onClick={() => { void execute(selected.id); }}>Resume saved task</Button>}
+            <Button disabled={!input.trim() || !snapshot.loaded} onClick={() => { void execute(); }}>Run</Button>
+          </>}
       </div>
     </div>
   </div>;

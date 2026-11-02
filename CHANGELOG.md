@@ -5,7 +5,30 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.9] - 2026-11-01
+
+### Added
+- Native pointer clicks through accessible nested cross-origin frames, with ancestor hit-testing, bounded geometry routing, and rejection of inaccessible, obscured, or transformed frames.
+- Observed ARIA states and explicit state checks for custom comboboxes, switches, sliders, options, and other controls.
+- Read-only Google results, Gmail Sent-thread, and advancing non-advertisement YouTube playback checks.
+- Explicit restart recovery from local write-ahead checkpoints; match the saved page rather than trusting recycled tab IDs, retain completed summaries, and block uncertain action replay.
+- Release audit and dist-only ZIP packaging scripts with version, permission, CSP, entry-point, source-artifact and basic credential-pattern checks.
+
+### Fixed
+- Correct privacy disclosures about page/control observations sent to the selected provider, local task retention, browser sync, and storage limitations.
+- Make analytics opt-in, disabled by default, and use the bundled no-external-loader SDK. Propagate consent changes across extension contexts.
+- Remove unused unlimitedStorage, redundant analytics host access, and unnecessary web-accessible pages/scripts. Narrow page host access to HTTP(S).
+- Synchronize package, lockfile, manifest, Settings, and Updates versions; permit the actual local Ollama HTTP endpoint in connect-src.
+
+### Release notes
+- Public privacy-policy copy, store privacy fields/permission justifications, loaded-extension checks, and live-site testing remain manual pre-submission requirements. Packaging checks do not guarantee store approval or recipient delivery.
+
+### Verification
+- All 65 automated regressions pass. Live Chromium fixtures pass for nested cross-origin native input, custom controls, ancestor overlays, keyboard/submission behavior, and the history/restart UI (extension APIs/orchestrator adapted).
+- Production build and release audit pass; the ZIP opens with .NET and all 43 archived files match the built files by SHA-256.
+- The headless loaded-extension diagnostic still times out waiting for Chrome's service worker; loaded-extension and live-account behavior are not claimed as verified.
+
+## [1.4.8] - 2026-11-01
 
 ### Added
 - Native Enter, keyboard shortcuts, and opt-in trusted pointer clicks using the existing debugger permission.
@@ -25,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Native input requires exclusive debugger access to the tab; native pointer targeting across cross-origin frame boundaries is not supported (keyboard interaction remains available).
 - Submission verification observes page evidence, not server-side delivery guarantees.
 
-## [1.4.7] - 2026-11-02
+## [1.4.7] - 2026-11-01
 
 ### Added
 - Pause and Resume controls for active agent tasks; leaving Agent mode pauses instead of cancelling the run.

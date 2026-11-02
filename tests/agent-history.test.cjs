@@ -86,11 +86,31 @@ test('paused history is retained, cannot be cleared while active, and resumes wi
   assert.equal(store.getSnapshot().tasks[0].steps[0].status, 'completed');
   assert.equal(store.getSnapshot().tasks[0].result, undefined);
 });
-test('a full runtime restart marks paused work interrupted rather than offering an invalid resume', async () => {
+test('a full runtime restart marks legacy paused work interrupted without fabricating a checkpoint', async () => {
   const { store } = setup();
   await store.start('one', 'Task');
   await store.pause('one');
   const restored = new AgentHistory();
   await restored.initialize();
   assert.equal(restored.getSnapshot().tasks[0].status, 'interrupted');
+});
+test('recovery checkpoints survive restart without storing field payloads or snapshots', async () => {
+  const { store, disk } = setup();
+  await store.start('recover', 'Search cats');
+  await store.checkpoint('recover', { version: 1, tabId: 7, windowId: 1, url: 'https://example.com/', pending: true, uncertain: false, apiKey: 'secret-key', fields: 'typed secret' });
+  const restarted = new AgentHistory();
+  await restarted.initialize();
+  const task = restarted.getSnapshot().tasks[0];
+  assert.equal(task.status, 'interrupted');
+  assert.equal(task.checkpoint.pending, true);
+  assert.ok(!JSON.stringify(disk).includes('secret-key'));
+  assert.ok(!JSON.stringify(disk).includes('typed secret'));
+  await restarted.reopen('recover');
+  assert.equal(restarted.getSnapshot().tasks[0].status, 'running');
+});
+test('failed checkpoint writes reject before an action can be dispatched', async () => {
+  const { store } = setup();
+  await store.start('recover', 'Task');
+  chrome.storage.local.set = async () => { throw new Error('quota'); };
+  await assert.rejects(store.checkpoint('recover', { version: 1, tabId: 7, url: 'https://example.com/', pending: true, uncertain: false }), /could not be saved/);
 });

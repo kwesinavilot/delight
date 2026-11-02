@@ -1,8 +1,11 @@
 import { TaskStep } from '../../types/agents';
 import { combineFrameObservations } from './FrameObservation';
 import { trustedInput } from './TrustedInput';
+import { framePointer } from './FramePointer';
+import { siteVerification } from './SiteVerification';
 
 export class ObservedBrowser {
+  getTabId() { return this.tabId; }
   private windowId?: number;
   constructor(private tabId: number, private signal: AbortSignal) {}
 
@@ -105,10 +108,27 @@ export class ObservedBrowser {
     if (step.type === 'analyzePage') return 'Page observed';
     if (step.type === 'verify') {
       const data = step.data || {};
+      if (['googleSearch', 'gmailSent', 'youtubePlayback'].includes(data.kind)) {
+        const read = async () => {
+          this.check();
+          const results = await chrome.scripting.executeScript({ target: { tabId: this.tabId, frameIds: [0] }, func: siteVerification, args: [data] });
+          this.check();
+          if (!results[0]?.result) throw new Error('Site verification returned no evidence');
+          return results[0].result;
+        };
+        const first = await read();
+        if (data.kind !== 'youtubePlayback') return first;
+        await this.pause(700);
+        const second = await read();
+        if (second.videoId !== first.videoId || typeof first.time !== 'number' || typeof second.time !== 'number' || second.time <= first.time + 0.1) throw new Error('Video time did not advance; playback is unconfirmed');
+        return { ...second, verified: true, evidence: 'Non-advertisement YouTube content playback advanced across two observations' };
+      }
       const field = state.elements?.find((el: any) => el.index === data.elementIndex);
       const verified = data.kind === 'text' ? typeof data.text === 'string' && !!data.text.trim() && String(state.text || '').includes(data.text)
         : data.kind === 'url' ? typeof data.url === 'string' && state.url === data.url
         : data.kind === 'field' ? typeof data.value === 'string' && field?.value === data.value
+        : data.kind === 'control' ? !!field && ['checked', 'expanded', 'selected', 'valueNow'].includes(data.property) &&
+          field[data.property] !== null && field[data.property] !== undefined && String(field[data.property]) === String(data.value)
         : data.kind === 'media' ? state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2) : false;
       if (!verified) throw new Error('Requested outcome is not present in the current observation');
       return { verified: true, kind: data.kind, outcome: 'Outcome observed' };
@@ -138,11 +158,12 @@ export class ObservedBrowser {
     const dispatch = async () => {
       if (step.type === 'sendKeys' || step.type === 'trustedClick') {
         if (step.type === 'sendKeys' && (typeof step.data?.keys !== 'string' || !step.data.keys)) throw new Error('sendKeys requires data.keys');
-        const prepared = await chrome.scripting.executeScript({ target,
+        const prepared = step.type === 'trustedClick' ? [{ result: await framePointer(this.tabId, target,
+          frameStep.elementIndex!, revision, element.frameUrl || state.url, this.signal, element.frameId ?? 0) }] : await chrome.scripting.executeScript({ target,
           func: (index: number, expected: string, url: string, pointer: boolean) => {
             if (location.href !== url) throw new Error('Frame navigated; observe again');
             return (globalThis as any).delightAutomation.prepare(index, expected, pointer);
-          }, args: [frameStep.elementIndex!, revision, element.frameUrl || state.url, step.type === 'trustedClick'] });
+          }, args: [frameStep.elementIndex!, revision, element.frameUrl || state.url, false] });
         this.check();
         if (!prepared[0]?.result) throw new Error('Native input target could not be prepared');
         await trustedInput(this.tabId, this.signal, step.type === 'sendKeys' ? { keys: step.data.keys } : prepared[0].result);

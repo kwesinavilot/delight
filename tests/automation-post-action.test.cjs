@@ -16,6 +16,14 @@ test('explicit verification checks observed text and field values, not planner c
   await assert.rejects(browser.act({ type: 'verify', data: { kind: 'text', text: 'Delivered' } }, state), /not present/);
   await assert.rejects(browser.act({ type: 'verify', data: { kind: 'field', elementIndex: 0, value: 'dogs' } }, state), /not present/);
 });
+test('YouTube verification requires advancing time and stable video identity across observations', async () => {
+  const { browser } = setup([]);
+  let reads = 0;
+  chrome.scripting.executeScript = async () => [{ result: { videoId: 'abc', time: reads++ ? 4.5 : 4 } }];
+  assert.equal((await browser.act({ type: 'verify', data: { kind: 'youtubePlayback' } }, before)).verified, true);
+  chrome.scripting.executeScript = async () => [{ result: { videoId: 'abc', time: 4 } }];
+  await assert.rejects(browser.act({ type: 'verify', data: { kind: 'youtubePlayback' } }, before), /did not advance/);
+});
 test('submission validation errors are not reported as successful submissions', async () => {
   const state = { ...before, elements: [{ index: 1, type: 'submit', form: true }] };
   const { browser } = setup([{ ...state, elements: [{ index: 0, invalid: true, validationMessage: 'Required' }] }]);

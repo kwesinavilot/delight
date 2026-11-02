@@ -5,6 +5,7 @@ export interface HistoryEvent { id: string; timestamp: number; message: string; 
 export interface TaskHistory {
   id: string; input: string; startedAt: number; endedAt?: number; status: RunStatus;
   steps: TaskStep[]; events: HistoryEvent[]; result?: string;
+  checkpoint?: { version: 1; tabId: number; windowId?: number; url: string; pending: boolean; uncertain: boolean };
 }
 interface Snapshot { tasks: TaskHistory[]; loaded: boolean; storageError?: string; }
 const KEY = 'agentTaskHistoryV1';
@@ -41,7 +42,9 @@ export class AgentHistory {
         this.snapshot = { ...this.snapshot, loaded: true };
         this.publish(tasks.map(task => task.status === 'running' || task.status === 'paused' ? {
           ...task, status: 'interrupted', endedAt: Date.now(),
-          result: 'The assistant closed before this task finished. Start a new task to continue.',
+          result: task.checkpoint?.version === 1
+            ? 'The assistant restarted. Resume explicitly to inspect the saved tab and continue. An unfinished action may already have happened; it will not be replayed automatically.'
+            : 'The assistant closed before a recoverable checkpoint was saved. Start a new task to continue.',
           steps: task.steps.map(step => step.status === 'running' ? { ...step, status: 'failed' } : step)
         } : task));
       } catch {
@@ -53,6 +56,20 @@ export class AgentHistory {
   async start(id: string, input: string) {
     await this.initialize();
     this.publish([{ id, input, status: 'running', startedAt: Date.now(), steps: [], events: [] }, ...this.snapshot.tasks]);
+  }
+  async reopen(id: string) {
+    await this.initialize();
+    const task = this.snapshot.tasks.find(task => task.id === id);
+    if (task?.status !== 'interrupted' || task.checkpoint?.version !== 1) throw new Error('This task has no recoverable checkpoint');
+    this.publish(this.snapshot.tasks.map(task => task.id === id ? { ...task, status: 'running', endedAt: undefined, result: undefined } : task));
+    await this.flush();
+  }
+  async checkpoint(id: string, checkpoint: NonNullable<TaskHistory['checkpoint']>) {
+    // Explicit allowlist: never persist typed fields, DOM snapshots, or provider keys.
+    this.update(id, task => ({ ...task, checkpoint: { version: 1, tabId: checkpoint.tabId,
+      windowId: checkpoint.windowId, url: checkpoint.url, pending: checkpoint.pending, uncertain: checkpoint.uncertain } }));
+    await this.flush();
+    if (this.snapshot.storageError) throw new Error('A recovery checkpoint could not be saved. No new action will be dispatched.');
   }
   private update(id: string, change: (task: TaskHistory) => TaskHistory) {
     this.publish(this.snapshot.tasks.map(task => task.id === id && (task.status === 'running' || task.status === 'paused') ? change(task) : task));

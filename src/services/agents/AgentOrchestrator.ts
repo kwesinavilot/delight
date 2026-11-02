@@ -1,7 +1,7 @@
 import { TaskPlan, TaskStep, AutomationResult } from '../../types/agents';
 import { PlannerAgent } from './PlannerAgent';
 import { ObservedBrowser } from '../automation/ObservedBrowser';
-import { agentHistory } from './AgentHistory';
+import { agentHistory, TaskHistory } from './AgentHistory';
 
 interface Callbacks {
   onPlanCreated?: (steps: TaskStep[]) => void;
@@ -75,15 +75,22 @@ export class AgentOrchestrator {
     if (this.currentTask) this.currentTask.status = 'failed';
     if (taskId) await agentHistory.finish(taskId, 'cancelled', 'Task cancelled. Actions already dispatched cannot be undone.');
   }
-  async executeTask(input: string, callbacks: Callbacks = {}): Promise<AutomationResult> {
+  async resumeSavedTask(id: string) {
+    await agentHistory.initialize();
+    const saved = agentHistory.getSnapshot().tasks.find(task => task.id === id);
+    if (saved?.status !== 'interrupted' || saved.checkpoint?.version !== 1) throw new Error('This task has no recoverable checkpoint');
+    return this.executeTask(saved.input, {}, saved);
+  }
+  async executeTask(input: string, callbacks: Callbacks = {}, saved?: TaskHistory): Promise<AutomationResult> {
     if (this.isTaskExecuting()) throw new Error('Another task is running or paused. Resume or stop it before starting a new task.');
     const started = Date.now();
-    const taskId = `task_${crypto.randomUUID()}`;
+    const taskId = saved?.id || `task_${crypto.randomUUID()}`;
     const controller = new AbortController();
     const run: RunControl = { taskId, controller, pauseRequested: false };
     this.run = run;
     const signal = controller.signal;
-    const steps: TaskStep[] = [];
+    let recoveryReady = !saved;
+    const steps: TaskStep[] = saved ? saved.steps.map(step => ({ ...step })) : [];
     const task: TaskPlan = { id: taskId, description: input, steps, estimatedDuration: 0, status: 'executing' };
     this.currentTask = task;
     const progress = (stage: string, message: string) => {
@@ -93,22 +100,34 @@ export class AgentOrchestrator {
       callbacks.onProgress?.(message);
     };
     try {
-      await agentHistory.start(taskId, input);
+      if (saved) await agentHistory.reopen(taskId);
+      else await agentHistory.start(taskId, input);
       signal.throwIfAborted();
       const planner = new PlannerAgent();
       progress('initializing', 'Checking the selected AI provider...');
       await planner.initialize();
       signal.throwIfAborted();
       await this.checkpoint(run);
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tabs = await chrome.tabs.query(saved ? { currentWindow: true } : { active: true, currentWindow: true });
+      const matches = saved ? tabs.filter(tab => tab.url === saved.checkpoint!.url) : tabs;
+      // Browser restarts can reuse IDs. Match the URL, not a stale numeric ID.
+      const tab = saved ? matches.find(tab => tab.active) || (matches.length === 1 ? matches[0] : undefined) : tabs[0];
+      if (saved && !tab) throw new Error('Recovery tab is missing or ambiguous. Open the saved page in the intended active tab before retrying recovery.');
       if (!tab?.id) throw new Error('No active browser tab');
+      recoveryReady = true;
       const browser = new ObservedBrowser(tab.id, signal);
-      const history: any[] = [];
+      const history: any[] = saved ? saved.steps.map(step => ({ action: step.type, description: step.description,
+        result: `Before restart: ${step.status}. Do not replay completed actions.` })) : [];
+      let uncertain = !!saved && (!!saved.checkpoint?.uncertain || !!saved.checkpoint?.pending);
+      if (uncertain) history.push({ action: 'recovery', result: { submission: 'unverified', outcome: 'An action may have executed before restart. Inspect and verify its outcome, never replay it.' } });
+      if (saved) progress('recovering', 'Recovered task summaries. Inspecting the matched tab before any new action.');
       let failures = 0, repeated = 0, previousFingerprint = '', cooldowns = 0, plannerRecoveries = 0;
-      for (let i = 0; i < 30;) {
+      for (let i = steps.length; i < 30;) {
         await this.checkpoint(run);
         progress('observing', 'Inspecting the current page...');
         const state = await browser.observe();
+        await agentHistory.checkpoint(taskId, { version: 1, tabId: state.tabId ?? tab.id!, windowId: state.windowId,
+          url: state.url, pending: false, uncertain });
         if (await this.checkpoint(run)) continue;
         progress('planning', 'Choosing the next action from the current page...');
         if (run.pauseRequested) { await this.checkpoint(run); continue; }
@@ -153,17 +172,20 @@ export class AgentOrchestrator {
         if (decision.done) {
           if (decision.success !== true) throw new Error(decision.evidence || decision.description);
           const lastSubmission = history.findLastIndex(h => h.result?.submission);
-          if (lastSubmission >= 0 && !history.slice(lastSubmission + 1).some(h => h.result?.verified === true && h.result.kind === 'text')) {
+          const gmail = new URL(state.url).hostname === 'mail.google.com';
+          if (lastSubmission >= 0 && !history.slice(lastSubmission + 1).some(h => h.result?.verified === true &&
+              (gmail ? h.result.kind === 'gmailSent' : ['text', 'gmailSent', 'googleSearch'].includes(h.result.kind)))) {
             throw new Error('Submission was not confirmed. Inspect the page and resolve validation or confirm the outcome before retrying.');
           }
           if (/\b(play|playing)\b/i.test(input) && /youtube\.com/.test(state.url) &&
-              !state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2)) throw new Error('Playback was not verified');
+              (!history.some(h => h.result?.verified && h.result.kind === 'youtubePlayback' && h.result.videoId === new URL(state.url).searchParams.get('v')) ||
+                state.adShowing || !state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2))) throw new Error('Playback must be verified with advancing, non-advertisement YouTube content');
           task.status = 'completed';
           await agentHistory.finish(taskId, 'completed', decision.evidence || 'Task completed.');
           return { taskId, success: true, data: { evidence: decision.evidence, history }, executionTime: Date.now() - started };
         }
         const step: TaskStep = { ...decision.action!, id: `${taskId}_${i}`, status: 'pending' };
-        const confirmedAt = history.findLastIndex(h => h.result?.verified && h.result.kind === 'text');
+        const confirmedAt = history.findLastIndex(h => h.result?.verified && ['text', 'gmailSent', 'googleSearch'].includes(h.result.kind));
         if (['click', 'trustedClick', 'sendKeys'].includes(step.type) && history.slice(confirmedAt + 1).some(h => h.result?.submission === 'unverified')) {
           throw new Error('Previous submission has an uncertain outcome. Automatic input replay is blocked; confirm the outcome manually.');
         }
@@ -179,6 +201,11 @@ export class AgentOrchestrator {
         try {
           step.status = 'running';
           agentHistory.steps(taskId, steps);
+          const mutating = !['verify', 'extract', 'analyzePage', 'wait'].includes(step.type);
+          await agentHistory.checkpoint(taskId, { version: 1, tabId: state.tabId ?? tab.id!, windowId: state.windowId,
+            url: state.url, pending: mutating, uncertain });
+          signal.throwIfAborted();
+          if (run.pauseRequested) { steps.pop(); agentHistory.steps(taskId, steps); await this.checkpoint(run); continue; }
           const result = await browser.act(step, state);
           signal.throwIfAborted();
           step.status = 'completed';
@@ -188,6 +215,12 @@ export class AgentOrchestrator {
             : `Completed: ${step.description}`, result?.submission ? 'info' : 'success');
           failures = 0;
           history.push({ action: step.type, description: step.description, result });
+          if (result?.submission) uncertain = result.submission !== 'validation-error';
+          if (result?.verified && ['text', 'gmailSent', 'googleSearch'].includes(result.kind)) uncertain = false;
+          const current = await chrome.tabs.get(browser.getTabId());
+          signal.throwIfAborted();
+          await agentHistory.checkpoint(taskId, { version: 1, tabId: current.id ?? browser.getTabId(), windowId: current.windowId,
+            url: current.url || state.url, pending: false, uncertain });
           callbacks.onStepComplete?.(i, step, { success: true, result });
         } catch (error) {
           signal.throwIfAborted();
@@ -199,6 +232,7 @@ export class AgentOrchestrator {
           const submission = ['click', 'trustedClick'].includes(step.type) && (target?.submitControl || target?.form && target.type === 'submit') ||
             step.type === 'sendKeys' && step.data?.keys === 'Enter' && target?.form && target.tag !== 'textarea';
           history.push({ action: step.type, error: message, ...(submission ? { result: { submission: 'unverified' } } : {}) });
+          if (submission) uncertain = true;
           callbacks.onStepError?.(i, step, message);
           if (/stale|changed|detached|obscured|navigated|index absent/i.test(message)) {
             progress('recovering', 'The page layout changed or a control is unavailable. Re-observing before choosing a fresh target.');
@@ -210,7 +244,7 @@ export class AgentOrchestrator {
       throw new Error('Action limit reached before task completion was verified');
     } catch (error) {
       task.status = 'failed';
-      await agentHistory.finish(taskId, signal.aborted ? 'cancelled' : 'failed', signal.aborted ? 'Task cancelled.' : error instanceof Error ? error.message : String(error));
+      await agentHistory.finish(taskId, signal.aborted ? 'cancelled' : !recoveryReady ? 'interrupted' : 'failed', signal.aborted ? 'Task cancelled.' : error instanceof Error ? error.message : String(error));
       return { taskId, success: false, error: signal.aborted ? 'Task stopped by user' : error instanceof Error ? error.message : String(error), executionTime: Date.now() - started };
     } finally {
       if (this.run === run) this.run = null;
