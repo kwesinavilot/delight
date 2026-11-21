@@ -1,4 +1,4 @@
-﻿const { chromium } = require('playwright-core');
+const { chromium } = require('playwright-core');
 const esbuild = require('esbuild');
 const assert = require('node:assert/strict');
 (async () => {
@@ -12,6 +12,9 @@ const assert = require('node:assert/strict');
       build.onResolve({ filter: /PlannerAgent$/ }, () => ({ path: 'planner', namespace: 'mock' }));
       build.onLoad({ filter: /.*/, namespace: 'mock' }, () => ({ contents: `export class PlannerAgent {
         async initialize() {} async decide(input, state, history, signal) {
+          if (input === 'sensitive action' || input === 'limited task') return history.length
+            ? { done:true, success:true, evidence: input === 'sensitive action' ? 'Approved outcome verified' : 'Continued outcome verified' }
+            : { done:false, action:{type:'analyzePage',description:'Review page',requiresConfirmation:input === 'sensitive action'} };
           if (input === 'finish task') return { done: true, success: true, evidence: 'Task outcome verified' };
           await new Promise((resolve, reject) => { signal.addEventListener('abort', () => reject(new Error('Aborted')), {once:true}); });
         }
@@ -25,6 +28,7 @@ const assert = require('node:assert/strict');
     await page.goto('https://history.test/');
     await page.evaluate(() => {
       const disk = {}, tabs = new Map([[1, {id:1, windowId:1, url:'https://example.com', title:'Attached page'}]]);
+      window.agentDisk = disk;
       window.chrome = {
         storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } },
         tabs: { query: async () => [...tabs.values()], get: async id => tabs.get(id), create: async props => { const tab = { id:tabs.size+1, windowId:1, ...props }; tabs.set(tab.id,tab); return tab; } },
@@ -58,6 +62,20 @@ const assert = require('node:assert/strict');
     await page.getByRole('button', {name:'Run',exact:true}).click();
     await page.getByText('Task outcome verified',{exact:true}).waitFor();
     assert.equal(await page.locator('details').getAttribute('open'), null);
+    await page.getByRole('button', {name:'New',exact:true}).click();
+    await page.getByRole('textbox').fill('sensitive action');
+    await page.getByRole('button', {name:'Run',exact:true}).click();
+    await page.getByRole('button', {name:'Approve action',exact:true}).waitFor();
+    assert.equal(await page.getByRole('button', {name:'Resume',exact:true}).count(),0);
+    await page.getByRole('button', {name:'Approve action',exact:true}).click();
+    await page.getByText('Approved outcome verified',{exact:true}).waitFor();
+    await page.getByRole('button', {name:'New',exact:true}).click();
+    await page.evaluate(()=>{window.agentDisk.agentSettings={maximumTurns:1};});
+    await page.getByRole('textbox').fill('limited task');
+    await page.getByRole('button', {name:'Run',exact:true}).click();
+    await page.getByRole('button', {name:'Continue',exact:true}).waitFor();
+    await page.getByRole('button', {name:'Continue',exact:true}).click();
+    await page.getByText('Continued outcome verified',{exact:true}).waitFor();
     console.log('Agent browser checks passed: suggestions, attachments, concurrent runs, navigation, isolated controls, collapsed activity, final outcome.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

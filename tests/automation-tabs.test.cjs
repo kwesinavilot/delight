@@ -127,3 +127,16 @@ test('exclusive agents cannot share tabs and release ownership when disposed', a
     assert.equal(second.getTabId(), 1);
   } finally { first.dispose(); second.dispose(); }
 });
+
+test('starting-tab policy hides other tabs and blocks opening, switching and target-blank controls', async () => {
+  const ctx = setup();
+  const browser = new ObservedBrowser(1, ctx.controller.signal, false, true);
+  const state = await browser.observe();
+  assert.deepEqual(state.tabs.map(tab => tab.id), [1]);
+  assert.equal(state.pageAccess, 'starting-tab');
+  await assert.rejects(browser.act({ type: 'newTab', url: 'https://example.com' }, state), /starting tab/);
+  await assert.rejects(browser.act({ type: 'switchTab', tabId: 2 }, state), /starting tab/);
+  await assert.rejects(browser.act({ type: 'click', elementIndex: 0 }, state), /another tab/);
+  assert.equal(ctx.tabs.size, 3);
+  assert.equal(ctx.updates.length, 0);
+});

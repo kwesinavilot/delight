@@ -122,3 +122,17 @@ test('history keeps every active agent even above the saved-history limit', asyn
   await store.finish('active-0', 'completed', 'Done');
   assert.equal(store.getSnapshot().tasks.filter(task => task.status === 'running').length, 21);
 });
+
+test('retention choices prune inactive records, protect active runs, and allow clearing history', async () => {
+  const { store } = setup();
+  for (let i = 0; i < 12; i++) { await store.start(String(i), 'Task'); await store.finish(String(i), 'completed', 'Done'); }
+  await store.start('active', 'Active task');
+  store.setRetentionLimit(10);
+  assert.equal(store.getSnapshot().tasks.length, 11);
+  store.setRetentionLimit(0);
+  assert.deepEqual(store.getSnapshot().tasks.map(task => task.id), ['active']);
+  await store.clear();
+  assert.equal(store.getSnapshot().tasks[0].status, 'running');
+  await store.finish('active', 'completed', 'Done');
+  assert.equal(store.getSnapshot().tasks.length, 0);
+});

@@ -41,13 +41,14 @@ const UpdatesPage: React.FC = () => {
     switch (version) {
       case '1.4.9':
         return {
-          title: 'Safer Automation & Restart Recovery',
-          subtitle: 'Native frame interactions, site-specific confirmation, and explicit task recovery',
+          title: 'Agents that work your way',
+          subtitle: 'Concurrent tasks, optional agent models, and controls for browser actions',
           features: [
-            { icon: <SparklesIcon className="h-6 w-6 text-blue-500" />, title: 'Broader browser interactions', description: 'Native pointer clicks across accessible nested frames, custom control states, and keyboard interaction.' },
-            { icon: <CheckCircleIcon className="h-6 w-6 text-green-500" />, title: 'Stronger confirmation', description: 'Rendered Google results, matching Gmail Sent threads, and advancing non-ad YouTube playback.' },
-            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Resume after a restart', description: 'Explicitly resume saved tasks. Checkpoints and fresh observations protect against repeating uncertain actions.' },
-            { icon: <DocumentTextIcon className="h-6 w-6 text-blue-500" />, title: 'Clearer data controls', description: 'Updated AI data-sharing disclosures and optional usage analytics, off by default.' }
+            { icon: <SparklesIcon className="h-6 w-6 text-blue-500" />, title: 'A fresh Agent home', description: 'Start from a suggestion or type a task, attach the current page, and run multiple agents with independent controls. Expand Thinking to see activity; final outcomes stay visible.' },
+            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Choose your agent model', description: 'During setup, use the same model for chat and agents or choose and test a separate provider/model. Change the choice later in Settings > Agent without changing chat.' },
+            { icon: <CheckCircleIcon className="h-6 w-6 text-green-500" />, title: 'Control each task', description: 'Set a maximum step count (50 by default), approve recognized sensitive actions, and choose whether agents may open or switch tabs. Continue explicitly when the step limit is reached.' },
+            { icon: <DocumentTextIcon className="h-6 w-6 text-blue-500" />, title: 'Preferences and history', description: 'Save up to 1,500 characters of custom instructions for chat and agents. Choose how many inactive tasks to retain or clear saved history while preserving active runs.' },
+            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Switch views while agents work', description: 'Return to chat and reopen Agent to view active runs. Closing the panel interrupts tasks; retained checkpoints require explicit recovery after restart.' }
           ]
         };
       case '1.4.2':

@@ -26,9 +26,11 @@ function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}
     if (name.includes('PlannerAgent')) return { PlannerAgent: Planner };
     if (name.includes('ObservedBrowser')) return { ObservedBrowser: Browser };
     if (name.includes('AgentHistory')) return historyModule.exports;
+    if (name.includes('ActionApproval')) return require('./load-typescript.cjs')('src/services/agents/ActionApproval.ts');
     if (name.includes('AgentSettings')) return require('./load-typescript.cjs')('src/services/config/AgentSettings.ts');
     throw new Error(`Unexpected import ${name}`);
   }, module, module.exports);
+  disk = { ...disk, agentSettings: { confirmSensitiveActions: false, ...disk.agentSettings } };
   global.chrome = { tabs: { query: async () => [{ id: 1, url: 'https://example.com' }], get: async () => ({ id: 1, windowId: 1, url: 'https://example.com' }) }, storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } } };
   return { agent: module.exports.AgentOrchestrator.getInstance(), actions, history: historyModule.exports.agentHistory, observations: () => observations, disk };
 }
@@ -271,4 +273,51 @@ test('maximum turns pauses and requests explicit continuation for each new batch
   assert.equal(ctx.actions.length, 2);
   await ctx.agent.resumeCurrentTask();
   assert.equal((await pending).success, true);
+});
+
+test('recognized sensitive actions wait for approval, re-observe, and cannot be bypassed by Resume', async () => {
+  let ctx;
+  ctx = setup(async () => ctx.actions.length ? { done: true, success: true, evidence: 'Action outcome observed' }
+    : { done: false, action: { type: 'click', description: 'Send message', requiresConfirmation: true } }, undefined, undefined,
+    { agentSettings: { confirmSensitiveActions: true } });
+  const pending = ctx.agent.executeTask('Send a message');
+  for (let i = 0; i < 100 && !ctx.history.getSnapshot().tasks[0]?.awaitingApproval; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.ok(ctx.history.getSnapshot().tasks[0].awaitingApproval);
+  assert.equal(ctx.actions.length, 0);
+  await ctx.agent.resumeCurrentTask();
+  assert.equal(ctx.actions.length, 0);
+  ctx.agent.approveCurrentAction();
+  assert.equal((await pending).success, true);
+  assert.equal(ctx.actions.length, 1);
+  assert.ok(ctx.observations() >= 3);
+});
+
+test('Stop declines a waiting sensitive action without dispatch', async () => {
+  const ctx = setup(async () => ({ done: false, action: { type: 'click', description: 'Delete record' } }), undefined, undefined,
+    { agentSettings: { confirmSensitiveActions: true } });
+  const pending = ctx.agent.executeTask('Delete record');
+  for (let i = 0; i < 100 && !ctx.history.getSnapshot().tasks[0]?.awaitingApproval; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  await ctx.agent.stopCurrentTask();
+  assert.equal((await pending).success, false);
+  assert.equal(ctx.actions.length, 0);
+});
+
+test('approval is requested again if the planned action changes', async () => {
+  let decisions = 0, ctx;
+  ctx = setup(async () => ctx.actions.length ? { done: true, success: true, evidence: 'Observed' }
+    : { done: false, action: { type: 'click', description: 'Send message', data: ++decisions === 1 ? 'old' : 'new', requiresConfirmation: true } }, undefined, undefined,
+    { agentSettings: { confirmSensitiveActions: true } });
+  const pending = ctx.agent.executeTask('Send');
+  const waitApproval = async minimum => {
+    for (let i = 0; i < 100; i++) {
+      if (decisions >= minimum && ctx.history.getSnapshot().tasks[0]?.awaitingApproval) return;
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    throw new Error('Approval missing');
+  };
+  await waitApproval(1); ctx.agent.approveCurrentAction();
+  await waitApproval(2); assert.equal(ctx.actions.length, 0);
+  ctx.agent.approveCurrentAction();
+  assert.equal((await pending).success, true);
+  assert.equal(ctx.actions[0].data, 'new');
 });

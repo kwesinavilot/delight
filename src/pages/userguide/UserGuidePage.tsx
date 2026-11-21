@@ -42,7 +42,8 @@ const UserGuidePage: React.FC = () => {
               <li>Go to Settings → Appearance to choose your preferred theme</li>
               <li>Go to Settings → AI Providers to configure your first AI provider</li>
               <li>Add your API key and test the connection</li>
-              <li>Start chatting!</li>
+              <li>Choose whether agents use the same model or a different one; test the separate agent connection if selected. Change it later under Settings ? Agent.</li>
+              <li>Start chatting or open Agent to launch a browser task.</li>
             </ol>
           </div>
 
@@ -143,74 +144,35 @@ const UserGuidePage: React.FC = () => {
     },
     {
       id: 'agent-automation',
-      title: '🤖 Agent Automation',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      ),
+      title: 'Agent Automation & Settings',
+      icon: <CogIcon className="h-5 w-5" />,
       content: (
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">What is Agent Automation?</h4>
-            <p className="text-gray-700 dark:text-gray-300 mb-3">
-              Agent Automation is a revolutionary multi-agent system that can understand complex web tasks described in natural language and break them down into executable steps. Think of it as having AI assistants that can plan, execute, and monitor web automation tasks for you.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">How to Use Agent Automation</h4>
-            <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
-              <li>Open Delight in sidepanel mode</li>
-              <li>Click the "Agent" button in the sub-toolbar (🤖)</li>
-              <li>Describe your task in natural language (e.g., "Go to Google and search for AI news")</li>
-              <li>Press Enter or click the send button</li>
-              <li>Watch as the AI agents create an execution plan</li>
-              <li>Monitor real-time progress with step-by-step logs</li>
-              <li>Review the results when the task completes</li>
-            </ol>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Three-Agent System</h4>
-            <div className="space-y-2">
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                <h5 className="font-medium text-gray-900 dark:text-white">🧠 Planner Agent</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Analyzes your request and creates a detailed execution plan with step-by-step instructions</p>
-              </div>
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                <h5 className="font-medium text-gray-900 dark:text-white">⚡ Navigator Agent</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Executes each step of the plan, handling web navigation and interactions</p>
-              </div>
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                <h5 className="font-medium text-gray-900 dark:text-white">🔍 Monitor Agent</h5>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Tracks progress, validates results, and provides real-time status updates</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Example Tasks</h4>
-            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              <li>"Search for the latest AI research papers on ArXiv"</li>
-              <li>"Find flight prices to Lagos for next month"</li>
-              <li>"Get the top trending repositories on GitHub"</li>
-              <li>"Extract product information from this e-commerce page"</li>
-              <li>"Navigate to my email and check for important messages"</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Current Capabilities (Phase 1)</h4>
-            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              <li>✅ Natural language task understanding</li>
-              <li>✅ Intelligent task planning with structured output</li>
-              <li>✅ Real-time execution monitoring</li>
-              <li>✅ Step-by-step progress visualization</li>
-              <li>✅ Error handling and recovery mechanisms</li>
-              <li>🔄 Actual browser automation (coming in Phase 2)</li>
-            </ul>
-          </div>
+        <div className="space-y-4 text-gray-700 dark:text-gray-300">
+          <h4 className="font-semibold">Start a browser task</h4>
+          <ol className="list-decimal list-inside space-y-2">
+            <li>Open Delight and click Agent from the home or chat toolbar.</li>
+            <li>Choose a suggestion or describe the task. Use Attach page to work on the current website; otherwise the agent starts in a new tab.</li>
+            <li>Click Run or press Enter. Shift+Enter adds a line.</li>
+            <li>Expand Thinking to see action summaries and activity. The final outcome appears directly on the page.</li>
+            <li>Click New to start another agent. Use the active count or Recent agents to switch runs. Each agent has its own Pause, Resume, and Stop controls.</li>
+          </ol>
+          <p>Agents continue when you return to chat. Keep the panel open: closing it interrupts work. After a restart, explicitly resume a retained task with a recovery checkpoint. Uncertain actions are inspected before any new action.</p>
+          <p>Two agents cannot control the same tab at once. Use a different attached tab or start a new task without an attachment.</p>
+          <h4 className="font-semibold">Choose a model during onboarding</h4>
+          <p>Test and save your default chat connection. Then choose Use the same model for agents (the default) or Choose a different model. A different model needs its own successful Test and save connection before Get Started is enabled. You can load an existing key with Use saved provider key, enter a new provider key, or choose local Ollama.</p>
+          <h4 className="font-semibold">Settings ? Agent</h4>
+          <ul className="list-disc list-inside space-y-2">
+            <li><strong>Agent model:</strong> reuse your default chat model or test and save a separate connection. Agent model changes do not switch your chat provider. Model choices are saved by their connection controls.</li>
+            <li><strong>Maximum turns:</strong> the maximum steps before asking to continue; default 50. Continue grants another batch of that size. Stop ends the task.</li>
+            <li><strong>Custom instructions:</strong> up to 1,500 characters used in agent tasks and chat messages. Only you can edit these in Settings; the agent has no settings-editing tool.</li>
+            <li><strong>Confirm sensitive actions:</strong> on by default. Recognized form submissions, messages, purchases, payments, publishing, deletion, and actions flagged by the model wait for Approve action. Stop declines and ends the task. Recognition may miss consequential actions; supervise sensitive workflows.</li>
+            <li><strong>Allowed pages:</strong> allow opening and switching tabs in this window (default), or restrict the agent to its starting tab. Starting-tab navigation is allowed. Websites may open their own popups, but restricted agents do not follow them.</li>
+            <li><strong>Saved task history:</strong> keep 10, 20 (default), 50, or 100 inactive tasks, or keep no inactive records. Active and paused tasks retain recovery checkpoints. Saving a smaller limit removes older inactive records immediately. With retention off, interrupted tasks are also removed after restart.</li>
+            <li><strong>Clear saved task history:</strong> removes inactive records while preserving active and paused tasks.</li>
+          </ul>
+          <p>Click Save agent settings for the task controls and custom instructions. These apply to new tasks and future chat messages; running tasks retain their starting model and controls.</p>
+          <h4 className="font-semibold">Privacy and results</h4>
+          <p>Task instructions, visible page/control content, page titles and URLs, and recent outcomes are sent directly to the chosen agent provider. Keys and task records stay in this browser profile and are not synced. Approval means permission to try an action; it does not prove delivery or success. Review the final outcome.</p>
         </div>
       )
     },
@@ -346,6 +308,10 @@ const UserGuidePage: React.FC = () => {
           </div>
 
           <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Agent Settings</h4>
+            <p className="text-gray-700 dark:text-gray-300">Choose a shared or separate model, maximum turns, custom instructions, action confirmations, allowed tabs, and history retention under Settings ? Agent. See Agent Automation &amp; Settings above for the full workflow.</p>
+          </div>
+          <div>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Provider Settings</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
               <li>Switch between providers instantly</li>
@@ -368,7 +334,7 @@ const UserGuidePage: React.FC = () => {
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
               <li>API keys are stored locally in your browser using local extension storage on this machine</li>
               <li>No data is sent to our servers - all communication is direct with AI providers</li>
-              <li>Chat history is stored locally and never transmitted</li>
+              <li>Chat history is stored locally; relevant conversation messages are sent to your chosen provider for replies</li>
               <li>You can clear all data anytime through Chrome's extension settings</li>
             </ul>
           </div>
@@ -377,7 +343,7 @@ const UserGuidePage: React.FC = () => {
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Privacy</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
               <li>We don't collect any personal information</li>
-              <li>No analytics or tracking</li>
+              <li>Optional usage analytics is off by default and can be enabled or disabled under Appearance. It excludes prompts, page content, task text, and API keys.</li>
               <li>Your conversations remain private between you and the AI provider</li>
               <li>Page content for summaries is processed directly by the AI provider</li>
             </ul>
@@ -520,7 +486,7 @@ const UserGuidePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Delight User Guide</h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 8 major providers, AI tools, and smart page attachment.
+            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 7 providers, AI tools, and smart page attachment.
           </p>
         </div>
 

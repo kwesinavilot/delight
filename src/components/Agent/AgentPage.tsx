@@ -94,7 +94,8 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
         </details>
         {selected.result && <p role="status" className="whitespace-pre-wrap break-words leading-relaxed text-sm">{selected.result}</p>}
         {runtime && <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { void (selected.status === 'paused' ? runtime.resumeCurrentTask() : runtime.pauseCurrentTask()); }}>{selected.status === 'paused' ? selected.awaitingContinuation ? 'Continue' : 'Resume' : 'Pause'}</Button>
+          {selected.awaitingApproval ? <Button size="sm" onClick={() => runtime.approveCurrentAction()}>Approve action</Button> :
+          <Button variant="outline" size="sm" onClick={() => { void (selected.status === 'paused' ? runtime.resumeCurrentTask() : runtime.pauseCurrentTask()); }}>{selected.status === 'paused' ? selected.awaitingContinuation ? 'Continue' : 'Resume' : 'Pause'}</Button>}
           <Button variant="ghost" size="sm" onClick={() => { void runtime.stopCurrentTask(); }}>Stop</Button>
         </div>}
         {selected.status === 'interrupted' && selected.checkpoint?.version === 1 && <Button variant="outline" size="sm" disabled={starting} onClick={() => { void execute(selected.id); }}>Resume saved task</Button>}
@@ -112,7 +113,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
           <Button size="sm" disabled={!input.trim() || !snapshot.loaded || starting} onClick={() => { void execute(); }}>Run<ArrowUp className="h-4 w-4 ml-1" /></Button>
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground px-1">Agents share page content with your selected AI provider. Without an attachment, an agent opens a new tab. Runs continue while you use Delight; closing the panel interrupts them.</p>
+      <p className="text-[10px] text-muted-foreground px-1">Agents share page content with your agent model?s provider. Without an attachment, an agent opens a new tab. Runs continue while you use Delight; closing the panel interrupts them.</p>
     </footer>
   </div>;
 }

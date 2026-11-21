@@ -41,7 +41,7 @@ test('bounds page text while preserving every observed index and disables hidden
   await decide({ description: 'Click', done: false, action: { type: 'click', elementIndex: 51 } },
     { text: 'x'.repeat(12000), elements: [{ index: 51, text: 'y'.repeat(500), label: 'Search' }], revision: 'internal' },
     (prompt, options) => {
-      assert.ok(prompt.length < 5000);
+      assert.ok(prompt.length < 6000); // Includes runtime approval and page-access instructions.
       assert.match(prompt, /"index":51/);
       assert.ok(!prompt.includes('internal'));
       assert.equal(options.maxRetries, 0);

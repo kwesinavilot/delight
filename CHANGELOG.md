@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Optional separate agent provider/model in onboarding and Settings, with independent connection testing, saved-key reuse, local credentials, and per-task provider instances that do not switch chat.
+- Confirmation controls for recognized sensitive actions, starting-tab access restrictions, configurable inactive-task retention, and a clear-history action that preserves active runs.
 - Agent settings tab with a default maximum of 50 steps, explicit continuation at the limit, and locally saved custom instructions limited to 1,500 characters for agent tasks and chat conversations.
 - Home-style Agent screen with task suggestions, a task composer, and a Run button.
 - Current-page attachment with a removable page chip; tasks without an attachment open a new tab.
@@ -15,15 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-agent tab ownership checks to prevent concurrent agents from controlling the same page.
 
 ### Changed
+- Refresh onboarding, What's New, the user guide, privacy disclosures, and the agent workflow documentation for the current browser-agent flow and settings.
 - Move the API-key storage and authentication notice to the top of AI Providers settings.
 - Collapse agent activity under an expandable Thinking summary while displaying final outcomes directly.
 - Keep agents running when switching between Agent mode and chat. Closing the panel still interrupts runs; saved checkpoints require explicit recovery after restart.
 - Preserve all running and paused agents when enforcing the saved-history retention limit.
 
 ### Verification
-- TypeScript checks, production build, and all 70 automated regression tests pass, including agent settings validation and explicit continuation at the turn limit.
-- Chromium settings checks pass for the provider notice position, Agent tab, defaults, character limit, and local preference saving using adapted extension APIs and provider services.
-- Chromium UI checks pass for suggestions, page attachment, concurrent runs, navigation between views, independent controls, collapsed activity, and visible final outcomes using adapted extension APIs and a mocked planner.
+- TypeScript checks, production build, release audit, and all 77 automated regression tests pass, including independent model routing, sensitive-action approval, starting-tab restrictions, configurable retention, and explicit continuation at the turn limit.
+- Built-file Chromium onboarding checks pass for shared/separate models, failed/successful tests, readiness reset after edits, local-only saving, Get Started, and the updated What's New and user guide pages (adapted extension APIs and mocked provider responses).
+- Chromium settings checks pass for the provider notice position, Agent tab, defaults, character limit, task controls, history clearing, saved-key reuse, separate-model testing, and resetting to the default connection using adapted extension APIs and provider services.
+- Chromium agent UI checks pass for suggestions, page attachment, concurrent runs, navigation between views, independent controls, collapsed activity, visible final outcomes, action approval, and step-limit continuation using adapted extension APIs and a mocked planner.
 - Live AI-provider execution and loaded-extension behavior remain unverified for these changes.
 
 ## [1.4.9] - 2026-11-01

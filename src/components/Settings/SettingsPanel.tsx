@@ -1,3 +1,5 @@
+import AgentModelSettings from './AgentModelSettings';
+import { agentHistory } from '../../services/agents/AgentHistory';
 import React, { useState, useEffect } from 'react';
 import {
   Cog6ToothIcon,
@@ -512,9 +514,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           </div>
         )}
 
-        {activeTab === 'agent' && <form className="space-y-6 max-w-xl" onSubmit={async event => {
+        {activeTab === 'agent' && <div className="space-y-8"><AgentModelSettings /><form className="space-y-6 max-w-xl" onSubmit={async event => {
           event.preventDefault(); setAgentSaving(true); setAgentMessage('');
-          try { await saveAgentSettings(agentSettings); setAgentMessage('Agent settings saved. Changes apply to new tasks and future chat messages.'); }
+          try { await saveAgentSettings(agentSettings); await agentHistory.initialize(); agentHistory.setRetentionLimit(agentSettings.historyLimit ?? 20); await agentHistory.flush(); if (agentHistory.getSnapshot().storageError) throw new Error('Settings saved, but task history could not be updated on disk.'); setAgentMessage('Agent settings saved. Changes apply to new tasks and future chat messages.'); }
           catch (cause) { setAgentMessage(cause instanceof Error ? cause.message : 'Could not save agent settings.'); }
           finally { setAgentSaving(false); }
         }}>
@@ -530,9 +532,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
             <textarea id="agent-custom-instructions" rows={6} maxLength={1500} aria-describedby="agent-instructions-help agent-instructions-count" disabled={!agentLoaded || agentSaving} value={agentSettings.customInstructions} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, customInstructions: event.target.value }); }} className="w-full border rounded-lg p-3 bg-transparent resize-y" />
             <p id="agent-instructions-count" className="text-xs text-gray-500 text-right">{agentSettings.customInstructions.length.toLocaleString()} / 1,500 characters</p>
           </div>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={agentSettings.confirmSensitiveActions !== false} disabled={!agentLoaded || agentSaving} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, confirmSensitiveActions: event.target.checked }); }} />Confirm sensitive actions</label>
+            <p className="text-sm text-gray-500">Ask before recognized submissions, messages, purchases, payments, publishing, and deletion. Review the action and approve it, or stop the task. Recognition is not a guarantee that every consequential action will be detected.</p>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="agent-page-access" className="block text-sm font-medium">Allowed pages</label>
+            <select id="agent-page-access" disabled={!agentLoaded || agentSaving} value={agentSettings.pageAccess || 'browser-tabs'} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, pageAccess: event.target.value as 'starting-tab' | 'browser-tabs' }); }} className="w-full border rounded-lg p-2 dark:bg-gray-800">
+              <option value="starting-tab">Starting tab only</option><option value="browser-tabs">Open and switch tabs in this window</option>
+            </select>
+            <p className="text-sm text-gray-500">Starting tab only allows navigation within that tab. Agents cannot explicitly open, switch to, or follow other tabs. Websites may still open their own popups.</p>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="agent-history-limit" className="block text-sm font-medium">Saved task history</label>
+            <select id="agent-history-limit" disabled={!agentLoaded || agentSaving} value={agentSettings.historyLimit ?? 20} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, historyLimit: Number(event.target.value) }); }} className="w-full border rounded-lg p-2 dark:bg-gray-800">
+              {[0, 10, 20, 50, 100].map(limit => <option key={limit} value={limit}>{limit ? `Keep ${limit} recent tasks` : 'Do not keep inactive tasks'}</option>)}
+            </select>
+            <p className="text-sm text-gray-500">Active and paused tasks keep recovery checkpoints. Saving a smaller limit immediately removes older inactive tasks. Turning retention off also removes interrupted tasks after restart.</p>
+            <button type="button" disabled={agentSaving} className="text-sm text-red-600 underline" onClick={async () => {
+              try { await agentHistory.clear(); if (agentHistory.getSnapshot().storageError) throw new Error('History could not be cleared on disk.'); setAgentMessage('Saved history cleared. Active and paused agents were kept.'); }
+              catch { setAgentMessage('Could not clear saved history. Try again.'); }
+            }}>Clear saved task history</button>
+          </div>
           <button type="submit" disabled={!agentLoaded || agentSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">{agentSaving ? 'Saving...' : 'Save agent settings'}</button>
           {agentMessage && <p role="status" className="text-sm">{agentMessage}</p>}
-        </form>}
+        </form></div>}
 
         {activeTab === 'appearance' && (
           <div className="space-y-6">

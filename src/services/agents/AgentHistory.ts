@@ -6,12 +6,18 @@ export interface TaskHistory {
   id: string; input: string; startedAt: number; endedAt?: number; status: RunStatus;
   steps: TaskStep[]; events: HistoryEvent[]; result?: string;
   awaitingContinuation?: boolean;
+  awaitingApproval?: { description: string };
   checkpoint?: { version: 1; tabId: number; windowId?: number; url: string; pending: boolean; uncertain: boolean };
 }
 interface Snapshot { tasks: TaskHistory[]; loaded: boolean; storageError?: string; }
 const KEY = 'agentTaskHistoryV1';
 
 export class AgentHistory {
+  private retentionLimit = 20;
+  setRetentionLimit(limit: number) {
+    this.retentionLimit = [0, 10, 20, 50, 100].includes(limit) ? limit : 20;
+    this.publish(this.snapshot.tasks);
+  }
   private snapshot: Snapshot = { tasks: [], loaded: false };
   private listeners = new Set<() => void>();
   private loading?: Promise<void>;
@@ -20,7 +26,7 @@ export class AgentHistory {
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private publish(tasks: TaskHistory[], persist = true) {
     const active = tasks.filter(task => task.status === 'running' || task.status === 'paused');
-    const saved = tasks.filter(task => task.status !== 'running' && task.status !== 'paused').slice(0, Math.max(0, 20 - active.length));
+    const saved = tasks.filter(task => task.status !== 'running' && task.status !== 'paused').slice(0, this.retentionLimit);
     const retained = new Set([...active, ...saved].map(task => task.id));
     this.snapshot = { ...this.snapshot, tasks: tasks.filter(task => retained.has(task.id)) };
     this.listeners.forEach(listener => listener());
@@ -38,14 +44,16 @@ export class AgentHistory {
   initialize(): Promise<void> {
     return this.loading ||= (async () => {
       try {
-        const data = (await chrome.storage.local.get([KEY]))[KEY];
+        const stored = await chrome.storage.local.get([KEY, 'agentSettings']);
+        this.retentionLimit = [0, 10, 20, 50, 100].includes(stored.agentSettings?.historyLimit) ? stored.agentSettings.historyLimit : 20;
+        const data = stored[KEY];
         const tasks: TaskHistory[] = Array.isArray(data) ? data.filter(task =>
           task && typeof task.id === 'string' && typeof task.input === 'string' &&
           Array.isArray(task.steps) && Array.isArray(task.events) &&
           ['running', 'paused', 'completed', 'failed', 'cancelled', 'interrupted'].includes(task.status)) : [];
         this.snapshot = { ...this.snapshot, loaded: true };
         this.publish(tasks.map(task => task.status === 'running' || task.status === 'paused' ? {
-          ...task, status: 'interrupted', endedAt: Date.now(),
+          ...task, status: 'interrupted', endedAt: Date.now(), awaitingApproval: undefined, awaitingContinuation: false,
           result: task.checkpoint?.version === 1
             ? 'The assistant restarted. Resume explicitly to inspect the saved tab and continue. An unfinished action may already have happened; it will not be replayed automatically.'
             : 'The assistant closed before a recoverable checkpoint was saved. Start a new task to continue.',
@@ -65,7 +73,7 @@ export class AgentHistory {
     await this.initialize();
     const task = this.snapshot.tasks.find(task => task.id === id);
     if (task?.status !== 'interrupted' || task.checkpoint?.version !== 1) throw new Error('This task has no recoverable checkpoint');
-    this.publish(this.snapshot.tasks.map(task => task.id === id ? { ...task, status: 'running', endedAt: undefined, result: undefined } : task));
+    this.publish(this.snapshot.tasks.map(task => task.id === id ? { ...task, status: 'running', endedAt: undefined, result: undefined, awaitingApproval: undefined, awaitingContinuation: false } : task));
     await this.flush();
   }
   async checkpoint(id: string, checkpoint: NonNullable<TaskHistory['checkpoint']>) {
@@ -96,7 +104,11 @@ export class AgentHistory {
     await this.flush();
   }
   async resume(id: string) {
-    this.update(id, task => ({ ...task, status: 'running', result: undefined, awaitingContinuation: false }));
+    this.update(id, task => ({ ...task, status: 'running', result: undefined, awaitingContinuation: false, awaitingApproval: undefined }));
+    await this.flush();
+  }
+  async requestApproval(id: string, description: string) {
+    this.update(id, task => ({ ...task, status: 'paused', awaitingApproval: { description }, result: `Approve this action to continue: ${description}` }));
     await this.flush();
   }
   async finish(id: string, status: Exclude<RunStatus, 'running' | 'paused'>, result: string) {

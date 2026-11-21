@@ -1,14 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ConfigManager } from '../../services/config/ConfigManager';
 import { AIService } from '../../services/ai/AIService';
 import { listGeminiModels, providerOptions, ProviderId, testProviderConfiguration } from '../../services/config/ProviderSetup';
 
-export default function ProviderSetupForm({ onReady }: { onReady: (ready: boolean) => void }) {
-  const [provider, setProvider] = useState<ProviderId>('groq');
-  const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState<string>(providerOptions.groq.model);
+import { saveAgentModel } from '../../services/config/AgentModel';
+import { AIConfiguration } from '../../types/ai';
+
+export default function ProviderSetupForm({ onReady, purpose = 'default', initialConfiguration, onBusyChange }: { onReady: (ready: boolean) => void; purpose?: 'default' | 'agent'; initialConfiguration?: AIConfiguration; onBusyChange?: (busy: boolean) => void }) {
+  const [provider, setProvider] = useState<ProviderId>((initialConfiguration?.provider as ProviderId) || 'groq');
+  const [apiKey, setApiKey] = useState(initialConfiguration?.apiKey || '');
+  const modelListId = useId();
+  const [model, setModel] = useState<string>(initialConfiguration?.model || providerOptions.groq.model);
   const [models, setModels] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  useEffect(() => { onBusyChange?.(busy); }, [busy, onBusyChange]);
   const [status, setStatus] = useState('');
   const [tested, setTested] = useState(false);
   const version = useRef(0);
@@ -25,11 +30,14 @@ export default function ProviderSetupForm({ onReady }: { onReady: (ready: boolea
       const value = config();
       await testProviderConfiguration(value);
       if (current !== version.current) return;
-      const manager = ConfigManager.getInstance();
-      await manager.initialize();
-      await manager.setConfiguration(provider, value);
-      await manager.setCurrentProvider(provider);
-      await AIService.getInstance().refreshProviderConfiguration();
+      if (purpose === 'agent') await saveAgentModel(value);
+      else {
+        const manager = ConfigManager.getInstance();
+        await manager.initialize();
+        await manager.setConfiguration(provider, value);
+        await manager.setCurrentProvider(provider);
+        await AIService.getInstance().refreshProviderConfiguration();
+      }
       if (current !== version.current) return;
       setTested(true); onReady(true); setStatus('Connection verified. Your provider and model are ready.');
     } catch (error) {
@@ -59,11 +67,20 @@ export default function ProviderSetupForm({ onReady }: { onReady: (ready: boolea
       <input type="password" autoComplete="off" spellCheck={false} className="block w-full border rounded p-2 dark:bg-gray-800"
         value={apiKey} disabled={busy} onChange={event => { reset(); setApiKey(event.target.value); }} />
     </label>}
+    {purpose === 'agent' && provider !== 'ollama' && <button type="button" disabled={busy} className="text-sm text-blue-600 underline" onClick={async () => {
+      const current = ++version.current; setBusy(true); onReady(false);
+      try {
+        const saved = await ConfigManager.getInstance().getProviderConfig(provider);
+        if (current !== version.current) return;
+        setApiKey(saved.apiKey || ''); setTested(false); setStatus(saved.apiKey ? 'Saved key loaded. Test the agent connection to save this choice.' : 'No saved key for this provider. Enter a key below.');
+      } catch { if (current === version.current) setStatus('Could not load the saved provider key.'); }
+      finally { if (current === version.current) setBusy(false); }
+    }}>Use saved provider key</button>}
     <a href={providerOptions[provider].url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{provider === 'ollama' ? 'Set up Ollama' : 'Get a key from your provider'}</a>
     <label className="block">Model ID
-      <input list="setup-models" className="block w-full border rounded p-2 dark:bg-gray-800" value={model} disabled={busy}
+      <input list={modelListId} className="block w-full border rounded p-2 dark:bg-gray-800" value={model} disabled={busy}
         onChange={event => { reset(); setModel(event.target.value); }} />
-      <datalist id="setup-models">{Array.from(new Set([...providerOptions[provider].models, ...models])).map(id => <option key={id} value={id} />)}</datalist>
+      <datalist id={modelListId}>{Array.from(new Set([...providerOptions[provider].models, ...models])).map(id => <option key={id} value={id} />)}</datalist>
     </label>
     {provider === 'gemini' && <>
       <button type="button" className="text-blue-600 underline disabled:opacity-50" disabled={busy || !apiKey.trim()} onClick={loadModels}>Load models for this Gemini key</button>

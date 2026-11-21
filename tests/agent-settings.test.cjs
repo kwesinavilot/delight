@@ -1,10 +1,10 @@
-﻿const { test } = require('node:test');
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { loadAgentSettings, saveAgentSettings } = require('./load-typescript.cjs')('src/services/config/AgentSettings.ts');
 test('agent settings default to 50 turns and stay in local storage', async () => {
   const disk = {};
   global.chrome = { storage: { local: { get: async () => disk, set: async value => Object.assign(disk, value) } } };
-  assert.deepEqual(await loadAgentSettings(), { maximumTurns: 50, customInstructions: '' });
+  assert.deepEqual(await loadAgentSettings(), { maximumTurns: 50, customInstructions: '', confirmSensitiveActions: true, pageAccess: 'browser-tabs', historyLimit: 20 });
   await saveAgentSettings({ maximumTurns: 12, customInstructions: 'My company is Acme GmbH. Answer briefly.' });
   assert.equal((await loadAgentSettings()).maximumTurns, 12);
   assert.match((await loadAgentSettings()).customInstructions, /Acme/);

@@ -30,7 +30,7 @@ const assert = require('node:assert/strict');
       });
       globalThis.setupStorage = { local, sync };
       globalThis.chrome = {
-        runtime: { getManifest: () => ({ version: '1.4.5' }), getURL: p => `https://delight.test/${p}` },
+        runtime: { getManifest: () => ({ version: '1.4.9' }), getURL: p => `https://delight.test/${p}` },
         windows: { getCurrent: async () => ({ id: 1 }) },
         sidePanel: { open: async () => { globalThis.panelOpened = true; } },
         storage: { local: area(local), sync: area(sync), onChanged: { addListener() {}, removeListener() {} } }
@@ -41,7 +41,7 @@ const assert = require('node:assert/strict');
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Next', exact: true }).click();
     const start = page.getByRole('button', { name: 'Get Started', exact: true });
     assert.equal(await start.isDisabled(), true);
-    await page.getByLabel('API key', { exact: true }).fill('gsk_fake_test_key');
+    await page.getByRole('region', { name: 'Default chat model', exact: true }).getByLabel('API key', { exact: true }).fill('gsk_fake_test_key');
     await page.getByRole('button', { name: 'Test and save connection' }).click();
     await page.getByRole('status').filter({ hasText: 'quota or rate limit' }).waitFor();
     assert.equal(await start.isDisabled(), true);
@@ -50,13 +50,52 @@ const assert = require('node:assert/strict');
     await page.getByRole('button', { name: 'Test and save connection' }).click();
     await page.getByRole('status').filter({ hasText: 'Connection verified' }).waitFor();
     assert.equal(await start.isEnabled(), true);
+    assert.equal(await page.getByRole('radio', {name:'Use the same model',exact:true}).isChecked(), true);
+    await page.getByRole('radio', {name:'Choose a different model',exact:true}).check();
+    assert.equal(await start.isDisabled(),true);
+    const agentForm=page.getByRole('region',{name:'Agent model',exact:true});
+    await agentForm.getByRole('button',{name:'Use saved provider key'}).click();
+    await agentForm.getByRole('status').filter({hasText:'Saved key loaded'}).waitFor();
+    assert.equal(await agentForm.getByLabel('API key',{exact:true}).inputValue(),'gsk_fake_test_key');
+    await agentForm.getByLabel('API key',{exact:true}).fill('gsk_fake_agent_key');
+    await agentForm.getByLabel('Model ID',{exact:true}).fill('openai/gpt-oss-120b');
+    limited=true;
+    await agentForm.getByRole('button',{name:'Test and save connection'}).click();
+    await agentForm.getByRole('status').filter({hasText:'quota or rate limit'}).waitFor();
+    assert.equal(await start.isDisabled(),true);
+    limited=false;
+    await agentForm.getByRole('button',{name:'Test and save connection'}).click();
+    await agentForm.getByRole('status').filter({hasText:'Connection verified'}).waitFor();
+    await page.waitForFunction(()=>!document.querySelector('button[disabled] span')?.textContent?.includes('Get Started'));
+    assert.equal(await start.isEnabled(),true);
+    await agentForm.getByLabel('Model ID',{exact:true}).fill('openai/gpt-oss-20b');
+    assert.equal(await start.isDisabled(),true);
+    await page.getByRole('radio',{name:'Use the same model',exact:true}).check();
+    await page.waitForFunction(()=>setupStorage.local.agentModelConfiguration===null);
+    assert.equal(await start.isEnabled(),true);
+    await page.getByRole('radio',{name:'Choose a different model',exact:true}).check();
+    assert.equal(await start.isDisabled(),true);
+    await agentForm.getByLabel('API key',{exact:true}).fill('gsk_fake_agent_key');
+    await agentForm.getByLabel('Model ID',{exact:true}).fill('openai/gpt-oss-120b');
+    await agentForm.getByRole('button',{name:'Test and save connection'}).click();
+    await agentForm.getByRole('status').filter({hasText:'Connection verified'}).waitFor();
+    assert.equal(await start.isEnabled(),true);
     await start.click();
     await page.waitForFunction(() => setupStorage.local.welcomeCompleted === true);
     const data = await page.evaluate(() => ({ local: setupStorage.local, sync: setupStorage.sync, opened: panelOpened }));
     assert.equal(data.local.aiSettings.ai.currentProvider, 'groq');
     assert.equal(data.local.aiSettings.ai.providers.groq.apiKey, 'gsk_fake_test_key');
+    assert.equal(data.local.agentModelConfiguration.model, 'openai/gpt-oss-120b');
+    assert.equal(data.local.agentModelConfiguration.apiKey, 'gsk_fake_agent_key');
+    assert.equal(data.sync.agentModelConfiguration, undefined);
     assert.equal(data.sync.aiSettings, undefined);
     assert.equal(data.opened, true);
-    console.log('PASS: four-step onboarding, failed/successful model test, local-only saving, and Get Started (mock provider, no live quota)');
+    await page.goto('https://delight.test/src/pages/updates/index.html');
+    await page.getByText('Agents that work your way',{exact:true}).waitFor();
+    await page.getByText('Choose your agent model',{exact:true}).waitFor();
+    await page.goto('https://delight.test/src/pages/userguide/index.html');
+    await page.getByRole('button').filter({hasText:'Agent Automation & Settings'}).click();
+    await page.getByText('Settings ? Agent',{exact:true}).waitFor();
+    console.log('PASS: four-step onboarding, optional independent agent model, failed/successful tests, stale readiness, shared-model reset, local saving, Get Started, updates, and user guide (mock provider, no live quota)');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

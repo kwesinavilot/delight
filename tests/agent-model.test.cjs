@@ -1,0 +1,43 @@
+﻿const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const ts=require('typescript');
+const load=require('./load-typescript.cjs');
+test('separate agent credentials stay local and never replace the chat configuration',async()=>{
+ const disk={aiSettings:{ai:{currentProvider:'groq'}}};
+ global.chrome={storage:{local:{get:async()=>disk,set:async value=>Object.assign(disk,value)}}};
+ const {loadAgentModel,saveAgentModel}=load('src/services/config/AgentModel.ts');
+ assert.equal(await loadAgentModel(),null);
+ await saveAgentModel({provider:'gemini',apiKey:'agent-test-key',model:'agent-model'});
+ assert.equal((await loadAgentModel()).provider,'gemini');
+ assert.equal(disk.aiSettings.ai.currentProvider,'groq');
+ await saveAgentModel(null);
+ assert.equal(await loadAgentModel(),null);
+ disk.agentModelConfiguration={provider:'unsupported',apiKey:'secret',model:'m'};
+ await assert.rejects(loadAgentModel(),/incomplete/);
+});
+test('planner snapshots the agent override or chat default in a separate provider instance',async()=>{
+ const code=ts.transpileModule(fs.readFileSync('src/services/agents/PlannerAgent.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ const created=[], used=[];
+ const defaults={provider:'groq',model:'chat-model',apiKey:'chat-test-key'};
+ let override={provider:'gemini',model:'agent-model',apiKey:'agent-test-key'};
+ const module={exports:{}};
+ new Function('require','module','exports',code)(name=>{
+  if(name==='zod')return require('zod');
+  if(name.includes('AIService'))return {AIService:{getInstance:()=>({getCurrentProvider:()=>{throw new Error('Shared chat instance used');}})}};
+  if(name.includes('ConfigManager'))return {ConfigManager:{getInstance:()=>({getCurrentProviderConfig:async()=>({...defaults})})}};
+  if(name.includes('AgentModel'))return {loadAgentModel:async()=>override};
+  if(name.includes('CreateProvider'))return {createProvider:config=>{const snapshot={...config};created.push(snapshot);return {isConfigured:()=>true,generateResponse:async function*(){used.push(snapshot.model);yield JSON.stringify({done:true,success:true,description:'Done',evidence:'Observed'});}};}};
+  throw new Error(name);
+ },module,module.exports);
+ const {PlannerAgent}=module.exports;
+ const first=new PlannerAgent();await first.initialize();
+ override=null;
+ const second=new PlannerAgent();await second.initialize();
+ defaults.model='changed-chat-model';
+ await first.decide('Work',{},[],new AbortController().signal);
+ await second.decide('Work',{},[],new AbortController().signal);
+ assert.deepEqual(used,['agent-model','chat-model']);
+ assert.equal(created[0].provider,'gemini');
+ assert.equal(created[1].provider,'groq');
+});

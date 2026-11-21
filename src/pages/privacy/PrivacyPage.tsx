@@ -64,7 +64,7 @@ const PrivacyPage: React.FC = () => {
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Agent History:</strong> The latest 20 tasks, summaries, events, outcomes, and recovery checkpoints are saved locally. Relevant instructions and recent outcomes are also sent to the selected AI provider.</span>
+                <span><strong>Agent History:</strong> Agent history is saved locally with a configurable limit of 0, 10, 20 (default), 50, or 100 inactive tasks. Active and paused tasks retain checkpoints while running. Relevant instructions and recent outcomes are also sent to the selected AI provider.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -94,7 +94,7 @@ const PrivacyPage: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">API Keys</h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Stored in this browser profile on this machine, without browser sync. Never stored on Delight servers. Sent directly to your selected provider to authenticate requests.
+                    Stored in this browser profile on this machine, without browser sync. Never stored on Delight servers. Sent directly to your selected provider to authenticate requests. An optional separate agent connection is also stored locally and authenticates directly with that provider.
                   </p>
                 </div>
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -114,7 +114,7 @@ const PrivacyPage: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">Agent Tasks</h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Up to 20 tasks, event summaries, outcomes, and recovery checkpoints (tab URL/identity and uncertainty flags) are stored locally. Typed field payloads and full DOM snapshots are not checkpointed. Task text and generated summaries may still contain sensitive information. Delete saved tasks in Agent mode.
+                    The chosen number of inactive tasks (20 by default), plus active and paused tasks, is stored locally with event summaries, outcomes, and recovery checkpoints (tab URL/identity and uncertainty flags). Typed field payloads and full DOM snapshots are not checkpointed. Task text and generated summaries may still contain sensitive information. Delete individual saved tasks in Agent mode, or change retention and clear inactive history in Settings ? Agent.
                   </p>
                 </div>
               </div>

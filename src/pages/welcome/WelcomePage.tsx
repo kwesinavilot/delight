@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageFooter from '@/components/ui/PageFooter';
-import ProviderSetupForm from '@/components/Settings/ProviderSetupForm';
+import OnboardingModelSetup from '@/components/Settings/OnboardingModelSetup';
 
 const WelcomePage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -103,7 +103,7 @@ const WelcomePage: React.FC = () => {
         </svg>
       ),
       title: '🤖 Multi-Agent Automation',
-      description: 'Describe web tasks in natural language and watch AI agents plan and execute them step-by-step. Revolutionary automation for any webpage.'
+      description: 'Start multiple browser tasks, attach the page you want to use, and review final outcomes with optional activity details.'
     },
     {
       icon: <ChatBubbleLeftRightIcon className="h-8 w-8 text-purple-500" />,
@@ -168,7 +168,7 @@ const WelcomePage: React.FC = () => {
   const steps = [
     {
       title: 'Welcome to Delight!',
-      subtitle: 'Enhanced Error Recovery & Network Intelligence',
+      subtitle: 'Chat and browser agents with controls you choose',
       content: (
         <div className="text-center">
           <div className="mb-8">
@@ -177,8 +177,7 @@ const WelcomePage: React.FC = () => {
               Welcome to Delight!
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
-              Enhanced error recovery with automatic retry, intelligent fallback provider switching, and real-time network monitoring! 
-              Uninterrupted AI assistance even during network issues or provider outages.
+              Chat with your preferred model and run browser agents on separate tasks. Choose their model, attach a page, and control consequential actions from one place.
             </p>
           </div>
 
@@ -257,18 +256,18 @@ const WelcomePage: React.FC = () => {
     },
     {
       title: 'How to use Delight',
-      subtitle: 'Your model powers chat, page tools, and browser automation',
+      subtitle: 'Choose how chat and agents work for you',
       content: (
         <div className="max-w-2xl mx-auto space-y-4">
           <p>Open Delight from the toolbar or with Ctrl+Shift+Q. Chat about a page, use the writing tools, or open Agent mode to perform browser tasks.</p>
-          <p>Next, connect your own AI provider and test a model. You can change your provider, key, or model later in Settings.</p>
+          <p>Next, connect your own AI provider and test a model. Then choose whether agents use that model or a separate one. You can change both later in Settings.</p>
         </div>
       )
     },
     {
       title: 'Connect your AI provider',
-      subtitle: 'Step 4: add your key, select a model, and verify the connection',
-      content: <ProviderSetupForm onReady={setProviderReady} />
+      subtitle: 'Connect chat, then use the same model for agents or choose another',
+      content: <OnboardingModelSetup onReady={setProviderReady} />
     }
   ];
 

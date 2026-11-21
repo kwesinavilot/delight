@@ -3,6 +3,7 @@ import { PlannerAgent } from './PlannerAgent';
 import { ObservedBrowser } from '../automation/ObservedBrowser';
 import { agentHistory, TaskHistory } from './AgentHistory';
 import { loadAgentSettings } from '../config/AgentSettings';
+import { needsApproval } from './ActionApproval';
 
 interface Callbacks {
   onPlanCreated?: (steps: TaskStep[]) => void;
@@ -17,6 +18,7 @@ interface RunControl {
   pauseRequested: boolean;
   planning?: AbortController;
   wake?: () => void;
+  approve?: () => void;
 }
 export class AgentOrchestrator {
   private static sessions = new Map<string, AgentOrchestrator>();
@@ -33,7 +35,7 @@ export class AgentOrchestrator {
   isTaskExecuting() { return !!this.run && !this.run.controller.signal.aborted; }
   async pauseCurrentTask() {
     const run = this.run;
-    if (!run || run.controller.signal.aborted || run.pauseRequested) return;
+    if (!run || run.controller.signal.aborted || run.pauseRequested || run.approve) return;
     run.pauseRequested = true;
     run.planning?.abort();
     if (this.currentTask?.id === run.taskId) this.currentTask.status = 'paused';
@@ -51,6 +53,24 @@ export class AgentOrchestrator {
     agentHistory.event(run.taskId, 'Task resumed. Inspecting the current page again.');
     run.wake?.();
     await saved;
+  }
+  approveCurrentAction() { this.run?.approve?.(); }
+  private async approval(run: RunControl, description: string) {
+    const signal = run.controller.signal;
+    signal.throwIfAborted();
+    this.currentTask!.status = 'paused';
+    await agentHistory.requestApproval(run.taskId, description);
+    signal.throwIfAborted();
+    await new Promise<void>((resolve, reject) => {
+      const cleanup = () => { signal.removeEventListener('abort', aborted); run.approve = undefined; };
+      const aborted = () => { cleanup(); reject(new Error('Task stopped by user')); };
+      run.approve = () => { cleanup(); resolve(); };
+      signal.addEventListener('abort', aborted, { once: true });
+      if (signal.aborted) aborted();
+    });
+    signal.throwIfAborted();
+    this.currentTask!.status = 'executing';
+    await agentHistory.resume(run.taskId);
   }
   private async checkpoint(run: RunControl) {
     const signal = run.controller.signal;
@@ -122,7 +142,7 @@ export class AgentOrchestrator {
       if (saved && !tab) throw new Error('Recovery tab is missing or ambiguous. Open the saved page in the intended active tab before retrying recovery.');
       if (!tab?.id) throw new Error('No active browser tab');
       recoveryReady = true;
-      browser = new ObservedBrowser(tab.id, signal, true);
+      browser = new ObservedBrowser(tab.id, signal, true, settings.pageAccess === 'starting-tab');
       const history: any[] = saved ? saved.steps.map(step => ({ action: step.type, description: step.description,
         result: `Before restart: ${step.status}. Do not replay completed actions.` })) : [];
       let uncertain = !!saved && (!!saved.checkpoint?.uncertain || !!saved.checkpoint?.pending);
@@ -130,6 +150,7 @@ export class AgentOrchestrator {
       if (saved) progress('recovering', 'Recovered task summaries. Inspecting the matched tab before any new action.');
       let failures = 0, repeated = 0, previousFingerprint = '', cooldowns = 0, plannerRecoveries = 0;
       let turnLimit = steps.length + settings.maximumTurns;
+      let approvedFingerprint: string | undefined;
       for (let i = steps.length; ;) {
         await this.checkpoint(run);
         if (i >= turnLimit) {
@@ -206,6 +227,12 @@ export class AgentOrchestrator {
           throw new Error('Previous submission has an uncertain outcome. Automatic input replay is blocked; confirm the outcome manually.');
         }
         const fingerprint = JSON.stringify([state.tabId, state.url, state.elements.map(({ frameRevision: _revision, ...element }: any) => element), step.type, step.url, step.tabId, step.elementIndex, step.data]);
+        if (settings.confirmSensitiveActions && needsApproval(step, state) && approvedFingerprint !== fingerprint) {
+          await this.approval(run, step.description);
+          approvedFingerprint = fingerprint;
+          continue; // Re-observe and re-plan; never dispatch from the pre-approval snapshot.
+        }
+        approvedFingerprint = undefined;
         repeated = fingerprint === previousFingerprint ? repeated + 1 : 0;
         previousFingerprint = fingerprint;
         if (repeated >= 2) throw new Error('The same action made no observable progress three times');

@@ -17,7 +17,7 @@ export class ObservedBrowser {
   }
   getTabId() { return this.tabId; }
   private windowId?: number;
-  constructor(private tabId: number, private signal: AbortSignal, private exclusive = false) {}
+  constructor(private tabId: number, private signal: AbortSignal, private exclusive = false, private startingTabOnly = false) {}
 
   private check() { this.signal.throwIfAborted(); this.claim(this.tabId); }
 
@@ -55,7 +55,8 @@ export class ObservedBrowser {
     const tab = tabs.find(tab => tab.id === this.tabId);
     this.check();
     const context = { tabId: this.tabId, windowId: this.windowId,
-      tabs: tabs.map(tab => ({ id: tab.id, title: tab.title?.slice(0, 120), url: tab.url, active: tab.active })) };
+      tabs: tabs.filter(tab => !this.startingTabOnly || tab.id === this.tabId).map(tab => ({ id: tab.id, title: tab.title?.slice(0, 120), url: tab.url, active: tab.active })),
+      pageAccess: this.startingTabOnly ? 'starting-tab' : 'browser-tabs' };
     if (!tab) return { ...context, url: '', title: '', elements: [], elementCount: 0, restricted: true, closed: true };
     if (!/^https?:/.test(tab.url || '')) return { ...context, url: tab.url, title: tab.title, elements: [], elementCount: 0, restricted: true };
     const warnings: string[] = [];
@@ -85,6 +86,7 @@ export class ObservedBrowser {
 
   async act(step: TaskStep, state: any): Promise<any> {
     this.check();
+    if (this.startingTabOnly && ['newTab', 'switchTab'].includes(step.type)) throw new Error('Agent page access is limited to the starting tab. Change it in Settings > Agent for new tasks.');
     if (step.type === 'newTab') {
       const url = this.url(step.url);
       await this.tabs();
@@ -158,6 +160,9 @@ export class ObservedBrowser {
     if (state.tabId !== undefined && state.tabId !== this.tabId) throw new Error('Tab changed; observe it again before acting');
     const element = state.elements.find((el: any) => el.index === step.elementIndex);
     if (!element) throw new Error('Action references an index absent from the current observation');
+    if (this.startingTabOnly && ['click', 'trustedClick', 'sendKeys'].includes(step.type) && element.target && !['_self', '_top', '_parent'].includes(element.target)) {
+      throw new Error('This control targets another tab. Navigate within the starting tab instead.');
+    }
     const submitting = element.submitControl || (element.form && element.type === 'submit') ||
       (step.type === 'sendKeys' && step.data?.keys === 'Enter' && element.form && element.tag !== 'textarea');
     this.check();
@@ -211,7 +216,7 @@ export class ObservedBrowser {
     const expectsNavigation = !!element.href;
     for (let i = 0; i < 16; i++) {
       await this.pause(500);
-      if (opened.size) {
+      if (opened.size && !this.startingTabOnly) {
         const candidates = (await this.tabs()).filter(tab => tab.id !== undefined && opened.has(tab.id) && (
           tab.openerTabId === sourceTabId || opened.get(tab.id)?.openerTabId === sourceTabId ||
           (element.target === '_blank' && !!linkUrl && (tab.url === linkUrl || tab.pendingUrl === linkUrl))

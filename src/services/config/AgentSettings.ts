@@ -1,9 +1,15 @@
-export interface AgentSettings { maximumTurns: number; customInstructions: string; }
-export const DEFAULT_AGENT_SETTINGS: AgentSettings = { maximumTurns: 50, customInstructions: '' };
+export interface AgentSettings {
+  maximumTurns: number; customInstructions: string;
+  confirmSensitiveActions?: boolean; pageAccess?: 'starting-tab' | 'browser-tabs'; historyLimit?: number;
+}
+export const DEFAULT_AGENT_SETTINGS: AgentSettings = { maximumTurns: 50, customInstructions: '', confirmSensitiveActions: true, pageAccess: 'browser-tabs', historyLimit: 20 };
 export function normalizeAgentSettings(value: Partial<AgentSettings> = {}): AgentSettings {
   return {
     maximumTurns: Number.isSafeInteger(value.maximumTurns) && value.maximumTurns! > 0 ? value.maximumTurns! : 50,
-    customInstructions: typeof value.customInstructions === 'string' ? value.customInstructions.slice(0, 1500) : ''
+    customInstructions: typeof value.customInstructions === 'string' ? value.customInstructions.slice(0, 1500) : '',
+    confirmSensitiveActions: value.confirmSensitiveActions !== false,
+    pageAccess: value.pageAccess === 'starting-tab' ? 'starting-tab' : 'browser-tabs',
+    historyLimit: [0, 10, 20, 50, 100].includes(value.historyLimit!) ? value.historyLimit : 20
   };
 }
 export async function loadAgentSettings(): Promise<AgentSettings> {
