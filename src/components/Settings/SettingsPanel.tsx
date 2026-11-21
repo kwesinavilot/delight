@@ -571,7 +571,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                     finally { setAnalyticsSaving(false); }
                   }} />
                 <span>Optional usage analytics (off by default)
-                  <span className="block text-sm text-gray-500">Send feature names, provider/model choices, extension version, a pseudonymous identifier, and basic browser/device metadata to PostHog. No prompts, page contents, API keys, or task text. You can turn this off at any time.</span>
+                  <span className="block text-sm text-gray-500">We use PostHog for usage analytics. Send feature names, recognized provider/model choices, extension version, a pseudonymous identifier, and browser family, bounded usage counters, durations, and error categories to PostHog. No prompts, page contents, API keys, or task text. You can turn this off at any time.</span>
                 </span>
               </label>
               {analyticsError && <p role="alert">{analyticsError}</p>}

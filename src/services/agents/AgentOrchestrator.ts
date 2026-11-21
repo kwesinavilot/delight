@@ -1,3 +1,4 @@
+import PostHogService, { analyticsError } from '../PostHogService';
 import { TaskPlan, TaskStep, AutomationResult } from '../../types/agents';
 import { PlannerAgent } from './PlannerAgent';
 import { ObservedBrowser } from '../automation/ObservedBrowser';
@@ -36,6 +37,7 @@ export class AgentOrchestrator {
   async pauseCurrentTask() {
     const run = this.run;
     if (!run || run.controller.signal.aborted || run.pauseRequested || run.approve) return;
+    PostHogService.track('agent_control_used', { control: 'pause' });
     run.pauseRequested = true;
     run.planning?.abort();
     if (this.currentTask?.id === run.taskId) this.currentTask.status = 'paused';
@@ -47,6 +49,7 @@ export class AgentOrchestrator {
   async resumeCurrentTask() {
     const run = this.run;
     if (!run || run.controller.signal.aborted || !run.pauseRequested) return;
+    PostHogService.track('agent_control_used', { control: 'resume' });
     run.pauseRequested = false;
     if (this.currentTask?.id === run.taskId) this.currentTask.status = 'executing';
     const saved = agentHistory.resume(run.taskId);
@@ -54,7 +57,7 @@ export class AgentOrchestrator {
     run.wake?.();
     await saved;
   }
-  approveCurrentAction() { this.run?.approve?.(); }
+  approveCurrentAction() { if (this.run?.approve) { PostHogService.track('agent_control_used', { control: 'approve' }); this.run.approve(); } }
   private async approval(run: RunControl, description: string) {
     const signal = run.controller.signal;
     signal.throwIfAborted();
@@ -94,6 +97,7 @@ export class AgentOrchestrator {
   }
   async stopCurrentTask() {
     const taskId = this.run?.taskId;
+    if (taskId) PostHogService.track('agent_control_used', { control: 'stop' });
     this.run?.controller.abort();
     this.run = null;
     if (this.currentTask) this.currentTask.status = 'failed';
@@ -105,7 +109,7 @@ export class AgentOrchestrator {
     if (saved?.status !== 'interrupted' || saved.checkpoint?.version !== 1) throw new Error('This task has no recoverable checkpoint');
     return this.executeTask(saved.input, {}, saved);
   }
-  async executeTask(input: string, callbacks: Callbacks = {}, saved?: TaskHistory, target?: { tabId: number }): Promise<AutomationResult> {
+  async executeTask(input: string, callbacks: Callbacks = {}, saved?: TaskHistory, target?: { tabId: number; attached?: boolean }): Promise<AutomationResult> {
     if (this.isTaskExecuting()) throw new Error('Another task is running or paused. Resume or stop it before starting a new task.');
     const started = Date.now();
     const taskId = saved?.id || `task_${crypto.randomUUID()}`;
@@ -124,6 +128,11 @@ export class AgentOrchestrator {
       this.progressCallback?.({ stage, message });
       callbacks.onProgress?.(message);
     };
+    const analyticsRunId = crypto.randomUUID();
+    let metadata: { provider?: string; model?: string } = {};
+    let outcome = 'failed', errorCategory = 'other';
+    const initialStepCount = steps.length;
+    PostHogService.track('agent_run_started', { run_id: analyticsRunId, resumed: !!saved, has_attachment: target?.attached === true });
     let browser: ObservedBrowser | undefined;
     try {
       if (saved) await agentHistory.reopen(taskId);
@@ -133,6 +142,7 @@ export class AgentOrchestrator {
       const planner = new PlannerAgent(settings.customInstructions);
       progress('initializing', 'Checking the selected AI provider...');
       await planner.initialize();
+      metadata = planner.getAnalyticsMetadata?.() || {};
       signal.throwIfAborted();
       await this.checkpoint(run);
       const tabs = target && !saved ? [await chrome.tabs.get(target.tabId)] : await chrome.tabs.query(saved ? { currentWindow: true } : { active: true, currentWindow: true });
@@ -154,6 +164,7 @@ export class AgentOrchestrator {
       for (let i = steps.length; ;) {
         await this.checkpoint(run);
         if (i >= turnLimit) {
+          PostHogService.track('agent_control_used', { control: 'step_limit' });
           run.pauseRequested = true;
           task.status = 'paused';
           await agentHistory.pause(taskId, `Reached the maximum of ${settings.maximumTurns} steps. Would you like to continue for up to ${settings.maximumTurns} more steps?`, true);
@@ -218,6 +229,7 @@ export class AgentOrchestrator {
               (!history.some(h => h.result?.verified && h.result.kind === 'youtubePlayback' && h.result.videoId === new URL(state.url).searchParams.get('v')) ||
                 state.adShowing || !state.media?.some((m: any) => !m.paused && !m.ended && m.readyState >= 2))) throw new Error('Playback must be verified with advancing, non-advertisement YouTube content');
           task.status = 'completed';
+          outcome = 'success';
           await agentHistory.finish(taskId, 'completed', decision.evidence || 'Task completed.');
           return { taskId, success: true, data: { evidence: decision.evidence, history }, executionTime: Date.now() - started };
         }
@@ -286,9 +298,12 @@ export class AgentOrchestrator {
       }
     } catch (error) {
       task.status = 'failed';
+      outcome = signal.aborted ? 'cancelled' : !recoveryReady ? 'interrupted' : 'failed';
+      errorCategory = analyticsError(error);
       await agentHistory.finish(taskId, signal.aborted ? 'cancelled' : !recoveryReady ? 'interrupted' : 'failed', signal.aborted ? 'Task cancelled.' : error instanceof Error ? error.message : String(error));
       return { taskId, success: false, error: signal.aborted ? 'Task stopped by user' : error instanceof Error ? error.message : String(error), executionTime: Date.now() - started };
     } finally {
+      PostHogService.track('agent_run_finished', { run_id: analyticsRunId, ...metadata, outcome, error_category: outcome === 'success' ? undefined : errorCategory, duration_ms: Date.now() - started, step_count: steps.length - initialStepCount });
       browser?.dispose?.();
       AgentOrchestrator.sessions.delete(taskId);
       if (this.run === run) this.run = null;

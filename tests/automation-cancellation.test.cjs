@@ -11,7 +11,7 @@ function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
   }).outputText;
   new Function('require', 'module', 'exports', historyCode)(require, historyModule, historyModule.exports);
-  const actions = [];
+  const actions = [], analytics = [];
   let observations = 0;
   class Planner { async initialize() {} decide(...args) { return decide(...args); } }
   class Browser {
@@ -23,6 +23,7 @@ function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}
   }
   const module = { exports: {} };
   new Function('require', 'module', 'exports', compiled)(name => {
+    if (name.includes('PostHogService')) return { default: { track: (event, properties) => analytics.push({ event, properties }) }, analyticsError: () => 'other' };
     if (name.includes('PlannerAgent')) return { PlannerAgent: Planner };
     if (name.includes('ObservedBrowser')) return { ObservedBrowser: Browser };
     if (name.includes('AgentHistory')) return historyModule.exports;
@@ -32,7 +33,7 @@ function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}
   }, module, module.exports);
   disk = { ...disk, agentSettings: { confirmSensitiveActions: false, ...disk.agentSettings } };
   global.chrome = { tabs: { query: async () => [{ id: 1, url: 'https://example.com' }], get: async () => ({ id: 1, windowId: 1, url: 'https://example.com' }) }, storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } } };
-  return { agent: module.exports.AgentOrchestrator.getInstance(), actions, history: historyModule.exports.agentHistory, observations: () => observations, disk };
+  return { agent: module.exports.AgentOrchestrator.getInstance(), actions, analytics, history: historyModule.exports.agentHistory, observations: () => observations, disk };
 }
 const recoverable = pending => ({ agentTaskHistoryV1: [{ id: 'saved', input: 'Original task', status: 'paused', startedAt: 1,
   steps: [{ id: 'old', type: 'click', description: 'Prior action', status: pending ? 'running' : 'completed' }], events: [],
@@ -320,4 +321,17 @@ test('approval is requested again if the planned action changes', async () => {
   ctx.agent.approveCurrentAction();
   assert.equal((await pending).success, true);
   assert.equal(ctx.actions[0].data, 'new');
+});
+
+test('analytics emits exactly one start and outcome per concurrent-independent run without task contents', async () => {
+  const ctx = setup(async () => ({ done: true, success: true, evidence: 'Private page contents' }));
+  await ctx.agent.executeTask('Private task with email someone@example.com');
+  assert.equal(ctx.analytics.filter(item => item.event === 'agent_run_started').length, 1);
+  const ends = ctx.analytics.filter(item => item.event === 'agent_run_finished');
+  assert.equal(ends.length, 1);
+  assert.equal(ends[0].properties.outcome, 'success');
+  assert.equal(ends[0].properties.step_count, 0);
+  assert.ok(ends[0].properties.duration_ms >= 0);
+  assert.ok(!JSON.stringify(ctx.analytics).includes('Private'));
+  assert.ok(!JSON.stringify(ctx.analytics).includes('someone@example.com'));
 });

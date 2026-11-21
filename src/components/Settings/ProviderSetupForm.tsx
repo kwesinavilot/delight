@@ -28,7 +28,7 @@ export default function ProviderSetupForm({ onReady, purpose = 'default', initia
     setBusy(true); setStatus('Testing your selected model...'); onReady(false);
     try {
       const value = config();
-      await testProviderConfiguration(value);
+      await testProviderConfiguration(value, purpose);
       if (current !== version.current) return;
       if (purpose === 'agent') await saveAgentModel(value);
       else {

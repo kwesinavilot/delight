@@ -30,7 +30,7 @@ const assert = require('node:assert/strict');
       });
       globalThis.setupStorage = { local, sync };
       globalThis.chrome = {
-        runtime: { getManifest: () => ({ version: '1.4.9' }), getURL: p => `https://delight.test/${p}` },
+        runtime: { getManifest: () => ({ version: '1.5.0' }), getURL: p => `https://delight.test/${p}` },
         windows: { getCurrent: async () => ({ id: 1 }) },
         sidePanel: { open: async () => { globalThis.panelOpened = true; } },
         storage: { local: area(local), sync: area(sync), onChanged: { addListener() {}, removeListener() {} } }

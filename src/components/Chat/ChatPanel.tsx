@@ -1,3 +1,4 @@
+import PostHogService from '../../services/PostHogService';
 import React, { useState, useEffect, useRef } from 'react';
 import { PaperAirplaneIcon, ExclamationTriangleIcon, DocumentDuplicateIcon, ArrowPathIcon, StopIcon, ChevronDownIcon, WrenchScrewdriverIcon, PaperClipIcon } from '@heroicons/react/24/solid';
 import { Button } from "@/components/ui/button";
@@ -233,6 +234,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
         let prompt = '';
         let isPageAction = false;
 
+        const analyticsActions: Record<string, string> = { 'open-delight': 'open', 'summarize-page': 'summarize', 'chat-about-page': 'chat', 'explain-selection': 'explain', 'rewrite-selection': 'rewrite' };
+        if (analyticsActions[pending.action]) PostHogService.trackContextMenuAction(analyticsActions[pending.action], !!pending.selectedText);
         switch (pending.action) {
           case 'open-delight':
             return;
@@ -290,6 +293,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
       
       if (context) {
         setAttachedPageContext(context);
+        PostHogService.track('page_attached', { surface: 'chat' });
         // Auto-send after context is attached
         setTimeout(() => sendMessage(), 500);
       } else {
@@ -408,6 +412,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
     // Apply tool prompt if selected
     if (selectedTool) {
+      PostHogService.trackAIToolUsed(selectedTool.id, AIService.getInstance().getCurrentProvider()?.name || 'other');
       userMessage = `${selectedTool.prompt}\n\n${userMessage}`;
     }
 
@@ -663,6 +668,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isFullscreen = false }) => {
 
       if (context) {
         setAttachedPageContext(context);
+        PostHogService.track('page_attached', { surface: 'chat' });
         setShowAttachDropdown(false);
       } else {
         setMessages(prev => [...prev, {

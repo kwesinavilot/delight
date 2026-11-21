@@ -1,3 +1,4 @@
+import PostHogService from '../PostHogService';
 import { AIConfiguration } from '../../types/ai';
 
 const KEY = 'agentModelConfiguration';
@@ -13,4 +14,5 @@ export async function loadAgentModel(): Promise<AIConfiguration | null> {
 }
 export async function saveAgentModel(config: AIConfiguration | null): Promise<void> {
   await chrome.storage.local.set({ [KEY]: config ? { provider: config.provider, model: config.model?.trim(), apiKey: config.apiKey.trim() } : null });
+  PostHogService.track('agent_model_selected', { selection: config ? 'separate' : 'default', provider: config?.provider, model: config?.model });
 }

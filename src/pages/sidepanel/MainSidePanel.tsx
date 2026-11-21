@@ -1,3 +1,4 @@
+import PostHogService from '../../services/PostHogService';
 import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -200,6 +201,7 @@ const MainSidePanel: React.FC = () => {
         }
       }
 
+      PostHogService.trackModeSwitch('sidepanel', 'fullscreen');
       // Open the sidepanel page in a new tab for fullscreen experience
       await chrome.tabs.create({
         url: chrome.runtime.getURL('src/pages/sidepanel/index.html?mode=tab'),
@@ -264,6 +266,7 @@ const MainSidePanel: React.FC = () => {
         // Clean up stored tab info
         await chrome.storage.local.remove(['originatingTabId']);
         
+        PostHogService.trackModeSwitch('fullscreen', 'sidepanel');
         setIsFullscreen(false);
         window.close();
       }

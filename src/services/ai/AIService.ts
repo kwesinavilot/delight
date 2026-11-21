@@ -4,7 +4,7 @@ import { ChatMessage } from '../../types/chat';
 import { ConfigManager } from '../config/ConfigManager';
 import { ContextProcessor } from '../chat/ContextProcessor';
 import { ErrorRecoveryService } from './ErrorRecoveryService';
-import PostHogService from '../PostHogService';
+import PostHogService, { analyticsError } from '../PostHogService';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
@@ -139,7 +139,7 @@ export class AIService {
     await this.configManager.setCurrentProvider(providerName);
     
     // Track provider selection
-    PostHogService.trackProviderSelected(providerName, this.currentProvider?.name || 'unknown');
+    PostHogService.trackProviderSelected(providerName, (await this.configManager.getProviderConfig(providerName)).model);
 
     // Handle conversation context if ConversationManager is available
     if (options && (options.preserveContext !== undefined || options.clearContext)) {
@@ -224,6 +224,9 @@ export class AIService {
       .map(name => this.providers.get(name)!)
       .filter(provider => provider.isConfigured());
 
+    const analyticsStarted = Date.now();
+    const analyticsMetadata = { provider: PostHogService.providerId(this.currentProvider.name), model: (await this.configManager.getCurrentProviderConfig()).model };
+    PostHogService.track('chat_request_started', { ...analyticsMetadata, has_page_context: chatMessages.some(message => /Page (?:Context|URL|Content):/.test(message.content)) });
     // Primary operation
     const primaryOperation = async () => {
       const providerName = this.currentProvider!.name;
@@ -311,8 +314,10 @@ export class AIService {
         chatMessages.some(msg => msg.content.includes('Page URL:') || msg.content.includes('Page Content:'))
       );
 
+      PostHogService.track('chat_request_finished', { ...analyticsMetadata, outcome: 'success', duration_ms: Date.now() - analyticsStarted });
       return result.result;
     } catch (error) {
+      PostHogService.track('chat_request_finished', { ...analyticsMetadata, outcome: analyticsError(error) === 'cancelled' ? 'cancelled' : 'failed', error_category: analyticsError(error), duration_ms: Date.now() - analyticsStarted });
       console.error('Chat response generation failed:', error);
 
       if (error instanceof AIError) {

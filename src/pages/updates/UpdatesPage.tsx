@@ -27,7 +27,7 @@ const UpdatesPage: React.FC = () => {
       } else {
         // Fallback for manual visits
         setUpdateInfo({
-          previousVersion: '1.4.8',
+          previousVersion: '1.4.9',
           currentVersion: chrome.runtime.getManifest().version,
           updateDate: new Date().toISOString()
         });
@@ -39,16 +39,17 @@ const UpdatesPage: React.FC = () => {
   const getVersionChanges = (version: string) => {
     // Return changes based on version
     switch (version) {
-      case '1.4.9':
+      case '1.5.0':
         return {
-          title: 'Agents that work your way',
-          subtitle: 'Concurrent tasks, optional agent models, and controls for browser actions',
+          title: 'A more capable, controllable Delight',
+          subtitle: 'Run multiple agents, choose how they work, and optionally help improve Delight',
           features: [
             { icon: <SparklesIcon className="h-6 w-6 text-blue-500" />, title: 'A fresh Agent home', description: 'Start from a suggestion or type a task, attach the current page, and run multiple agents with independent controls. Expand Thinking to see activity; final outcomes stay visible.' },
             { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Choose your agent model', description: 'During setup, use the same model for chat and agents or choose and test a separate provider/model. Change the choice later in Settings > Agent without changing chat.' },
             { icon: <CheckCircleIcon className="h-6 w-6 text-green-500" />, title: 'Control each task', description: 'Set a maximum step count (50 by default), approve recognized sensitive actions, and choose whether agents may open or switch tabs. Continue explicitly when the step limit is reached.' },
             { icon: <DocumentTextIcon className="h-6 w-6 text-blue-500" />, title: 'Preferences and history', description: 'Save up to 1,500 characters of custom instructions for chat and agents. Choose how many inactive tasks to retain or clear saved history while preserving active runs.' },
-            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Switch views while agents work', description: 'Return to chat and reopen Agent to view active runs. Closing the panel interrupts tasks; retained checkpoints require explicit recovery after restart.' }
+            { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Switch views while agents work', description: 'Return to chat and reopen Agent to view active runs. Closing the panel interrupts tasks; retained checkpoints require explicit recovery after restart.' },
+            { icon: <ChartBarIcon className="h-6 w-6 text-indigo-500" />, title: 'Optional usage analytics', description: 'Analytics is off by default. If you opt in during setup or in Settings, aggregate feature and task events help us understand how Delight is used. Prompts, page content, URLs, and API keys are excluded.' }
           ]
         };
       case '1.4.2':

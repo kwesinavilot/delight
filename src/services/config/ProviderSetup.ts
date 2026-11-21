@@ -1,3 +1,4 @@
+import PostHogService, { analyticsError } from '../PostHogService';
 import { AIConfiguration } from '../../types/ai';
 import { AIService } from '../ai/AIService';
 
@@ -12,14 +13,18 @@ export const providerOptions = {
 };
 export type ProviderId = keyof typeof providerOptions;
 
-export async function testProviderConfiguration(config: AIConfiguration): Promise<void> {
+export async function testProviderConfiguration(config: AIConfiguration, purpose: 'default' | 'agent' = 'default'): Promise<void> {
   if (!config.model?.trim() || (config.provider !== 'ollama' && !config.apiKey?.trim())) {
     throw new Error('Enter your API key and select a model first.');
   }
+  const started = Date.now();
+  let success = false, category = 'other';
   try {
     const valid = await AIService.getInstance().testProviderConnection(config.provider, config, true);
     if (!valid) throw new Error('The provider did not confirm the connection.');
+    success = true;
   } catch (error) {
+    category = analyticsError(error);
     const cause = error as any;
     const message = String(cause?.message || 'Connection failed');
     if (cause?.type === 'rate_limit_error' || /429|quota|rate.?limit/i.test(message)) {
@@ -32,6 +37,8 @@ export async function testProviderConfiguration(config: AIConfiguration): Promis
     if (/abort|timeout/i.test(message)) throw new Error('The connection test timed out. Check your connection and try again.');
     // Never surface raw SDK errors that may embed request headers or keys.
     throw new Error('Connection failed. Check your network, key, model ID, region, and provider account access.');
+  } finally {
+    PostHogService.track('provider_connection_tested', { purpose, provider: config.provider, model: config.model, outcome: success ? 'success' : 'failed', error_category: success ? undefined : category, duration_ms: Date.now() - started });
   }
 }
 

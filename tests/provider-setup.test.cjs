@@ -5,7 +5,7 @@ const ts = require('typescript');
 function load(file, dependencies = {}) {
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
-  new Function('require', 'module', 'exports', code)(name => dependencies[name] || require(name), module, module.exports);
+  new Function('require', 'module', 'exports', code)(name => name.includes('PostHogService') ? require('./analytics-stub.cjs') : dependencies[name] || require(name), module, module.exports);
   return module.exports;
 }
 function storage(localValue, syncValue, failWrite = false) {

@@ -18,10 +18,13 @@ export class PlannerAgent {
   constructor(private customInstructions = '') {}
   private ai = AIService.getInstance();
   private provider?: AIProvider;
+  private analyticsMetadata: { provider?: string; model?: string } = {};
+  getAnalyticsMetadata() { return this.analyticsMetadata; }
   async initialize() {
     const override = await loadAgentModel();
     const config = override || await ConfigManager.getInstance().getCurrentProviderConfig();
     this.provider = createProvider(config);
+    this.analyticsMetadata = { provider: config.provider, model: config.model };
     if (!this.provider.isConfigured()) throw new Error('Configure and test your agent provider and model in Settings before starting.');
   }
   async decide(task: string, state: any, history: any[], signal: AbortSignal) {

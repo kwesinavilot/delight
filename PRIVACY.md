@@ -1,4 +1,4 @@
-﻿# Privacy Policy for Delight Chrome Extension
+# Privacy Policy for Delight Chrome Extension
 
 Last updated: 2026-11-21
 
@@ -28,9 +28,9 @@ Starting-tab mode limits the agent's explicit opening, switching, and following 
 
 ## Optional usage analytics
 
-Usage analytics is disabled by default. If you enable it under Settings > Appearance, PostHog receives feature events, provider/model choices, extension version, a pseudonymous identifier, and basic browser/device metadata. These events exclude prompts, page contents, task text, and API keys. You may disable analytics at any time; this does not delete events already received by PostHog.
+Usage analytics is disabled by default. You may opt in during onboarding or under Settings > Appearance. Events collected after opting in measure setup progress, feature use, and task outcomes; earlier activity is not replayed. We use PostHog for usage analytics thus our PostHog dashboard receives feature events, recognized provider/model categories, extension version, a pseudonymous identifier, browser family, bounded counters and durations, and error categories. It does not receive prompts, page contents, task text, page URLs, API keys, or session recordings. Analytics consent stays in this browser profile. You may disable analytics at any time; this stops future captures but does not delete events already received by PostHog.
 
-AI providers and PostHog, if enabled, receive network requests and may observe your IP address. Their policies apply to those requests.
+AI providers and PostHog (through usage analytics) if enabled, receive network requests and may observe your IP address. Their policies apply to those requests.
 
 ## Storage limitations and contact
 

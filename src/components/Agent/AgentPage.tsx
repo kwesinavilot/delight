@@ -1,3 +1,4 @@
+import PostHogService from '../../services/PostHogService';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ArrowUp, Bot, Check, ChevronDown, Globe, Loader2, Paperclip, Plus, X } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -30,6 +31,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id === undefined || !/^https?:/.test(tab.url || '')) throw new Error('Open a website to attach its page.');
       setAttachment({ tabId: tab.id, title: tab.title || 'Current page', url: tab.url! });
+      PostHogService.track('page_attached', { surface: 'agent' });
       setError('');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not attach page.'); }
   };
@@ -39,10 +41,11 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
     try {
       const agent = AgentOrchestrator.create();
       const prompt = input.trim();
+      const attached = !!attachment;
       const tab = recoverId ? undefined : attachment || await chrome.tabs.create({ url: 'about:blank', active: false });
       const tabId = tab && ('tabId' in tab ? tab.tabId : tab.id);
       if (!recoverId && tabId === undefined) throw new Error('Could not open a tab for this agent.');
-      const pending = recoverId ? agent.resumeSavedTask(recoverId) : agent.executeTask(prompt, {}, undefined, { tabId: tabId! });
+      const pending = recoverId ? agent.resumeSavedTask(recoverId) : agent.executeTask(prompt, {}, undefined, { tabId: tabId!, attached });
       if (!recoverId) { setInput(''); setAttachment(undefined); }
       // executeTask registers its ID synchronously, before provider work begins.
       const id = recoverId || agent.getCurrentTask()?.id;

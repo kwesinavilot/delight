@@ -2,9 +2,9 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## Version 1.4.9 — Safer automation and restart recovery
+## Version 1.5.0 — More capable agents and optional analytics
 
-Native keyboard/pointer interaction across accessible frames, explicit outcome checks, bounded provider cooldowns, and opt-in recovery of interrupted tasks. Automation uses your selected provider; it does not silently switch providers.
+Run multiple browser agents with independent controls, choose an optional separate agent model, and set task limits, approval, tab-access, and history preferences. Optional product analytics is off by default and excludes prompts, page contents, URLs, and API keys.
 
 Provide your own provider configuration. Keys and checkpoints stay in this browser profile; relevant page observations and task outcomes go directly to your selected AI provider. Usage analytics is off unless explicitly enabled. See [release audit](docs/release-audit.md) and [automation limitations](docs/automation-parity.md).
 

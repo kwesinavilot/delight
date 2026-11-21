@@ -1,4 +1,4 @@
-# Delight 1.4.9 release audit
+# Delight 1.5.0 release audit
 
 Scope: local source, packaged extension, and regression fixtures. This is a technical preflight, not store approval or proof of live-service delivery. No listing or external policy document was edited.
 
@@ -25,7 +25,7 @@ Removed unlimited storage (no demonstrated requirement), redundant PostHog host 
 - AI requests include prompts/context, URLs/titles of tabs in the task window, visible page/frame text, control values excluding password fields, and recent outcomes. Signed-in pages can contain sensitive information. A disclosure appears beside Agent Run/Resume controls.
 - The last 20 local task records contain user instructions, generated summaries/events, outcomes and checkpoint URL/tab identity. Descriptions/URLs may contain personal information. Full DOM snapshots and typed action payloads are not checkpointed. Delete saved tasks in Agent mode or remove the extension to remove local data.
 - Checkpoints are written before dispatch and after outcomes. Restart converts live runs to interrupted; only explicit Resume reopens them. Matching uses the saved URL, not a recycled tab ID. Missing/ambiguous pages require user action; recovery does not automatically reopen/navigate pages. Pending/uncertain input is not blindly replayed. This is recovery, not continuous background execution or exactly-once delivery.
-- PostHog analytics is off by default. Explicit Settings opt-in can send feature events, provider/model choices, extension version, a pseudonymous identifier and browser/device metadata. Recording, autocapture, page-leave capture, external dependency loading and feature flags are disabled; URL/referrer properties are denied. PostHog can still observe the network source IP. Opt-out stops subsequent captures in loaded contexts but cannot retract received/in-transit events. Public build analytics keys are not user provider secrets.
+- PostHog analytics is off by default. Explicit onboarding or Settings opt-in can send allowlisted feature events, provider/model categories, extension version, a pseudonymous identifier and browser metadata. Prompts, page contents, task text, URLs, API keys, and session recordings are excluded. PostHog can still observe the network source IP. Opt-out stops future captures but cannot retract received events. Public build analytics keys are not user provider secrets.
 - Ollama uses local HTTP loopback; cloud provider endpoints use HTTPS. Local service trust, availability and CORS are environment responsibilities.
 
 ## Stronger confirmation, with limits
@@ -40,7 +40,7 @@ Inaccessible ancestors, overlays, out-of-viewport targets and transformed frame 
 
 ## Package workflow
 
-Run `node --test tests/*.test.cjs`, browser fixtures, then `npm run package:release`. It builds, audits and creates `releases/delight-1.4.9.zip` from `dist` only, with `manifest.json` at the root. Existing ZIPs are not overwritten. The command prints SHA-256 for artifact identification.
+Run `node --test tests/*.test.cjs`, browser fixtures, then `npm run package:release`. It builds, audits and creates `releases/delight-1.5.0.zip` from `dist` only, with `manifest.json` at the root. Existing ZIPs are not overwritten. The command prints SHA-256 for artifact identification.
 
 `scripts/audit-release.cjs` checks package/lock/source/built manifest versions, changelog, permission allowlist, CSP, packaged entry files, accidental source/maps/private artifacts, remote HTML script tags and limited credential patterns. This is not comprehensive secret scanning, dependency security auditing or a complete interpretation of MV3 remote-code policy. Review final bundles and give reviewers a clear description of the finite action schema.
 

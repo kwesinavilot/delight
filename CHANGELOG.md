@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-21
+
 ### Added
+- Opt-in PostHog product analytics for onboarding, independent connection tests, chat requests, page attachments, agent outcomes/durations, and meaningful feature activity.
+- A versioned dashboard definition and preview/apply/aggregate-verification commands; live project access is required to provision the dashboard and confirm ingestion.
 - Optional separate agent provider/model in onboarding and Settings, with independent connection testing, saved-key reuse, local credentials, and per-task provider instances that do not switch chat.
 - Confirmation controls for recognized sensitive actions, starting-tab access restrictions, configurable inactive-task retention, and a clear-history action that preserves active runs.
 - Agent settings tab with a default maximum of 50 steps, explicit continuation at the limit, and locally saved custom instructions limited to 1,500 characters for agent tasks and chat conversations.
@@ -17,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-agent tab ownership checks to prevent concurrent agents from controlling the same page.
 
 ### Changed
+- Preserve initial events while previously saved consent loads, discard unconsented activity, and filter outbound SDK payloads through an event/property allowlist with no URLs, user content, raw errors, recordings, or profile setters.
 - Refresh onboarding, What's New, the user guide, privacy disclosures, and the agent workflow documentation for the current browser-agent flow and settings.
 - Move the API-key storage and authentication notice to the top of AI Providers settings.
 - Collapse agent activity under an expandable Thinking summary while displaying final outcomes directly.
@@ -24,11 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preserve all running and paused agents when enforcing the saved-history retention limit.
 
 ### Verification
-- TypeScript checks, production build, release audit, and all 77 automated regression tests pass, including independent model routing, sensitive-action approval, starting-tab restrictions, configurable retention, and explicit continuation at the turn limit.
-- Built-file Chromium onboarding checks pass for shared/separate models, failed/successful tests, readiness reset after edits, local-only saving, Get Started, and the updated What's New and user guide pages (adapted extension APIs and mocked provider responses).
-- Chromium settings checks pass for the provider notice position, Agent tab, defaults, character limit, task controls, history clearing, saved-key reuse, separate-model testing, and resetting to the default connection using adapted extension APIs and provider services.
-- Chromium agent UI checks pass for suggestions, page attachment, concurrent runs, navigation between views, independent controls, collapsed activity, visible final outcomes, action approval, and step-limit continuation using adapted extension APIs and a mocked planner.
-- Live AI-provider execution and loaded-extension behavior remain unverified for these changes.
+- All 85 automated regression tests pass, including consent races, privacy filtering, dashboard provisioning, independent agent runs, action approval, task recovery, and step-limit continuation.
+- The bundled-SDK analytics browser check passes against an intercepted PostHog endpoint; the settings browser check passes for agent preferences. These fixtures do not verify live PostHog ingestion or a loaded extension.
+- TypeScript checks and the production build pass. The build reports existing Browserslist-data and bundle-size warnings.
+- Live PostHog ingestion/dashboard rendering, AI-provider execution, and loaded-extension behavior remain unverified.
 
 ## [1.4.9] - 2026-11-01
 

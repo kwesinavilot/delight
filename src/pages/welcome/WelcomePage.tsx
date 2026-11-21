@@ -1,3 +1,4 @@
+import PostHogService from '../../services/PostHogService';
 import React, { useEffect, useState } from 'react';
 import {
   SparklesIcon,
@@ -18,6 +19,11 @@ const WelcomePage: React.FC = () => {
   const appVersion = chrome.runtime.getManifest().version;
   const [windowId, setWindowId] = useState<number>();
   const [finishError, setFinishError] = useState('');
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const [analyticsBusy, setAnalyticsBusy] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState('');
+  useEffect(() => { void chrome.storage.local.get(['analyticsOptIn']).then(value => setAnalyticsEnabled(value.analyticsOptIn === true)).catch(() => {}); }, []);
+  useEffect(() => { PostHogService.track('onboarding_step_viewed', { step: currentStep + 1 }); }, [currentStep]);
   useEffect(() => { void chrome.windows.getCurrent().then(window => setWindowId(window.id)); }, []);
 
   const providers = [
@@ -291,6 +297,7 @@ const WelcomePage: React.FC = () => {
       const opening = chrome.sidePanel.open({ windowId });
       await opening;
       await chrome.storage.local.set({ welcomeCompleted: true });
+      PostHogService.track('onboarding_completed');
       window.close();
     } catch {
       setFinishError('Your provider is ready. Click the Delight toolbar icon to open the assistant.');
@@ -343,6 +350,15 @@ const WelcomePage: React.FC = () => {
 
             <div className="mb-8">
               {steps[currentStep].content}
+              {currentStep === 0 && <div className="mt-6 max-w-xl mx-auto rounded-lg border p-4 text-left">
+                <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1" checked={analyticsEnabled} disabled={analyticsBusy} onChange={async event => {
+                  const enabled = event.target.checked; setAnalyticsBusy(true); setAnalyticsError('');
+                  try { await PostHogService.setEnabled(enabled); setAnalyticsEnabled(enabled); if (enabled) PostHogService.track('onboarding_step_viewed', { step: 1 }); }
+                  catch { setAnalyticsError('Could not save your analytics preference. Setup can continue without it.'); }
+                  finally { setAnalyticsBusy(false); }
+                }} /><span>Share optional usage analytics<span className="block text-gray-500 mt-1">Help improve Delight with feature counts, setup progress, model categories, and task outcomes. No prompts, page content, URLs, API keys, or session recordings. Off by default; change this later in Settings › Appearance.</span></span></label>
+                {analyticsError && <p role="status" className="text-sm mt-2">{analyticsError}</p>}
+              </div>}
             </div>
           </div>
 

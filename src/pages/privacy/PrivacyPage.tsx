@@ -36,7 +36,7 @@ const PrivacyPage: React.FC = () => {
                 <div>
                   <h3 className="font-semibold text-green-800 dark:text-green-200">Privacy-First Design</h3>
                   <p className="text-green-700 dark:text-green-300 text-sm mt-1">
-                    API keys and saved history are stored in this browser profile. AI requests go directly to the provider you select. Optional usage analytics is off unless you enable it in Settings.
+                    API keys and saved history are stored in this browser profile. AI requests go directly to the provider you select. Optional usage analytics is off unless you enable it during onboarding or in Settings.
                   </p>
                 </div>
               </div>
@@ -68,11 +68,11 @@ const PrivacyPage: React.FC = () => {
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Optional Usage Analytics:</strong> Disabled by default. If enabled in Settings, PostHog receives feature events, provider/model choices, extension version, a pseudonymous identifier, and basic browser/device metadata, but not prompts, page contents, task text, or API keys. Disable it at any time.</span>
+                <span><strong>Optional Usage Analytics:</strong> Disabled by default. We use PostHog for usage analytics. If enabled during onboarding or in Settings, our PostHog dashboard receives feature events, recognized provider/model categories, extension version, a pseudonymous identifier, browser family, bounded counters and durations, and error categories. It does not receive prompts, page contents, task text, page URLs, API keys, or session recordings. Disable it at any time to stop future captures.</span>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span><strong>Third-party Connections:</strong> Your selected AI provider, and PostHog if enabled, receive network requests and may observe your IP address. Their retention policies apply; disabling analytics does not delete previously received events.</span>
+                <span><strong>Third-party Connections:</strong> Your selected AI provider, and usage analytics if enabled, receive network requests and may observe your IP address. Their retention policies apply; disabling analytics does not delete previously received events.</span>
               </li>
             </ul>
           </div>
