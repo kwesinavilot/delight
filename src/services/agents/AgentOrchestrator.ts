@@ -18,6 +18,9 @@ interface RunControl {
   wake?: () => void;
 }
 export class AgentOrchestrator {
+  private static sessions = new Map<string, AgentOrchestrator>();
+  static forTask(id: string) { return this.sessions.get(id); }
+  static create() { return new AgentOrchestrator(); }
   private static instance: AgentOrchestrator;
   private run: RunControl | null = null;
   private currentTask: TaskPlan | null = null;
@@ -81,13 +84,14 @@ export class AgentOrchestrator {
     if (saved?.status !== 'interrupted' || saved.checkpoint?.version !== 1) throw new Error('This task has no recoverable checkpoint');
     return this.executeTask(saved.input, {}, saved);
   }
-  async executeTask(input: string, callbacks: Callbacks = {}, saved?: TaskHistory): Promise<AutomationResult> {
+  async executeTask(input: string, callbacks: Callbacks = {}, saved?: TaskHistory, target?: { tabId: number }): Promise<AutomationResult> {
     if (this.isTaskExecuting()) throw new Error('Another task is running or paused. Resume or stop it before starting a new task.');
     const started = Date.now();
     const taskId = saved?.id || `task_${crypto.randomUUID()}`;
     const controller = new AbortController();
     const run: RunControl = { taskId, controller, pauseRequested: false };
     this.run = run;
+    AgentOrchestrator.sessions.set(taskId, this);
     const signal = controller.signal;
     let recoveryReady = !saved;
     const steps: TaskStep[] = saved ? saved.steps.map(step => ({ ...step })) : [];
@@ -99,6 +103,7 @@ export class AgentOrchestrator {
       this.progressCallback?.({ stage, message });
       callbacks.onProgress?.(message);
     };
+    let browser: ObservedBrowser | undefined;
     try {
       if (saved) await agentHistory.reopen(taskId);
       else await agentHistory.start(taskId, input);
@@ -108,14 +113,14 @@ export class AgentOrchestrator {
       await planner.initialize();
       signal.throwIfAborted();
       await this.checkpoint(run);
-      const tabs = await chrome.tabs.query(saved ? { currentWindow: true } : { active: true, currentWindow: true });
+      const tabs = target && !saved ? [await chrome.tabs.get(target.tabId)] : await chrome.tabs.query(saved ? { currentWindow: true } : { active: true, currentWindow: true });
       const matches = saved ? tabs.filter(tab => tab.url === saved.checkpoint!.url) : tabs;
       // Browser restarts can reuse IDs. Match the URL, not a stale numeric ID.
       const tab = saved ? matches.find(tab => tab.active) || (matches.length === 1 ? matches[0] : undefined) : tabs[0];
       if (saved && !tab) throw new Error('Recovery tab is missing or ambiguous. Open the saved page in the intended active tab before retrying recovery.');
       if (!tab?.id) throw new Error('No active browser tab');
       recoveryReady = true;
-      const browser = new ObservedBrowser(tab.id, signal);
+      browser = new ObservedBrowser(tab.id, signal, true);
       const history: any[] = saved ? saved.steps.map(step => ({ action: step.type, description: step.description,
         result: `Before restart: ${step.status}. Do not replay completed actions.` })) : [];
       let uncertain = !!saved && (!!saved.checkpoint?.uncertain || !!saved.checkpoint?.pending);
@@ -247,6 +252,8 @@ export class AgentOrchestrator {
       await agentHistory.finish(taskId, signal.aborted ? 'cancelled' : !recoveryReady ? 'interrupted' : 'failed', signal.aborted ? 'Task cancelled.' : error instanceof Error ? error.message : String(error));
       return { taskId, success: false, error: signal.aborted ? 'Task stopped by user' : error instanceof Error ? error.message : String(error), executionTime: Date.now() - started };
     } finally {
+      browser?.dispose?.();
+      AgentOrchestrator.sessions.delete(taskId);
       if (this.run === run) this.run = null;
     }
   }

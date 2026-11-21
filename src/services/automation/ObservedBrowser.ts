@@ -5,13 +5,24 @@ import { framePointer } from './FramePointer';
 import { siteVerification } from './SiteVerification';
 
 export class ObservedBrowser {
+  private static owners = new Map<number, ObservedBrowser>();
+  private claim(tabId: number) {
+    if (!this.exclusive) return;
+    const owner = ObservedBrowser.owners.get(tabId);
+    if (owner && owner !== this && !owner.signal.aborted) throw new Error('This page is in use by another agent. Attach a different page or start in a new tab.');
+    ObservedBrowser.owners.set(tabId, this);
+  }
+  dispose() {
+    for (const [id, owner] of ObservedBrowser.owners) if (owner === this) ObservedBrowser.owners.delete(id);
+  }
   getTabId() { return this.tabId; }
   private windowId?: number;
-  constructor(private tabId: number, private signal: AbortSignal) {}
+  constructor(private tabId: number, private signal: AbortSignal, private exclusive = false) {}
 
-  private check() { this.signal.throwIfAborted(); }
+  private check() { this.signal.throwIfAborted(); this.claim(this.tabId); }
 
   private async tabs() {
+    this.claim(this.tabId);
     if (this.windowId === undefined) {
       this.windowId = (await chrome.tabs.get(this.tabId)).windowId;
       this.check();
@@ -92,6 +103,7 @@ export class ObservedBrowser {
       const tabs = await this.tabs();
       if (!tabs.some(tab => tab.id === step.tabId)) throw new Error('That tab has closed or moved to another window');
       this.check();
+      this.claim(step.tabId!);
       await chrome.tabs.update(step.tabId!, { active: true });
       this.check();
       this.tabId = step.tabId!;

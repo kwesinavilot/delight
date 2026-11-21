@@ -18,7 +18,10 @@ export class AgentHistory {
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private publish(tasks: TaskHistory[], persist = true) {
-    this.snapshot = { ...this.snapshot, tasks: tasks.slice(0, 20) };
+    const active = tasks.filter(task => task.status === 'running' || task.status === 'paused');
+    const saved = tasks.filter(task => task.status !== 'running' && task.status !== 'paused').slice(0, Math.max(0, 20 - active.length));
+    const retained = new Set([...active, ...saved].map(task => task.id));
+    this.snapshot = { ...this.snapshot, tasks: tasks.filter(task => retained.has(task.id)) };
     this.listeners.forEach(listener => listener());
     if (persist) {
       const value = JSON.parse(JSON.stringify(this.snapshot.tasks));

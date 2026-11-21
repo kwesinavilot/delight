@@ -113,3 +113,17 @@ test('a closed controlled tab still exposes surviving tabs for recovery', async 
   await ctx.browser.act({ type: 'switchTab', tabId: 2 }, state);
   assert.equal((await ctx.browser.observe()).tabId, 2);
 });
+
+test('exclusive agents cannot share tabs and release ownership when disposed', async () => {
+  const { controller } = setup();
+  const first = new ObservedBrowser(1, controller.signal, true);
+  const second = new ObservedBrowser(2, new AbortController().signal, true);
+  try {
+    await first.observe();
+    const state = await second.observe();
+    await assert.rejects(second.act({ type: 'switchTab', tabId: 1 }, state), /another agent/);
+    first.dispose();
+    await second.act({ type: 'switchTab', tabId: 1 }, state);
+    assert.equal(second.getTabId(), 1);
+  } finally { first.dispose(); second.dispose(); }
+});

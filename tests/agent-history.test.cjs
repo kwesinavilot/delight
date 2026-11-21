@@ -114,3 +114,11 @@ test('failed checkpoint writes reject before an action can be dispatched', async
   chrome.storage.local.set = async () => { throw new Error('quota'); };
   await assert.rejects(store.checkpoint('recover', { version: 1, tabId: 7, url: 'https://example.com/', pending: true, uncertain: false }), /could not be saved/);
 });
+
+test('history keeps every active agent even above the saved-history limit', async () => {
+  const { store } = setup();
+  for (let i = 0; i < 22; i++) await store.start(`active-${i}`, 'Concurrent task');
+  assert.equal(store.getSnapshot().tasks.length, 22);
+  await store.finish('active-0', 'completed', 'Done');
+  assert.equal(store.getSnapshot().tasks.filter(task => task.status === 'running').length, 21);
+});

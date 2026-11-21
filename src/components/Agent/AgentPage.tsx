@@ -1,121 +1,118 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+﻿import { useEffect, useState, useSyncExternalStore } from 'react';
+import { ArrowLeft, ArrowUp, Bot, Check, ChevronDown, Globe, Loader2, Paperclip, Plus, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AgentOrchestrator } from '../../services/agents/AgentOrchestrator';
 import { agentHistory } from '../../services/agents/AgentHistory';
+
+const suggestions = [
+  ['Research a topic', 'Research a topic and summarize the key findings with sources.'],
+  ['Compare options', 'Compare products or services and help me choose the best option.'],
+  ['Work on this page', 'Review the attached page and help me complete a task on it.'],
+  ['Find information', 'Find information online and organize it into a clear summary.'],
+];
+type PageAttachment = { tabId: number; title: string; url: string };
 
 export default function AgentPage({ onBack }: { onBack: () => void }) {
   const snapshot = useSyncExternalStore(agentHistory.subscribe, agentHistory.getSnapshot);
   const [input, setInput] = useState('');
   const [selectedId, setSelectedId] = useState<string>();
+  const [attachment, setAttachment] = useState<PageAttachment>();
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const mounted = useRef(true);
-  const runSerial = useRef(0);
-  const bottom = useRef<HTMLDivElement>(null);
-  const orchestrator = AgentOrchestrator.getInstance();
-  const active = snapshot.tasks.find(task => task.status === 'running' || task.status === 'paused');
-  const selected = snapshot.tasks.find(task => task.id === selectedId) || snapshot.tasks[0];
-  const busy = !!active || submitting;
+  const [starting, setStarting] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const selected = snapshot.tasks.find(task => task.id === selectedId);
+  const active = snapshot.tasks.filter(task => task.status === 'running' || task.status === 'paused');
+  const runtime = selected && AgentOrchestrator.forTask(selected.id);
+  useEffect(() => { void agentHistory.initialize(); }, []);
 
-  useEffect(() => {
-    mounted.current = true;
-    void agentHistory.initialize();
-    return () => {
-      mounted.current = false;
-      runSerial.current++;
-      void orchestrator.pauseCurrentTask();
-    };
-  }, [orchestrator]);
-  useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }); }, [selected?.events.length]);
-
-  const execute = async (recoverId?: string) => {
-    if ((!recoverId && !input.trim()) || busy || !snapshot.loaded) return;
-    const serial = ++runSerial.current;
-    setSubmitting(true); setError(''); setSelectedId(recoverId);
+  const attachPage = async () => {
     try {
-      // History updates come from the runtime, so completion and cancellation
-      // are retained even if this component unmounts while awaiting a provider.
-      if (recoverId) await orchestrator.resumeSavedTask(recoverId);
-      else await orchestrator.executeTask(input.trim());
-    } catch (cause) {
-      if (mounted.current && serial === runSerial.current) setError(cause instanceof Error ? cause.message : 'Could not start task.');
-    } finally {
-      if (mounted.current && serial === runSerial.current) setSubmitting(false);
-    }
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id === undefined || !/^https?:/.test(tab.url || '')) throw new Error('Open a website to attach its page.');
+      setAttachment({ tabId: tab.id, title: tab.title || 'Current page', url: tab.url! });
+      setError('');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not attach page.'); }
+  };
+  const execute = async (recoverId?: string) => {
+    if (starting || !snapshot.loaded || (!recoverId && !input.trim())) return;
+    setStarting(true); setError('');
+    try {
+      const agent = AgentOrchestrator.create();
+      const prompt = input.trim();
+      const tab = recoverId ? undefined : attachment || await chrome.tabs.create({ url: 'about:blank', active: false });
+      const tabId = tab && ('tabId' in tab ? tab.tabId : tab.id);
+      if (!recoverId && tabId === undefined) throw new Error('Could not open a tab for this agent.');
+      const pending = recoverId ? agent.resumeSavedTask(recoverId) : agent.executeTask(prompt, {}, undefined, { tabId: tabId! });
+      if (!recoverId) { setInput(''); setAttachment(undefined); }
+      // executeTask registers its ID synchronously, before provider work begins.
+      const id = recoverId || agent.getCurrentTask()?.id;
+      setSelectedId(id);
+      setStarting(false);
+      void pending.catch(cause => setError(cause instanceof Error ? cause.message : 'Could not run agent.'));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not start agent.'); }
+    finally { setStarting(false); }
   };
 
-  return <div className="flex flex-col h-full">
-    <header className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-      <Button variant="ghost" size="sm" onClick={onBack}>Back</Button>
-      <h1 className="text-lg font-semibold">Agent Automation</h1>
+  return <div className="flex h-full flex-col bg-background text-foreground">
+    <header className="flex items-center justify-between border-b p-3 gap-2">
+      <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4 mr-1" />Back</Button>
+      <span className="flex items-center gap-2 font-medium"><Bot className="h-4 w-4" />Agent</span>
+      <Button variant="ghost" size="sm" onClick={() => { setSelectedId(undefined); setShowHistory(false); }}><Plus className="h-4 w-4 mr-1" />New</Button>
     </header>
-    <div className="p-3 border-b dark:border-gray-700 space-y-2">
-      <label className="block text-sm">Task history
-        <select aria-label="Task history" className="w-full border rounded p-2 dark:bg-gray-800"
-          value={selected?.id || ''} disabled={!snapshot.loaded || !snapshot.tasks.length}
-          onChange={event => setSelectedId(event.target.value)}>
-          {!snapshot.tasks.length && <option value="">{snapshot.loaded ? 'No saved tasks' : 'Loading history...'}</option>}
-          {snapshot.tasks.map(task => <option key={task.id} value={task.id}>{task.status} — {task.input.slice(0, 90)}</option>)}
-        </select>
-      </label>
-      <div className="flex gap-3 text-xs">
-        <button type="button" className="underline disabled:opacity-40" disabled={!selected || selected.status === 'running' || selected.status === 'paused'}
-          onClick={() => { if (selected) void agentHistory.remove(selected.id); }}>Delete selected task</button>
-        <button type="button" className="underline disabled:opacity-40" disabled={!snapshot.tasks.some(task => task.status !== 'running' && task.status !== 'paused')}
-          onClick={() => { void agentHistory.clear(); }}>Clear saved history</button>
-      </div>
-      <p className="text-xs text-gray-500">Last 20 tasks and recovery checkpoints are saved on this machine. Leaving Agent mode pauses. After a restart, explicitly resume a saved task; uncertain actions are inspected, not automatically repeated.</p>
-      {snapshot.storageError && <p role="alert" className="text-sm text-red-600">{snapshot.storageError}</p>}
+    <div className="px-4 py-2 border-b flex items-center gap-2">
+      <button type="button" className="text-xs text-muted-foreground hover:text-foreground" aria-expanded={showHistory} onClick={() => setShowHistory(!showHistory)}>
+        {active.length ? `${active.length} active` : 'Recent agents'} <ChevronDown className="inline h-3 w-3" />
+      </button>
+      {active.length > 0 && <span className="h-2 w-2 rounded-full bg-green-500" aria-label="Agents active" />}
     </div>
-    <main className="flex-1 overflow-y-auto p-4 space-y-4">
-      {selected ? <>
-        <div>
-          <h2 className="font-medium break-words">{selected.input}</h2>
-          <p className="text-sm capitalize" role="status">{selected.status}</p>
-          <p className="text-xs text-gray-500">{new Date(selected.startedAt).toLocaleString()}</p>
-        </div>
-        {selected.steps.length > 0 && <section aria-label="Task actions" className="border rounded p-3 dark:border-gray-700">
-          <h3 className="font-medium text-sm mb-2">Actions ({selected.steps.length})</h3>
-          <ol className="space-y-2 text-sm">
-            {selected.steps.map((step, index) => <li key={step.id}>
-              <span className="font-medium">{index + 1}. {step.description}</span>
-              <span className="ml-2 text-xs text-gray-500">{step.status}</span>
-            </li>)}
-          </ol>
-        </section>}
-        <section aria-label="Task activity" className="space-y-2">
-          {selected.events.map(event => <div key={event.id} className="text-sm">
-            <span className="text-xs text-gray-500 mr-2">{new Date(event.timestamp).toLocaleTimeString()}</span>
-            <span className={event.kind === 'error' ? 'text-red-600' : event.kind === 'success' ? 'text-green-600' : ''}>{event.message}</span>
-          </div>)}
-        </section>
-        {selected.result && <div className="rounded border p-3 dark:border-gray-700">
-          <h3 className="text-sm font-medium">{selected.status === 'completed' ? 'Result' : 'Task outcome'}</h3>
-          <p className="text-sm whitespace-pre-wrap break-words">{selected.result}</p>
+    {showHistory && <section aria-label="Agent runs" className="max-h-48 overflow-y-auto border-b p-2 space-y-1">
+      {!snapshot.tasks.length && <p className="p-2 text-xs text-muted-foreground">Your agents will appear here.</p>}
+      {snapshot.tasks.map(task => <div key={task.id} className="flex items-center gap-1">
+        <button type="button" aria-pressed={task.id === selectedId} onClick={() => { setSelectedId(task.id); setShowHistory(false); }} className="flex-1 min-w-0 text-left rounded-lg p-2 hover:bg-muted aria-pressed:bg-muted">
+          <span className="block truncate text-sm">{task.input}</span><span className="text-xs text-muted-foreground capitalize">{task.status}</span>
+        </button>
+        {!['running', 'paused'].includes(task.status) && <Button variant="ghost" size="sm" aria-label={`Delete ${task.input}`} onClick={() => { void agentHistory.remove(task.id); }}><X className="h-3 w-3" /></Button>}
+      </div>)}
+    </section>}
+    <main className="flex-1 overflow-y-auto px-5 py-6">
+      {!selected ? <div className="mx-auto max-w-xl flex min-h-full flex-col justify-center">
+        <div className="mb-7"><Bot className="h-9 w-9 mb-4 text-primary" /><h1 className="text-2xl font-semibold tracking-tight">What can I do for you?</h1><p className="text-sm text-muted-foreground mt-2">Give an agent a task and let it take care of the steps.</p></div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{suggestions.map(([title, prompt]) => <button type="button" key={title} onClick={() => setInput(prompt)} className="rounded-xl border p-4 text-left text-sm hover:bg-muted transition-colors">{title}</button>)}</div>
+        {active.length > 0 && <button className="text-sm text-primary text-left mt-6" onClick={() => setShowHistory(true)}>{active.length} agent{active.length === 1 ? ' is' : 's are'} working. View runs <span aria-hidden="true">→</span></button>}
+      </div> : <div className="mx-auto max-w-xl space-y-5">
+        <div className="ml-8 rounded-2xl bg-muted px-4 py-3 whitespace-pre-wrap break-words text-sm">{selected.input}</div>
+        <details key={selected.id} className="group">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-sm text-muted-foreground py-2">
+            {selected.status === 'running' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {selected.status === 'running' ? 'Thinking' : selected.status === 'paused' ? 'Paused' : `Worked for ${Math.max(1, Math.round(((selected.endedAt || Date.now()) - selected.startedAt) / 1000))}s`}
+            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="rounded-xl border p-3 mt-2 space-y-3 text-sm">
+            {selected.steps.map(step => <div key={step.id} className="flex gap-2"><span className="shrink-0">{step.status === 'completed' ? <Check className="h-4 w-4 text-green-600" /> : '•'}</span><span>{step.description}<span className="text-xs text-muted-foreground ml-2">{step.status}</span></span></div>)}
+            {selected.events.map(event => <p key={event.id} className={event.kind === 'error' ? 'text-red-600 text-xs' : 'text-muted-foreground text-xs'}>{event.message}</p>)}
+          </div>
+        </details>
+        {selected.result && <p role="status" className="whitespace-pre-wrap break-words leading-relaxed text-sm">{selected.result}</p>}
+        {runtime && <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => { void (selected.status === 'paused' ? runtime.resumeCurrentTask() : runtime.pauseCurrentTask()); }}>{selected.status === 'paused' ? 'Resume' : 'Pause'}</Button>
+          <Button variant="ghost" size="sm" onClick={() => { void runtime.stopCurrentTask(); }}>Stop</Button>
         </div>}
-      </> : <p className="text-sm text-gray-500">Describe a task to navigate, search, interact with pages, or extract information.</p>}
-      <div ref={bottom} />
+        {selected.status === 'interrupted' && selected.checkpoint?.version === 1 && <Button variant="outline" size="sm" disabled={starting} onClick={() => { void execute(selected.id); }}>Resume saved task</Button>}
+      </div>}
     </main>
-    <div className="p-4 border-t dark:border-gray-700 space-y-2">
-      <p className="text-xs text-gray-500">Starting or resuming sends task instructions, tab URLs/titles, visible page/frame content and control values, and recent outcomes directly to your selected AI provider. Avoid sensitive pages unless you intend to share them. Saved task text and checkpoints stay in this browser profile.</p>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      <div className="flex gap-2">
-        <textarea aria-label="Browser task" className="flex-1 rounded border p-2 bg-transparent dark:border-gray-700" rows={2}
-          value={input} disabled={busy || !snapshot.loaded} placeholder="Describe a browser task..."
-          onChange={event => setInput(event.target.value)} onKeyDown={event => {
-            if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) { event.preventDefault(); void execute(); }
-          }} />
-        {busy ? <>
-          {active?.status === 'paused'
-            ? <Button onClick={() => { void orchestrator.resumeCurrentTask(); }}>Resume</Button>
-            : <Button disabled={!active} onClick={() => { void orchestrator.pauseCurrentTask(); }}>Pause</Button>}
-          <Button variant="destructive" onClick={() => { runSerial.current++; setSubmitting(false); void orchestrator.stopCurrentTask(); }}>Stop</Button>
-        </>
-          : <>
-            {selected?.status === 'interrupted' && selected.checkpoint?.version === 1 && <Button onClick={() => { void execute(selected.id); }}>Resume saved task</Button>}
-            <Button disabled={!input.trim() || !snapshot.loaded} onClick={() => { void execute(); }}>Run</Button>
-          </>}
+    <footer className="p-4 space-y-2">
+      {(error || snapshot.storageError) && <p role="alert" className="text-sm text-red-600">{error || snapshot.storageError}</p>}
+      <div className="rounded-2xl border bg-background shadow-sm p-3 focus-within:ring-1 focus-within:ring-primary">
+        {attachment && <div className="flex items-center gap-2 bg-muted rounded-lg px-2 py-1 mb-2 text-xs"><Globe className="h-3 w-3 shrink-0" /><span className="truncate" title={attachment.url}>{attachment.title}</span><button type="button" aria-label="Remove attached page" onClick={() => setAttachment(undefined)} className="ml-auto"><X className="h-3 w-3" /></button></div>}
+        <textarea aria-label="Browser task" rows={3} value={input} placeholder="What would you like the agent to do?" className="w-full resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground" onChange={event => setInput(event.target.value)} onKeyDown={event => {
+          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void execute(); }
+        }} />
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" size="sm" onClick={() => { void attachPage(); }} title="Attach current page" aria-label="Attach current page"><Paperclip className="h-4 w-4 mr-1" />Attach page</Button>
+          <Button size="sm" disabled={!input.trim() || !snapshot.loaded || starting} onClick={() => { void execute(); }}>Run<ArrowUp className="h-4 w-4 ml-1" /></Button>
+        </div>
       </div>
-    </div>
+      <p className="text-[10px] text-muted-foreground px-1">Agents share page content with your selected AI provider. Without an attachment, an agent opens a new tab. Runs continue while you use Delight; closing the panel interrupts them.</p>
+    </footer>
   </div>;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, X, Settings, ArrowLeft, Maximize2, Minimize2, Plus, MessageSquare, Bot } from "lucide-react";
@@ -6,9 +6,12 @@ import ChatPanel from '@/components/Chat/ChatPanel';
 import SettingsPanel from '@/components/Settings/SettingsPanel';
 import ConversationSidebar from '@/components/Chat/ConversationSidebar';
 import AgentPage from '@/components/Agent/AgentPage';
+import { agentHistory } from '@/services/agents/AgentHistory';
 // import { enhancedSidepanelManager } from '@/services/tabs';
 
 const MainSidePanel: React.FC = () => {
+  const agentSnapshot = useSyncExternalStore(agentHistory.subscribe, agentHistory.getSnapshot);
+  const activeAgentCount = agentSnapshot.tasks.filter(task => task.status === 'running' || task.status === 'paused').length;
   const [activeView, setActiveView] = useState<'chat' | 'settings' | 'conversations'>('chat');
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -446,6 +449,7 @@ const MainSidePanel: React.FC = () => {
             >
               <Bot className="h-4 w-4" />
               <span className="text-xs">Agent</span>
+              {activeAgentCount > 0 && <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground" aria-label={`${activeAgentCount} active agents`}>{activeAgentCount}</span>}
             </Button>
           </div>
         </div>
