@@ -343,7 +343,8 @@ const UserGuidePage: React.FC = () => {
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Privacy</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
               <li>We don't collect any personal information</li>
-              <li>Optional usage analytics is off by default. You can enable it during onboarding or under Settings › Appearance. It excludes prompts, page content, page URLs, task text, and API keys.</li>
+              <li>Optional usage analytics is off by default. You can enable it under Settings › Appearance. It excludes prompts, page content, page URLs, task text, and API keys.</li>
+              <li>Loading model suggestions uses Vercel AI Gateway's public catalog. It does not send your provider key, prompts, or page data; the selected model is still tested with your provider.</li>
               <li>Your conversations remain private between you and the AI provider</li>
               <li>Page content for summaries is processed directly by the AI provider</li>
             </ul>

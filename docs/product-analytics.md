@@ -4,7 +4,7 @@ Updated: 2026-11-21. PostHog is the sole product analytics integration; no Clari
 
 ## Consent and data boundaries
 
-Analytics is off by default. Users can opt in on the first onboarding screen or in Settings > Appearance and opt out at any time. Setup never depends on opting in. Reports describe **consenting browser profiles**, not all installs or identified people. If a user opts in later, earlier activity is not replayed. Onboarding conversion therefore cannot be used as an install-wide conversion rate.
+Analytics is off by default. Users can opt in under Settings > Appearance and opt out at any time. Setup never depends on opting in. Reports describe **consenting browser profiles**, not all installs or identified people. If a user opts in later, earlier activity is not replayed. Onboarding events only represent profiles that had already opted in when onboarding occurred, so onboarding conversion cannot be used as an install-wide conversion rate.
 
 `PostHogService` waits for saved consent and SDK readiness before sending initial events. A bounded in-memory queue contains only sanitized properties and is discarded when consent is off or revoked. Consent changes propagate through extension storage events. Analytics failures must not block app actions.
 
@@ -12,12 +12,14 @@ Both the application capture path and the SDK's `before_send` hook use an explic
 
 The ingestion service still receives a network connection and can observe its source IP. `ip: false` disables SDK IP-based enrichment, not the network connection itself. Opting out does not retract events already sent. Anonymous IDs persist in the browser profile; clearing storage, opting out, or reinstalling can reset identity. Browser families derived from user-agent strings may not distinguish every Chromium derivative.
 
+Model discovery is separate from analytics consent. When a user explicitly loads the public model list, the browser fetches `https://ai-gateway.vercel.sh/v1/models` without credentials, then filters the catalog locally by provider and supported text modalities. The request contains no provider key, prompt, or page content, though Vercel may observe the connection and IP address. This cross-provider catalog is informational and does not guarantee access through the user's own provider account. SambaNova suggestions remain manually maintained; Ollama models are local.
+
 ## Event audit and definitions
 
 | Event | Actual caller / meaning | Approved properties |
 | --- | --- | --- |
 | `$pageview` | Welcome, sidepanel, guide, updates entrypoints | Fixed page name |
-| `onboarding_step_viewed` | Welcome step change; step 1 emitted when user opts in there | Step number |
+| `onboarding_step_viewed` | Welcome step change for profiles already opted in before onboarding | Step number |
 | `onboarding_completed` | Welcome completion after saving local completion state | None; immediate beacon capture to reduce loss on close |
 | `provider_connection_tested` | Shared connection tester used by onboarding and settings | Default/agent purpose, recognized provider/model, success/failure, bounded category and duration |
 | `agent_model_selected` | Saving a separate agent connection or returning to the default | Selection, recognized provider/model |

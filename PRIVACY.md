@@ -28,9 +28,11 @@ Starting-tab mode limits the agent's explicit opening, switching, and following 
 
 ## Optional usage analytics
 
-Usage analytics is disabled by default. You may opt in during onboarding or under Settings > Appearance. Events collected after opting in measure setup progress, feature use, and task outcomes; earlier activity is not replayed. We use PostHog for usage analytics thus our PostHog dashboard receives feature events, recognized provider/model categories, extension version, a pseudonymous identifier, browser family, bounded counters and durations, and error categories. It does not receive prompts, page contents, task text, page URLs, API keys, or session recordings. Analytics consent stays in this browser profile. You may disable analytics at any time; this stops future captures but does not delete events already received by PostHog.
+Usage analytics is disabled by default. You may opt in under Settings > Appearance. Events collected after opting in measure feature use and task outcomes; earlier activity is not replayed. We use PostHog for usage analytics; it receives feature events, recognized provider/model categories, extension version, a pseudonymous identifier, browser family, bounded counters and durations, and error categories. It does not receive prompts, page contents, task text, page URLs, API keys, or session recordings. Analytics consent stays in this browser profile. You may disable analytics at any time; this stops future captures but does not delete events already received by PostHog.
 
-AI providers and PostHog (through usage analytics) if enabled, receive network requests and may observe your IP address. Their policies apply to those requests.
+When you choose to load model suggestions for a supported provider, Delight makes an unauthenticated request to Vercel AI Gateway's public model catalog. This request does not include your provider key, prompts, or page data. Vercel may observe the network request and your IP address. The catalog is informational; model availability still depends on your provider account and is checked when you test the model.
+
+AI providers, Vercel when loading its public model catalog, and PostHog (through usage analytics) if enabled, receive network requests and may observe your IP address. Catalog requests do not include provider keys, prompts, or page data. Their policies apply to those requests.
 
 ## Storage limitations and contact
 

@@ -9,12 +9,13 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { ConfigManager } from '@/services/config/ConfigManager';
-import { listGeminiModels, testProviderConfiguration } from '@/services/config/ProviderSetup';
+import { ProviderId, testProviderConfiguration } from '@/services/config/ProviderSetup';
 import { AIService } from '@/services/ai/AIService';
 import { AIConfiguration } from '@/types/ai';
 import { AgentSettings, DEFAULT_AGENT_SETTINGS, loadAgentSettings, saveAgentSettings } from '@/services/config/AgentSettings';
 import NetworkStatusPanel from './NetworkStatusPanel';
 import PostHogService from '@/services/PostHogService';
+import ProviderModelPicker from './ProviderModelPicker';
 
 interface SettingsPanelProps {
   onClose?: () => void;
@@ -33,8 +34,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
   const [providers, setProviders] = useState<Record<string, AIConfiguration>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
-  const [geminiModels, setGeminiModels] = useState<string[]>([]);
-  const [loadingModels, setLoadingModels] = useState(false);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
   const [connectionErrors, setConnectionErrors] = useState<Record<string, string>>({});
   const [connectionStatus, setConnectionStatus] = useState<Record<string, 'success' | 'error' | null>>({});
@@ -206,16 +205,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
     } finally {
       setTestingConnection(null);
     }
-  };
-
-  const loadGeminiModels = async () => {
-    setLoadingModels(true);
-    try {
-      setGeminiModels(await listGeminiModels(providers.gemini?.apiKey || ''));
-      setConnectionErrors(prev => ({ ...prev, gemini: '' }));
-    } catch (error) {
-      setConnectionErrors(prev => ({ ...prev, gemini: error instanceof Error ? error.message : 'Model listing failed.' }));
-    } finally { setLoadingModels(false); }
   };
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
@@ -425,28 +414,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
                       </div>
                     </div>
 
-                    {/* Model Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Model
-                      </label>
-                      <input
-                        list={`models-${providerId}`}
-                        aria-label={`${providerInfo.name} model ID`}
-                        value={config.model || providerInfo.defaultModel}
-                        onChange={(e) => handleProviderConfigChange(providerId, 'model', e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800"
-                      />
-                      <datalist id={`models-${providerId}`}>
-                        {Array.from(new Set([...providerInfo.models, ...(providerId === 'gemini' ? geminiModels : [])])).map(model => <option key={model} value={model} />)}
-                      </datalist>
-                      {providerId === 'gemini' && <div className="mt-2 text-sm">
-                        <button type="button" onClick={loadGeminiModels} disabled={loadingModels || !config.apiKey?.trim()} className="text-blue-600 underline disabled:opacity-50">
-                          {loadingModels ? 'Loading models...' : 'Load models for this key'}
-                        </button>
-                        <p>Use a model available to your project. Free-tier quotas vary; a quota error does not mean your key is invalid.</p>
-                      </div>}
-                    </div>
+                    <ProviderModelPicker
+                      provider={providerId as ProviderId}
+                      value={config.model || providerInfo.defaultModel}
+                      recommended={providerInfo.models}
+                      onChange={model => handleProviderConfigChange(providerId, 'model', model)}
+                    />
                   </div>
                 </div>
               );

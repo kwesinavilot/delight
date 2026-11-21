@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Optional Vercel AI Gateway model browsing for supported providers, filtered to text-capable language models and showing available capability/context details; direct model ID entry remains available.
+
+### Changed
+- Replace model-name examples on the onboarding provider cards with short descriptions of each provider's strengths.
+- Keep optional analytics consent under Settings > Appearance instead of onboarding.
+
 ## [1.5.0] - 2026-11-21
 
 ### Added

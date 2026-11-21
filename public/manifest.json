@@ -17,7 +17,7 @@
     "https://*/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai http://localhost:11434 http://127.0.0.1:11434;"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com https://ai-gateway.vercel.sh https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai http://localhost:11434 http://127.0.0.1:11434;"
   },
   "action": {
     "default_icon": {
