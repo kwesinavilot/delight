@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ArrowUp, Bot, Check, ChevronDown, Globe, Loader2, Paperclip, Plus, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AgentOrchestrator } from '../../services/agents/AgentOrchestrator';
@@ -94,7 +94,7 @@ export default function AgentPage({ onBack }: { onBack: () => void }) {
         </details>
         {selected.result && <p role="status" className="whitespace-pre-wrap break-words leading-relaxed text-sm">{selected.result}</p>}
         {runtime && <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { void (selected.status === 'paused' ? runtime.resumeCurrentTask() : runtime.pauseCurrentTask()); }}>{selected.status === 'paused' ? 'Resume' : 'Pause'}</Button>
+          <Button variant="outline" size="sm" onClick={() => { void (selected.status === 'paused' ? runtime.resumeCurrentTask() : runtime.pauseCurrentTask()); }}>{selected.status === 'paused' ? selected.awaitingContinuation ? 'Continue' : 'Resume' : 'Pause'}</Button>
           <Button variant="ghost" size="sm" onClick={() => { void runtime.stopCurrentTask(); }}>Stop</Button>
         </div>}
         {selected.status === 'interrupted' && selected.checkpoint?.version === 1 && <Button variant="outline" size="sm" disabled={starting} onClick={() => { void execute(selected.id); }}>Resume saved task</Button>}

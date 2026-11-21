@@ -10,6 +10,7 @@ import { ConfigManager } from '@/services/config/ConfigManager';
 import { listGeminiModels, testProviderConfiguration } from '@/services/config/ProviderSetup';
 import { AIService } from '@/services/ai/AIService';
 import { AIConfiguration } from '@/types/ai';
+import { AgentSettings, DEFAULT_AGENT_SETTINGS, loadAgentSettings, saveAgentSettings } from '@/services/config/AgentSettings';
 import NetworkStatusPanel from './NetworkStatusPanel';
 import PostHogService from '@/services/PostHogService';
 
@@ -18,7 +19,14 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
-  const [activeTab, setActiveTab] = useState<'appearance' | 'providers' | 'network'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'providers' | 'network' | 'agent'>('appearance');
+  const [agentSettings, setAgentSettings] = useState<AgentSettings>(DEFAULT_AGENT_SETTINGS);
+  const [agentLoaded, setAgentLoaded] = useState(false);
+  const [agentSaving, setAgentSaving] = useState(false);
+  const [agentMessage, setAgentMessage] = useState('');
+  useEffect(() => {
+    void loadAgentSettings().then(value => { setAgentSettings(value); setAgentLoaded(true); }).catch(() => setAgentMessage('Could not load agent settings. Reopen Settings to retry.'));
+  }, []);
   const [aiService] = useState(() => AIService.getInstance());
   const [providers, setProviders] = useState<Record<string, AIConfiguration>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('');
@@ -286,7 +294,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-4 mt-4">
+        <div className="flex flex-wrap gap-1 mt-4">
           <button
             onClick={() => setActiveTab('appearance')}
             className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'appearance'
@@ -314,6 +322,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
           >
             Connectivity
           </button>
+          <button onClick={() => setActiveTab('agent')} className={`px-3 py-2 text-sm font-medium rounded-lg ${activeTab === 'agent' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>Agent</button>
         </div>
       </div>
 
@@ -321,6 +330,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'providers' && (
           <div className="space-y-6">
+            <p className="text-sm text-gray-600 dark:text-gray-300">API keys stay in this browser profile on this machine. They are not synced or stored on Delight servers, and are sent directly to your selected provider for authentication.</p>
             {Object.entries(getFilteredProviders()).map(([providerId, providerInfo]) => {
               const config = providers[providerId] || { provider: providerId, apiKey: '', model: providerInfo.defaultModel };
               const isSelected = selectedProvider === providerId;
@@ -499,9 +509,30 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
               </div>
             )}
 
-            <p className="text-sm text-gray-600 dark:text-gray-300">API keys stay in this browser profile on this machine. They are not synced or stored on Delight servers, and are sent directly to your selected provider for authentication.</p>
           </div>
         )}
+
+        {activeTab === 'agent' && <form className="space-y-6 max-w-xl" onSubmit={async event => {
+          event.preventDefault(); setAgentSaving(true); setAgentMessage('');
+          try { await saveAgentSettings(agentSettings); setAgentMessage('Agent settings saved. Changes apply to new tasks and future chat messages.'); }
+          catch (cause) { setAgentMessage(cause instanceof Error ? cause.message : 'Could not save agent settings.'); }
+          finally { setAgentSaving(false); }
+        }}>
+          <h2 className="text-lg font-semibold">Agent settings</h2>
+          <div className="space-y-2">
+            <label htmlFor="agent-maximum-turns" className="block text-sm font-medium">Maximum turns</label>
+            <p id="agent-turns-help" className="text-sm text-gray-500">The most steps the agent takes on one task. When it reaches this number, it stops and asks whether to go on.</p>
+            <input id="agent-maximum-turns" type="number" min={1} step={1} required aria-describedby="agent-turns-help" disabled={!agentLoaded || agentSaving} value={Number.isNaN(agentSettings.maximumTurns) ? '' : agentSettings.maximumTurns} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, maximumTurns: event.target.valueAsNumber }); }} className="w-full border rounded-lg p-2 bg-transparent" />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="agent-custom-instructions" className="block text-sm font-medium">Custom instructions</label>
+            <p id="agent-instructions-help" className="text-sm text-gray-500">What the agent should know in every conversation, for example ?My company is Acme GmbH. Answer briefly.? Only you can change this; the agent cannot.</p>
+            <textarea id="agent-custom-instructions" rows={6} maxLength={1500} aria-describedby="agent-instructions-help agent-instructions-count" disabled={!agentLoaded || agentSaving} value={agentSettings.customInstructions} onChange={event => { setAgentMessage(''); setAgentSettings({ ...agentSettings, customInstructions: event.target.value }); }} className="w-full border rounded-lg p-3 bg-transparent resize-y" />
+            <p id="agent-instructions-count" className="text-xs text-gray-500 text-right">{agentSettings.customInstructions.length.toLocaleString()} / 1,500 characters</p>
+          </div>
+          <button type="submit" disabled={!agentLoaded || agentSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">{agentSaving ? 'Saving...' : 'Save agent settings'}</button>
+          {agentMessage && <p role="status" className="text-sm">{agentMessage}</p>}
+        </form>}
 
         {activeTab === 'appearance' && (
           <div className="space-y-6">

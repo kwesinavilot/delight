@@ -8,18 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Agent settings tab with a default maximum of 50 steps, explicit continuation at the limit, and locally saved custom instructions limited to 1,500 characters for agent tasks and chat conversations.
 - Home-style Agent screen with task suggestions, a task composer, and a Run button.
 - Current-page attachment with a removable page chip; tasks without an attachment open a new tab.
 - Concurrent agent runs with independent Pause, Resume, and Stop controls, a run switcher, and an active-agent count on the chat toolbar.
 - Per-agent tab ownership checks to prevent concurrent agents from controlling the same page.
 
 ### Changed
+- Move the API-key storage and authentication notice to the top of AI Providers settings.
 - Collapse agent activity under an expandable Thinking summary while displaying final outcomes directly.
 - Keep agents running when switching between Agent mode and chat. Closing the panel still interrupts runs; saved checkpoints require explicit recovery after restart.
 - Preserve all running and paused agents when enforcing the saved-history retention limit.
 
 ### Verification
-- TypeScript checks, production build, and all 67 automated regression tests pass.
+- TypeScript checks, production build, and all 70 automated regression tests pass, including agent settings validation and explicit continuation at the turn limit.
+- Chromium settings checks pass for the provider notice position, Agent tab, defaults, character limit, and local preference saving using adapted extension APIs and provider services.
 - Chromium UI checks pass for suggestions, page attachment, concurrent runs, navigation between views, independent controls, collapsed activity, and visible final outcomes using adapted extension APIs and a mocked planner.
 - Live AI-provider execution and loaded-extension behavior remain unverified for these changes.
 

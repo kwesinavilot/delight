@@ -1,3 +1,4 @@
+import { loadAgentSettings } from '../config/AgentSettings';
 import { AIProvider, GenerationOptions, SummaryLength, AIError, AIErrorType } from '../../types/ai';
 import { ChatMessage } from '../../types/chat';
 import { ConfigManager } from '../config/ConfigManager';
@@ -214,6 +215,9 @@ export class AIService {
       );
     }
 
+    const { customInstructions } = await loadAgentSettings();
+    if (customInstructions) chatMessages = [{ id: 'user-preferences', role: 'system', content: `User preferences (editable only by the user in Settings): ${customInstructions}`, timestamp: Date.now() }, ...chatMessages];
+
     // Prepare fallback providers (exclude current provider)
     const fallbackProviders = this.getConfiguredProviders()
       .filter(name => name !== this.currentProvider?.name)
@@ -266,7 +270,7 @@ export class AIService {
         }
 
         const options: GenerationOptions = {
-          systemPrompt: "You are Delight, a helpful and friendly AI assistant built by Andrews Kwesi Ankomahene and Naviware R&D. You help users with AI-powered conversations, content analysis, and productivity tasks.",
+          systemPrompt: "You are Delight, a helpful and friendly AI assistant built by Andrews Kwesi Ankomahene and Naviware R&D. You help users with AI-powered conversations, content analysis, and productivity tasks." + (customInstructions ? `\nUser preferences: ${customInstructions}` : ''),
           stream: !!onChunk
         };
 

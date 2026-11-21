@@ -26,6 +26,7 @@ function setup(decide, act = async () => 'ok', pause = async () => {}, disk = {}
     if (name.includes('PlannerAgent')) return { PlannerAgent: Planner };
     if (name.includes('ObservedBrowser')) return { ObservedBrowser: Browser };
     if (name.includes('AgentHistory')) return historyModule.exports;
+    if (name.includes('AgentSettings')) return require('./load-typescript.cjs')('src/services/config/AgentSettings.ts');
     throw new Error(`Unexpected import ${name}`);
   }, module, module.exports);
   global.chrome = { tabs: { query: async () => [{ id: 1, url: 'https://example.com' }], get: async () => ({ id: 1, windowId: 1, url: 'https://example.com' }) }, storage: { local: { get: async () => structuredClone(disk), set: async value => Object.assign(disk, structuredClone(value)) } } };
@@ -243,4 +244,31 @@ test('a late planner result after Resume is discarded rather than acting on an o
   assert.equal((await running).success, true);
   assert.equal(ctx.actions.length, 0);
   assert.equal(ctx.observations(), 2);
+});
+
+test('maximum turns pauses and requests explicit continuation for each new batch', async () => {
+  let decisions = 0;
+  const ctx = setup(async () => ++decisions <= 2
+    ? { done: false, action: { type: 'fill', description: 'Fill', data: `value-${decisions}` } }
+    : { done: true, success: true, evidence: 'Completed after user continuation' }, undefined, undefined,
+    { agentSettings: { maximumTurns: 1, customInstructions: 'Answer briefly.' } });
+  const pending = ctx.agent.executeTask('Work');
+  const waitPaused = async () => {
+    for (let i = 0; i < 100; i++) {
+      if (ctx.history.getSnapshot().tasks[0]?.awaitingContinuation) return;
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    throw new Error('Did not pause at maximum turns');
+  };
+  await waitPaused();
+  assert.equal(ctx.actions.length, 1);
+  assert.equal(decisions, 1);
+  assert.match(ctx.history.getSnapshot().tasks[0].result, /Would you like to continue/);
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(decisions, 1);
+  await ctx.agent.resumeCurrentTask();
+  await waitPaused();
+  assert.equal(ctx.actions.length, 2);
+  await ctx.agent.resumeCurrentTask();
+  assert.equal((await pending).success, true);
 });

@@ -5,13 +5,13 @@ const ts = require('typescript');
 const code = ts.transpileModule(fs.readFileSync('src/services/agents/PlannerAgent.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
-async function decide(response, state = {}, inspect = () => {}) {
+async function decide(response, state = {}, inspect = () => {}, instructions = '') {
   const provider = { isConfigured: () => true, generateResponse: async function* (prompt, options) { inspect(prompt, options); yield JSON.stringify(response); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', code)(name => name === 'zod' ? require('zod') : {
     AIService: { getInstance: () => ({ getCurrentProvider: () => provider }) }
   }, module, module.exports);
-  return new module.exports.PlannerAgent().decide('Search cats', state, [], new AbortController().signal);
+  return new module.exports.PlannerAgent(instructions).decide('Search cats', state, [], new AbortController().signal);
 }
 test('uses top-level description when fill action omits its own description', async () => {
   const result = await decide({ description: 'Fill Google search box with cats', done: false,
@@ -47,4 +47,12 @@ test('bounds page text while preserving every observed index and disables hidden
       assert.equal(options.maxRetries, 0);
       assert.ok(options.abortSignal instanceof AbortSignal);
     });
+});
+
+
+test('every planner decision includes user-owned instructions without permitting settings changes', async () => {
+  await decide({description:'Done',done:true,success:true,evidence:'Verified'}, {}, prompt => {
+    assert.match(prompt, /My company is Acme GmbH/);
+    assert.match(prompt, /only the user can edit/);
+  }, 'My company is Acme GmbH. Answer briefly.');
 });

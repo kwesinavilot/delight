@@ -2,6 +2,7 @@ import { TaskPlan, TaskStep, AutomationResult } from '../../types/agents';
 import { PlannerAgent } from './PlannerAgent';
 import { ObservedBrowser } from '../automation/ObservedBrowser';
 import { agentHistory, TaskHistory } from './AgentHistory';
+import { loadAgentSettings } from '../config/AgentSettings';
 
 interface Callbacks {
   onPlanCreated?: (steps: TaskStep[]) => void;
@@ -108,7 +109,8 @@ export class AgentOrchestrator {
       if (saved) await agentHistory.reopen(taskId);
       else await agentHistory.start(taskId, input);
       signal.throwIfAborted();
-      const planner = new PlannerAgent();
+      const settings = await loadAgentSettings();
+      const planner = new PlannerAgent(settings.customInstructions);
       progress('initializing', 'Checking the selected AI provider...');
       await planner.initialize();
       signal.throwIfAborted();
@@ -127,8 +129,17 @@ export class AgentOrchestrator {
       if (uncertain) history.push({ action: 'recovery', result: { submission: 'unverified', outcome: 'An action may have executed before restart. Inspect and verify its outcome, never replay it.' } });
       if (saved) progress('recovering', 'Recovered task summaries. Inspecting the matched tab before any new action.');
       let failures = 0, repeated = 0, previousFingerprint = '', cooldowns = 0, plannerRecoveries = 0;
-      for (let i = steps.length; i < 30;) {
+      let turnLimit = steps.length + settings.maximumTurns;
+      for (let i = steps.length; ;) {
         await this.checkpoint(run);
+        if (i >= turnLimit) {
+          run.pauseRequested = true;
+          task.status = 'paused';
+          await agentHistory.pause(taskId, `Reached the maximum of ${settings.maximumTurns} steps. Would you like to continue for up to ${settings.maximumTurns} more steps?`, true);
+          await this.checkpoint(run);
+          turnLimit = i + settings.maximumTurns;
+          continue;
+        }
         progress('observing', 'Inspecting the current page...');
         const state = await browser.observe();
         await agentHistory.checkpoint(taskId, { version: 1, tabId: state.tabId ?? tab.id!, windowId: state.windowId,
@@ -246,7 +257,6 @@ export class AgentOrchestrator {
         }
         i++;
       }
-      throw new Error('Action limit reached before task completion was verified');
     } catch (error) {
       task.status = 'failed';
       await agentHistory.finish(taskId, signal.aborted ? 'cancelled' : !recoveryReady ? 'interrupted' : 'failed', signal.aborted ? 'Task cancelled.' : error instanceof Error ? error.message : String(error));

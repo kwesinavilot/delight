@@ -5,6 +5,7 @@ export interface HistoryEvent { id: string; timestamp: number; message: string; 
 export interface TaskHistory {
   id: string; input: string; startedAt: number; endedAt?: number; status: RunStatus;
   steps: TaskStep[]; events: HistoryEvent[]; result?: string;
+  awaitingContinuation?: boolean;
   checkpoint?: { version: 1; tabId: number; windowId?: number; url: string; pending: boolean; uncertain: boolean };
 }
 interface Snapshot { tasks: TaskHistory[]; loaded: boolean; storageError?: string; }
@@ -89,12 +90,13 @@ export class AgentHistory {
       id: step.id, type: step.type, description: step.description, status: step.status
     })) }));
   }
-  async pause(id: string) {
-    this.update(id, task => ({ ...task, status: 'paused', result: 'Task paused. An action already in progress may finish. Resume will inspect the page again.' }));
+  async pause(id: string, message?: string, awaitingContinuation?: boolean) {
+    this.update(id, task => ({ ...task, status: 'paused', awaitingContinuation: awaitingContinuation ?? task.awaitingContinuation,
+      result: message || (task.awaitingContinuation ? task.result : 'Task paused. An action already in progress may finish. Resume will inspect the page again.') }));
     await this.flush();
   }
   async resume(id: string) {
-    this.update(id, task => ({ ...task, status: 'running', result: undefined }));
+    this.update(id, task => ({ ...task, status: 'running', result: undefined, awaitingContinuation: false }));
     await this.flush();
   }
   async finish(id: string, status: Exclude<RunStatus, 'running' | 'paused'>, result: string) {
