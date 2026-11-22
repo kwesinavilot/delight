@@ -2,7 +2,7 @@ import PostHogService from '../PostHogService';
 import { AIConfiguration } from '../../types/ai';
 
 const KEY = 'agentModelConfiguration';
-const providers = ['openai', 'anthropic', 'gemini', 'grok', 'groq', 'sambanova', 'ollama'];
+const providers = ['openai', 'deepseek', 'mistral', 'anthropic', 'gemini', 'grok', 'groq', 'sambanova', 'ollama'];
 export async function loadAgentModel(): Promise<AIConfiguration | null> {
   const stored = (await chrome.storage.local.get([KEY]))[KEY];
   if (!stored) return null;

@@ -7,7 +7,7 @@ import { GroqProvider } from './providers/GroqProvider';
 import { SambaNovaProvider } from './providers/SambaNovaProvider';
 import { OllamaProvider } from './providers/OllamaProvider';
 export function createProvider(config: AIConfiguration): AIProvider {
-  const classes = { openai: OpenAIProvider, anthropic: AnthropicProvider, gemini: GeminiProvider, grok: GrokProvider, groq: GroqProvider, sambanova: SambaNovaProvider, ollama: OllamaProvider };
+  const classes = { openai: OpenAIProvider, deepseek: OpenAIProvider, mistral: OpenAIProvider, anthropic: AnthropicProvider, gemini: GeminiProvider, grok: GrokProvider, groq: GroqProvider, sambanova: SambaNovaProvider, ollama: OllamaProvider };
   const Provider = classes[config.provider as keyof typeof classes];
   if (!Provider) throw new Error('This AI provider is not supported.');
   return new Provider(config);

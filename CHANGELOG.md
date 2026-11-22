@@ -5,14 +5,16 @@ All notable changes to Delight will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.6.0] - 2026-11-22
 
 ### Added
-- Optional Vercel AI Gateway model browsing for supported providers, filtered to text-capable language models and showing available capability/context details; direct model ID entry remains available.
+- Optional Vercel AI Gateway model browsing for supported providers, filtered to text-capable language models; direct model ID entry remains available.
+- DeepSeek and Mistral as direct AI providers, with model choices in onboarding and Settings.
 
 ### Changed
 - Replace model-name examples on the onboarding provider cards with short descriptions of each provider's strengths.
 - Keep optional analytics consent under Settings > Appearance instead of onboarding.
+- Simplify the model browser to show model names without descriptions or capability details.
 
 ## [1.5.0] - 2026-11-21
 

@@ -55,6 +55,8 @@ export class ConfigManager {
             maxTokens: 1000,
             temperature: 0.7
           },
+          deepseek: { apiKey: '', model: 'deepseek-chat', maxTokens: 1000, temperature: 0.7 },
+          mistral: { apiKey: '', model: 'mistral-small-latest', maxTokens: 1000, temperature: 0.7 },
           grok: {
             apiKey: '',
             model: 'grok-beta',
@@ -138,6 +140,8 @@ export class ConfigManager {
       openai: 'gpt-3.5-turbo',
       anthropic: 'claude-3-haiku-20240307',
       gemini: 'gemini-2.5-flash',
+      deepseek: 'deepseek-chat',
+      mistral: 'mistral-small-latest',
       grok: 'grok-beta',
       groq: 'openai/gpt-oss-20b',
       sambanova: 'Meta-Llama-3.1-8B-Instruct',

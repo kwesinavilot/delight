@@ -84,6 +84,16 @@ const UserGuidePage: React.FC = () => {
                 <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
               </div>
               <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">DeepSeek</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Chat and reasoning models</p>
+                <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <h5 className="font-medium text-gray-900 dark:text-white">Mistral AI</h5>
+                <p className="text-sm text-gray-600 dark:text-gray-400">General-purpose and multilingual models</p>
+                <a href="https://console.mistral.ai/api-keys/" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
+              </div>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                 <h5 className="font-medium text-gray-900 dark:text-white">Grok (X.AI)</h5>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Witty AI with real-time info</p>
                 <a href="https://console.x.ai/" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800">Get API Key →</a>
@@ -487,7 +497,7 @@ const UserGuidePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Delight User Guide</h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 7 providers, AI tools, and smart page attachment.
+            Everything you need to know about using Delight, your AI-powered Chrome extension with agent automation, 9 providers, AI tools, and smart page attachment.
           </p>
         </div>
 

@@ -2,17 +2,19 @@
 
 > An intelligent Chrome extension that provides AI-powered chat and page summaries using flexible LLM providers.
 
-## Version 1.5.0 — More capable agents and optional analytics
+## Version 1.6.0 — More AI provider choice
 
-Run multiple browser agents with independent controls, choose an optional separate agent model, and set task limits, approval, tab-access, and history preferences. Optional product analytics is off by default and excludes prompts, page contents, URLs, and API keys.
+Connect DeepSeek and Mistral directly, browse text-capable models from supported providers, and choose models by name. Delight also supports multiple concurrent browser agents with independent controls, optional separate agent models, configurable task limits, approvals, tab access, and history preferences. Optional product analytics is off by default and excludes prompts, page contents, URLs, and API keys.
 
 Provide your own provider configuration. Keys and checkpoints stay in this browser profile; relevant page observations and task outcomes go directly to your selected AI provider. Usage analytics is off unless explicitly enabled. See [release audit](docs/release-audit.md) and [automation limitations](docs/automation-parity.md).
 
-Now supporting **7 major AI providers, including Ollama** with **30+ models** for every use case:
+Now supporting **9 major AI providers, including Ollama** with **30+ models** for every use case:
 - ⚡ **Groq** - Ultra-fast inference
 - 🤖 **OpenAI** - GPT-4o, GPT-4 Turbo
 - 🧠 **Anthropic** - Claude 3.5 Sonnet, Opus
 - 🔍 **Google Gemini** - 2.5 Pro/Flash, Enhanced with structured output
+- 🐋 **DeepSeek** - Direct access to chat and reasoning models
+- 🌪️ **Mistral AI** - General-purpose and multilingual models
 - 😄 **Grok (X.AI)** - Witty personality, real-time info
 - 🦙 **SambaNova** - Llama 3.1/3.2 (1B-405B)
 - 💻 **Ollama** - Access local models via Ollama (local)
@@ -20,7 +22,7 @@ Now supporting **7 major AI providers, including Ollama** with **30+ models** fo
 ## 🌟 Features
 
 ### 🚀 Core AI Features
-- **Multi-Provider AI Support**: Choose between 7 providers: OpenAI, Anthropic, Google Gemini, Grok (X.AI), Groq, SambaNova, and Ollama. GPT-OSS models are available through compatible hosts rather than a separate provider.
+- **Multi-Provider AI Support**: Choose between 9 providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral AI, Grok (X.AI), Groq, SambaNova, and Ollama. GPT-OSS models are available through compatible hosts rather than a separate provider.
 - **🏆 GPT-OSS Integration**: OpenAI's open-weight reasoning models with dual hosting options (Groq hosted + Ollama local)
 - **🤖 Iterative Agent System**: Memory-driven multi-agent framework inspired by Vercel AI SDK patterns for reliable web automation
 - **🧠 Agent Memory & Messaging**: Persistent context and structured communication between agents for better decision making
@@ -191,7 +193,7 @@ The extension uses a modular architecture with clear separation of concerns:
 
 #### AI Service Layer
 - **AIService**: Main orchestration layer managing provider interactions
-- **Providers**: Individual implementations for OpenAI, Anthropic, Gemini, Grok, Groq, and SambaNova
+- **Providers**: Implementations for OpenAI-compatible APIs (including DeepSeek and Mistral), Anthropic, Gemini, Grok, Groq, and SambaNova
 - **Configuration**: Secure management of API keys and settings
 
 #### UI Components
@@ -342,7 +344,7 @@ npm run test:watch
 - 🔲 **Custom Prompt Templates**: User-defined prompt libraries
 - 🔲 Advanced summary customization
 - 🔲 Batch processing for multiple pages
-- 🔲 Additional AI providers (Cohere, Mistral)
+- 🔲 Additional AI providers (for example, Cohere)
 - 🔲 Multi-language support
 
 ## 🤝 Contributing

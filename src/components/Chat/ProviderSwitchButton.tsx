@@ -23,6 +23,8 @@ const ProviderSwitchButton: React.FC<ProviderSwitchButtonProps> = ({
   // Provider display names
   const providerNames: Record<string, string> = {
     openai: 'OpenAI',
+    deepseek: 'DeepSeek',
+    mistral: 'Mistral AI',
     anthropic: 'Anthropic',
     gemini: 'Gemini',
     grok: 'Grok',

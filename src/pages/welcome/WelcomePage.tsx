@@ -51,6 +51,16 @@ const WelcomePage: React.FC = () => {
       description: 'Long-context work and image understanding, with a range of speed options.'
     },
     {
+      name: 'DeepSeek',
+      icon: <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/DeepSeek-icon.svg" alt="" className="h-6 w-6" />,
+      description: 'Chat and reasoning models with direct API access.'
+    },
+    {
+      name: 'Mistral AI',
+      icon: <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Mistral_AI_logo_%282025%E2%80%93%29.svg" alt="" className="h-6 w-6 object-contain" />,
+      description: 'Multilingual models and a range of options for different workloads.'
+    },
+    {
       name: 'Grok (X.AI)',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="24" width="24" viewBox="0 0 24 24">

@@ -14,6 +14,8 @@ export class ContextProcessor implements IContextProcessor {
   // Provider-specific token limits (conservative estimates)
   private readonly PROVIDER_LIMITS: Record<string, number> = {
     'openai': 4000,      // GPT-3.5-turbo context window
+    'deepseek': 8000,
+    'mistral': 8000,
     'anthropic': 8000,   // Claude context window
     'gemini': 8000,      // Gemini Pro context window
     'grok': 4000,        // Grok context window
@@ -30,6 +32,8 @@ export class ContextProcessor implements IContextProcessor {
       switch (provider.toLowerCase()) {
         case 'openai':
         case 'groq':
+        case 'deepseek':
+        case 'mistral':
           return this.formatForOpenAI(messages);
         
         case 'anthropic':
@@ -453,6 +457,18 @@ export class ContextProcessor implements IContextProcessor {
         truncationStrategy: 'recent' as const,
         preserveSystemMessages: true,
         maxContextMessages: 40
+      },
+      deepseek: {
+        preferredTokenLimit: 7000,
+        truncationStrategy: 'recent' as const,
+        preserveSystemMessages: true,
+        maxContextMessages: 80
+      },
+      mistral: {
+        preferredTokenLimit: 7000,
+        truncationStrategy: 'recent' as const,
+        preserveSystemMessages: true,
+        maxContextMessages: 80
       },
       sambanova: {
         preferredTokenLimit: 3500,

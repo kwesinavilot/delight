@@ -22,7 +22,7 @@ const assert=require('node:assert/strict');
   await page.goto('https://analytics.test/private?secret=private');
   await page.evaluate(()=>{
    const disk={analyticsOptIn:false},listeners=[];
-   window.chrome={runtime:{getManifest:()=>({version:'1.5.0'})},storage:{local:{get:async()=>({...disk}),set:async value=>{Object.assign(disk,value);listeners.forEach(fn=>fn({analyticsOptIn:{newValue:disk.analyticsOptIn}},'local'));}},onChanged:{addListener:fn=>listeners.push(fn)}}};
+   window.chrome={runtime:{getManifest:()=>({version:'1.6.0'})},storage:{local:{get:async()=>({...disk}),set:async value=>{Object.assign(disk,value);listeners.forEach(fn=>fn({analyticsOptIn:{newValue:disk.analyticsOptIn}},'local'));}},onChanged:{addListener:fn=>listeners.push(fn)}}};
   });
   await page.addScriptTag({content:build.outputFiles[0].text});
   // Wait for the async consent read; a fixture promise, not a live network dependency.

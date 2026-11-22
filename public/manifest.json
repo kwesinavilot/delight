@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Delight",
-  "version": "1.5.0",
-  "description": "Multi-agent AI assistant to boost your productivity. Access 30+ models, automate tasks, enhance writing and speed up work.",
+  "version": "1.6.0",
+  "description": "Multi-agent AI assistant to boost your productivity. Access 30+ models from 9 providers, automate tasks, enhance writing and speed up work.",
   "permissions": [
     "sidePanel",
     "activeTab",
@@ -17,7 +17,7 @@
     "https://*/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://us.i.posthog.com https://ai-gateway.vercel.sh https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai http://localhost:11434 http://127.0.0.1:11434;"
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' https://upload.wikimedia.org https://sambanova.ai; connect-src 'self' https://us.i.posthog.com https://ai-gateway.vercel.sh https://www.google.com https://generativelanguage.googleapis.com https://api.openai.com https://api.deepseek.com https://api.mistral.ai https://api.anthropic.com https://api.x.ai https://api.groq.com https://api.sambanova.ai http://localhost:11434 http://127.0.0.1:11434;"
   },
   "action": {
     "default_icon": {

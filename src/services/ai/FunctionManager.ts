@@ -232,7 +232,7 @@ export class FunctionManager {
     }
 
     // Validate provider
-    const validProviders = ['openai', 'anthropic', 'gemini', 'grok', 'sambanova'];
+    const validProviders = ['openai', 'deepseek', 'mistral', 'anthropic', 'gemini', 'grok', 'groq', 'sambanova'];
     if (!config.provider || !validProviders.includes(config.provider)) {
       errors.push(`Provider must be one of: ${validProviders.join(', ')}`);
     }

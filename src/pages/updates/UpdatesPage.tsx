@@ -39,7 +39,7 @@ const UpdatesPage: React.FC = () => {
   const getVersionChanges = (version: string) => {
     // Return changes based on version
     switch (version) {
-      case '1.5.0':
+      case '1.6.0':
         return {
           title: 'A more capable, controllable Delight',
           subtitle: 'Run multiple agents, choose how they work, and optionally help improve Delight',
@@ -49,7 +49,8 @@ const UpdatesPage: React.FC = () => {
             { icon: <CheckCircleIcon className="h-6 w-6 text-green-500" />, title: 'Control each task', description: 'Set a maximum step count (50 by default), approve recognized sensitive actions, and choose whether agents may open or switch tabs. Continue explicitly when the step limit is reached.' },
             { icon: <DocumentTextIcon className="h-6 w-6 text-blue-500" />, title: 'Preferences and history', description: 'Save up to 1,500 characters of custom instructions for chat and agents. Choose how many inactive tasks to retain or clear saved history while preserving active runs.' },
             { icon: <RocketLaunchIcon className="h-6 w-6 text-purple-500" />, title: 'Switch views while agents work', description: 'Return to chat and reopen Agent to view active runs. Closing the panel interrupts tasks; retained checkpoints require explicit recovery after restart.' },
-            { icon: <ChartBarIcon className="h-6 w-6 text-indigo-500" />, title: 'Optional usage analytics', description: 'Analytics is off by default. You can enable it under Settings > Appearance. Aggregate feature and task events exclude prompts, page content, URLs, and API keys.' }
+            { icon: <ChartBarIcon className="h-6 w-6 text-indigo-500" />, title: 'Optional usage analytics', description: 'Analytics is off by default. You can enable it under Settings > Appearance. Aggregate feature and task events exclude prompts, page content, URLs, and API keys.' },
+            { icon: <SparklesIcon className="h-6 w-6 text-blue-500" />, title: 'More provider choice', description: 'Connect DeepSeek or Mistral AI directly with your own API key, and choose a model by name in Settings or onboarding.' }
           ]
         };
       case '1.4.2':

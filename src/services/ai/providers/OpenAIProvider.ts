@@ -7,13 +7,19 @@ import { functionManager } from '../FunctionManager';
 export class OpenAIProvider extends BaseAIProvider {
     private client: any;
 
+    private defaultModel(): string {
+        if (this.config.provider === 'deepseek') return 'deepseek-chat';
+        if (this.config.provider === 'mistral') return 'mistral-small-latest';
+        return 'gpt-3.5-turbo';
+    }
+
     constructor(config: AIConfiguration) {
         super(config);
         this.initializeClient();
     }
 
     get name(): string {
-        return 'openai';
+        return this.config.provider || 'openai';
     }
 
     private initializeClient(): void {
@@ -21,8 +27,15 @@ export class OpenAIProvider extends BaseAIProvider {
             return; // Client will be initialized when API key is available
         }
 
+        const compatibleProvider = this.config.provider === 'deepseek' || this.config.provider === 'mistral';
+        const baseURL = this.config.provider === 'deepseek'
+            ? 'https://api.deepseek.com'
+            : this.config.provider === 'mistral'
+                ? 'https://api.mistral.ai/v1'
+                : undefined;
         this.client = createOpenAI({
             apiKey: this.config.apiKey,
+            ...(compatibleProvider ? { baseURL } : {}),
         });
     }
 
@@ -47,7 +60,7 @@ export class OpenAIProvider extends BaseAIProvider {
         try {
             // Use centralized chat options preparation
             const preparedOptions = this.prepareChatOptions(options);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || this.defaultModel());
 
             // Convert messages to OpenAI format (handle 'model' role from Gemini)
             const openAIMessages = messages.map(msg => ({
@@ -101,7 +114,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
             // Use centralized summary options preparation
             const { prompt, systemPrompt, options } = this.prepareSummaryOptions(content, length);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || this.defaultModel());
 
             const result = await generateText({
                 model,
@@ -126,7 +139,7 @@ export class OpenAIProvider extends BaseAIProvider {
         // Generate summaries for each chunk
         for (let i = 0; i < chunks.length; i++) {
             const { prompt, options } = functionManager.prepareChunkSummaryOptions(chunks[i], i, chunks.length);
-            const model = this.client(this.config.model || 'gpt-3.5-turbo');
+            const model = this.client(this.config.model || this.defaultModel());
 
             const result = await generateText({
                 model,
@@ -142,7 +155,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
         // Combine chunk summaries into final summary
         const { prompt: combinedPrompt, options: combinedOptions } = functionManager.prepareCombinedSummaryOptions(chunkSummaries, length);
-        const model = this.client(this.config.model || 'gpt-3.5-turbo');
+        const model = this.client(this.config.model || this.defaultModel());
 
         const finalResult = await generateText({
             model,
@@ -221,7 +234,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
     // Get model capabilities
     getModelCapabilities(model?: string): { maxTokens: number; supportsStreaming: boolean } {
-        const modelName = model || this.config.model || 'gpt-3.5-turbo';
+        const modelName = model || this.config.model || this.defaultModel();
 
         const capabilities: Record<string, { maxTokens: number; supportsStreaming: boolean }> = {
             'gpt-4o': { maxTokens: 128000, supportsStreaming: true },

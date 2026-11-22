@@ -44,6 +44,8 @@ export class AIService {
   private async registerProviders(): Promise<void> {
     const providerClasses = {
       openai: OpenAIProvider,
+      deepseek: OpenAIProvider,
+      mistral: OpenAIProvider,
       anthropic: AnthropicProvider,
       gemini: GeminiProvider,
       grok: GrokProvider,
@@ -480,6 +482,8 @@ export class AIService {
 
       switch (providerName) {
         case 'openai':
+        case 'deepseek':
+        case 'mistral':
           tempProvider = new OpenAIProvider(config);
           break;
         case 'anthropic':
@@ -543,6 +547,18 @@ export class AIService {
     const capabilities = {
       openai: {
         maxTokens: 4000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      deepseek: {
+        maxTokens: 8000,
+        supportsSystemMessages: true,
+        supportsConversationHistory: true,
+        messageFormatRequirements: ['role', 'content']
+      },
+      mistral: {
+        maxTokens: 8000,
         supportsSystemMessages: true,
         supportsConversationHistory: true,
         messageFormatRequirements: ['role', 'content']

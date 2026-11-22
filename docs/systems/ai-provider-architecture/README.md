@@ -33,6 +33,8 @@ graph TB
     
     subgraph "Provider Implementations"
         OpenAI[OpenAI Provider]
+        DeepSeek[DeepSeek via OpenAI-compatible API]
+        Mistral[Mistral via OpenAI-compatible API]
         Anthropic[Anthropic Provider]
         Gemini[Gemini Provider]
         Grok[Grok Provider]
@@ -48,6 +50,8 @@ graph TB
     
     subgraph "External Services"
         OpenAIAPI[OpenAI API]
+        DeepSeekAPI[DeepSeek API]
+        MistralAPI[Mistral API]
         AnthropicAPI[Anthropic API]
         GeminiAPI[Gemini API]
         GrokAPI[Grok API]
@@ -65,6 +69,8 @@ graph TB
     BaseProvider --> PromptManager
     
     OpenAI --> BaseProvider
+    DeepSeek --> BaseProvider
+    Mistral --> BaseProvider
     Anthropic --> BaseProvider
     Gemini --> BaseProvider
     Grok --> BaseProvider
@@ -73,6 +79,8 @@ graph TB
     Ollama --> BaseProvider
     
     OpenAI --> OpenAIAPI
+    DeepSeek --> DeepSeekAPI
+    Mistral --> MistralAPI
     Anthropic --> AnthropicAPI
     Gemini --> GeminiAPI
     Grok --> GrokAPI

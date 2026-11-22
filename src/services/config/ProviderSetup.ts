@@ -6,6 +6,8 @@ export const providerOptions = {
   openai: { name: 'OpenAI', model: 'gpt-4o-mini', models: ['gpt-4o-mini', 'gpt-4o'], gatewayPrefix: 'openai/', url: 'https://platform.openai.com/api-keys' },
   anthropic: { name: 'Anthropic', model: 'claude-sonnet-4-5', models: ['claude-sonnet-4-5'], gatewayPrefix: 'anthropic/', url: 'https://console.anthropic.com/' },
   gemini: { name: 'Google Gemini', model: 'gemini-2.5-flash-lite', models: ['gemini-2.5-flash-lite', 'gemini-2.5-flash'], gatewayPrefix: 'google/', url: 'https://aistudio.google.com/app/apikey' },
+  deepseek: { name: 'DeepSeek', model: 'deepseek-chat', models: ['deepseek-chat', 'deepseek-reasoner'], gatewayPrefix: 'deepseek/', url: 'https://platform.deepseek.com/api_keys' },
+  mistral: { name: 'Mistral AI', model: 'mistral-small-latest', models: ['mistral-small-latest', 'mistral-large-latest'], gatewayPrefix: 'mistral/', url: 'https://console.mistral.ai/api-keys/' },
   grok: { name: 'xAI', model: 'grok-3-mini', models: ['grok-3-mini'], gatewayPrefix: 'xai/', url: 'https://console.x.ai/' },
   groq: { name: 'Groq', model: 'openai/gpt-oss-20b', models: ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'llama-3.3-70b-versatile'], gatewayPrefix: 'groq/', url: 'https://console.groq.com/keys' },
   sambanova: {

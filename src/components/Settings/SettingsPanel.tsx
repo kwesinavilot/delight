@@ -75,6 +75,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ }) => {
       apiKeyPlaceholder: 'AI...',
       website: 'https://aistudio.google.com/app/apikey'
     },
+    deepseek: {
+      name: 'DeepSeek',
+      description: 'Models for general chat and reasoning, with direct API access.',
+      models: ['deepseek-chat', 'deepseek-reasoner'],
+      defaultModel: 'deepseek-chat',
+      apiKeyPlaceholder: 'sk-...',
+      website: 'https://platform.deepseek.com/api_keys'
+    },
+    mistral: {
+      name: 'Mistral AI',
+      description: 'A range of general-purpose and multilingual models.',
+      models: ['mistral-small-latest', 'mistral-large-latest'],
+      defaultModel: 'mistral-small-latest',
+      apiKeyPlaceholder: 'API key',
+      website: 'https://console.mistral.ai/api-keys/'
+    },
     grok: {
       name: 'Grok (X.AI)',
       description: 'Grok models with witty personality and real-time information',

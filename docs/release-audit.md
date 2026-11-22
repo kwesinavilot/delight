@@ -1,4 +1,4 @@
-# Delight 1.5.0 release audit
+# Delight 1.6.0 release audit
 
 Scope: local source, packaged extension, and regression fixtures. This is a technical preflight, not store approval or proof of live-service delivery. No listing or external policy document was edited.
 
@@ -40,7 +40,7 @@ Inaccessible ancestors, overlays, out-of-viewport targets and transformed frame 
 
 ## Package workflow
 
-Run `node --test tests/*.test.cjs`, browser fixtures, then `npm run package:release`. It builds, audits and creates `releases/delight-1.5.0.zip` from `dist` only, with `manifest.json` at the root. Existing ZIPs are not overwritten. The command prints SHA-256 for artifact identification.
+Run `node --test tests/*.test.cjs`, browser fixtures, then `npm run package:release`. It builds, audits and creates `releases/delight-1.6.0.zip` from `dist` only, with `manifest.json` at the root. Existing ZIPs are not overwritten. The command prints SHA-256 for artifact identification.
 
 `scripts/audit-release.cjs` checks package/lock/source/built manifest versions, changelog, permission allowlist, CSP, packaged entry files, accidental source/maps/private artifacts, remote HTML script tags and limited credential patterns. This is not comprehensive secret scanning, dependency security auditing or a complete interpretation of MV3 remote-code policy. Review final bundles and give reviewers a clear description of the finite action schema.
 
