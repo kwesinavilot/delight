@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Delight",
+  "name": "Delight: 50+ AI Models, Agents and Automations",
   "version": "1.6.0",
-  "description": "Multi-agent AI assistant to boost your productivity. Access 30+ models from 9 providers, automate tasks, enhance writing and speed up work.",
+  "description": "Access 50+ models from 9 providers, automate tasks, speed up work and boost productivity",
   "permissions": [
     "sidePanel",
     "activeTab",
